@@ -8,7 +8,7 @@ import { Edit2 } from 'lucide-vue-next'
     <!-- Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-top">
-        <router-link to="/staff/dashboard" class="logo">
+        <router-link to="/staf/dasbor" class="logo">
           <div class="logo-icon"></div>
           <span class="logo-text">reimburseKu</span>
         </router-link>
@@ -21,7 +21,7 @@ import { Edit2 } from 'lucide-vue-next'
           <h3 class="user-name">Silviana Rodrigo</h3>
           <p class="user-role">SOFTWARE ENGINEER</p>
           
-          <router-link to="/staff/profile" class="edit-profile-btn">
+          <router-link to="/staf/profil" class="edit-profile-btn">
             <Edit2 :size="14" />
             <span>Edit Profile</span>
           </router-link>

@@ -5,51 +5,51 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: '/staff/login'
+      redirect: '/staf/masuk'
     },
 
-    // Staff routes
+    // ─── Rute Staf ───────────────────────────────────────────────
     {
-      path: '/staff/login',
-      name: 'staff-login',
+      path: '/staf/masuk',
+      name: 'staf-masuk',
       component: () => import('../views/staff/LoginView.vue')
     },
     {
-      path: '/staff',
+      path: '/staf',
       component: () => import('../layouts/StaffLayout.vue'),
       children: [
         {
-          path: 'dashboard',
-          name: 'staff-dashboard',
+          path: 'dasbor',
+          name: 'staf-dasbor',
           component: () => import('../views/staff/DashboardView.vue')
         },
         {
           path: 'reimbursement',
-          name: 'staff-reimbursement',
+          name: 'staf-reimbursement',
           component: () => import('../views/staff/ReimbursementView.vue')
         },
         {
-          path: 'reimbursement/add',
-          name: 'staff-reimbursement-add',
+          path: 'reimbursement/tambah',
+          name: 'staf-reimbursement-tambah',
           component: () => import('../views/staff/ReimbursementAddView.vue')
         },
         {
           path: 'reimbursement/:id',
-          name: 'staff-reimbursement-detail',
+          name: 'staf-reimbursement-detail',
           component: () => import('../views/staff/ReimbursementDetailView.vue')
         },
         {
-          path: 'profile',
-          name: 'staff-profile',
+          path: 'profil',
+          name: 'staf-profil',
           component: () => import('../views/staff/ProfileView.vue')
         }
       ]
     },
 
-    // Admin routes
+    // ─── Rute Admin ───────────────────────────────────────────────
     {
-      path: '/admin/login',
-      name: 'admin-login',
+      path: '/admin/masuk',
+      name: 'admin-masuk',
       component: () => import('../views/admin/LoginView.vue')
     },
     {
@@ -57,8 +57,8 @@ const router = createRouter({
       component: () => import('../layouts/AdminLayout.vue'),
       children: [
         {
-          path: 'dashboard',
-          name: 'admin-dashboard',
+          path: 'dasbor',
+          name: 'admin-dasbor',
           component: () => import('../views/admin/DashboardView.vue')
         },
         {
@@ -94,10 +94,10 @@ const router = createRouter({
       ]
     },
 
-    // Finance routes
+    // ─── Rute Finance ─────────────────────────────────────────────
     {
-      path: '/finance/login',
-      name: 'finance-login',
+      path: '/finance/masuk',
+      name: 'finance-masuk',
       component: () => import('../views/finance/LoginView.vue')
     },
     {
@@ -105,8 +105,8 @@ const router = createRouter({
       component: () => import('../layouts/FinanceLayout.vue'),
       children: [
         {
-          path: 'dashboard',
-          name: 'finance-dashboard',
+          path: 'dasbor',
+          name: 'finance-dasbor',
           component: () => import('../views/finance/DashboardView.vue')
         },
         {
@@ -115,12 +115,35 @@ const router = createRouter({
           component: () => import('../views/finance/ReimbursementView.vue')
         },
         {
+          path: 'deposit',
+          name: 'finance-deposit',
+          component: () => import('../views/finance/DepositView.vue')
+        },
+        {
+          path: 'deposit/tambah',
+          name: 'finance-deposit-tambah',
+          component: () => import('../views/finance/TambahDepositView.vue')
+        },
+        {
+          path: 'karyawan',
+          name: 'finance-karyawan',
+          component: () => import('../views/finance/KaryawanView.vue')
+        },
+        {
           path: 'arsip',
           name: 'finance-arsip',
           component: () => import('../views/finance/ArsipView.vue')
         }
       ]
-    }
+    },
+
+    // ─── Redirect lama (agar link lama tidak 404) ─────────────────
+    { path: '/staff/login',   redirect: '/staf/masuk'   },
+    { path: '/admin/login',   redirect: '/admin/masuk'  },
+    { path: '/finance/login', redirect: '/finance/masuk' },
+    { path: '/staff/dashboard',   redirect: '/staf/dasbor'   },
+    { path: '/admin/dashboard',   redirect: '/admin/dasbor'  },
+    { path: '/finance/dashboard', redirect: '/finance/dasbor' },
   ]
 })
 

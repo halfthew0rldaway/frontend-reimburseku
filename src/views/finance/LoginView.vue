@@ -20,7 +20,7 @@ async function handleLogin() {
       password: password.value,
     })
     localStorage.setItem('token', res.data.data.token)
-    router.push('/finance/dashboard')
+    router.push('/finance/dasbor')
   } catch (err) {
     errorMsg.value = err.response?.data?.message || 'Email atau password salah.'
   } finally {

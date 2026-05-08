@@ -1,38 +1,35 @@
 <script setup>
-import { ref } from 'vue'
 import { RouterView, RouterLink, useRouter } from 'vue-router'
 import {
-  LayoutDashboard, Users, Tag, CreditCard, ShieldCheck, Wallet, Archive, LogOut, Menu, X
+  LayoutDashboard, Users, Tag, CreditCard, ShieldCheck, Wallet, LogOut
 } from 'lucide-vue-next'
 
 const router = useRouter()
-const sidebarOpen = ref(true)
 
 const navItems = [
-  { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/admin/karyawan', label: 'Data Karyawan', icon: Users },
-  { to: '/admin/kategori', label: 'Kategori', icon: Tag },
-  { to: '/admin/metode-bayar', label: 'Metode Pembayaran', icon: CreditCard },
-  { to: '/admin/hak-akses', label: 'Hak Akses', icon: ShieldCheck },
-  { to: '/admin/deposit', label: 'Deposit', icon: Wallet },
-  { to: '/admin/arsip-deposit', label: 'Arsip Deposit', icon: Archive },
+  { to: '/admin/dasbor',        label: 'Beranda',            icon: LayoutDashboard },
+  { to: '/admin/karyawan',      label: 'Karyawan',           icon: Users           },
+  { to: '/admin/kategori',      label: 'Kategori',           icon: Tag             },
+  { to: '/admin/deposit',       label: 'Deposit',            icon: Wallet          },
+  { to: '/admin/metode-bayar',  label: 'Kelola Metode Bayar', icon: CreditCard      },
+  { to: '/admin/hak-akses',     label: 'Hak Akses',          icon: ShieldCheck     },
 ]
 
 function logout() {
   localStorage.removeItem('token')
-  router.push('/admin/login')
+  router.push('/admin/masuk')
 }
 </script>
 
 <template>
   <div class="layout-container">
-    <aside class="sidebar" :class="{ collapsed: !sidebarOpen }">
+    <aside class="sidebar">
       <div class="sidebar-top">
-        <RouterLink to="/admin/dashboard" class="logo">
+        <RouterLink to="/admin/dasbor" class="logo">
           <div class="logo-icon">RK</div>
-          <span class="logo-text" v-if="sidebarOpen">reimburseKu</span>
+          <span class="logo-text">reimburseKu</span>
         </RouterLink>
-        <p class="role-label" v-if="sidebarOpen">Administrator</p>
+        <p class="role-label">Administrator</p>
       </div>
 
       <nav class="nav-menu">
@@ -44,26 +41,28 @@ function logout() {
           active-class="nav-active"
         >
           <component :is="item.icon" :size="18" />
-          <span v-if="sidebarOpen">{{ item.label }}</span>
+          <span>{{ item.label }}</span>
         </RouterLink>
       </nav>
 
       <div class="sidebar-footer">
         <button class="nav-item logout-btn" @click="logout">
           <LogOut :size="18" />
-          <span v-if="sidebarOpen">Keluar</span>
+          <span>Keluar</span>
         </button>
       </div>
     </aside>
 
-    <main class="main-content" :class="{ expanded: !sidebarOpen }">
+    <main class="main-content">
       <div class="topbar">
-        <button class="toggle-btn" @click="sidebarOpen = !sidebarOpen">
-          <Menu v-if="!sidebarOpen" :size="20" />
-          <X v-else :size="20" />
-        </button>
+        <div class="topbar-left">
+          <!-- Tombol toggle dihapus -->
+        </div>
         <div class="topbar-right">
-          <div class="admin-badge">Admin</div>
+          <div class="user-profile-top">
+            <div class="avatar-circle">A</div>
+            <span class="user-name-top">Administrator</span>
+          </div>
         </div>
       </div>
 
@@ -92,12 +91,7 @@ function logout() {
   left: 0;
   bottom: 0;
   z-index: 20;
-  transition: width 0.25s ease;
   overflow: hidden;
-}
-
-.sidebar.collapsed {
-  width: 64px;
 }
 
 .sidebar-top {
@@ -201,11 +195,6 @@ function logout() {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  transition: margin-left 0.25s ease;
-}
-
-.main-content.expanded {
-  margin-left: 64px;
 }
 
 .topbar {
@@ -220,41 +209,49 @@ function logout() {
   z-index: 10;
 }
 
-.toggle-btn {
-  padding: 0.375rem;
-  border-radius: 6px;
-  color: var(--color-text-muted);
-  transition: all 0.2s;
-}
-
-.toggle-btn:hover {
-  background-color: var(--color-background);
-  color: var(--color-text-main);
-}
-
 .topbar-right {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
 
-.admin-badge {
-  background-color: var(--color-primary-light);
+.user-profile-top {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #f1f5f9;
   color: var(--color-primary);
-  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  border: 1px solid #e2e8f0;
+}
+
+.user-name-top {
+  font-size: 0.875rem;
   font-weight: 600;
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
+  color: #475569;
 }
 
 .page-wrapper {
-  padding: 2rem;
+  padding: 1.25rem 1.5rem;
   flex: 1;
 }
 
 @media (max-width: 768px) {
   .sidebar {
     width: 64px;
+  }
+  .sidebar span, .sidebar .logo-text, .sidebar .role-label {
+    display: none;
   }
   .main-content {
     margin-left: 64px;

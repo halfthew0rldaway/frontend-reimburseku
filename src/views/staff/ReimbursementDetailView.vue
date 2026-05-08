@@ -20,7 +20,7 @@ const data = ref({
 <template>
   <div class="detail-page">
     <div class="page-header">
-      <button class="back-btn" @click="router.push('/staff/dashboard')">
+      <button class="back-btn" @click="router.push('/staf/dasbor')">
         <ArrowLeft :size="20" />
       </button>
       <div>

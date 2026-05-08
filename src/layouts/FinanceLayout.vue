@@ -1,264 +1,136 @@
 <script setup>
-import { ref } from 'vue'
-import { RouterView, RouterLink, useRouter } from 'vue-router'
+import { RouterView, RouterLink, useRouter, useRoute } from 'vue-router'
 import {
-  LayoutDashboard, FileText, Archive, LogOut, Menu, X
+  LayoutDashboard, FileText, Wallet, Users, LogOut
 } from 'lucide-vue-next'
 
 const router = useRouter()
-const sidebarOpen = ref(true)
+const route = useRoute()
 
-const navItems = [
-  { to: '/finance/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/finance/reimbursement', label: 'Reimbursement', icon: FileText },
-  { to: '/finance/arsip', label: 'Arsip', icon: Archive },
+const menuItems = [
+  { to: '/finance/dasbor', label: 'Beranda', icon: LayoutDashboard },
+  { to: '/finance/reimbursement', label: 'Reimburse', icon: FileText },
+  { to: '/finance/karyawan', label: 'Karyawan', icon: Users },
+  { to: '/finance/deposit', label: 'Deposit', icon: Wallet },
 ]
 
 function logout() {
   localStorage.removeItem('token')
-  router.push('/finance/login')
+  router.push('/finance/masuk')
 }
 </script>
 
 <template>
   <div class="layout-container">
-    <aside class="sidebar" :class="{ collapsed: !sidebarOpen }">
+    <!-- Sidebar -->
+    <aside class="sidebar">
       <div class="sidebar-top">
-        <RouterLink to="/finance/dashboard" class="logo">
+        <RouterLink to="/finance/dasbor" class="logo-area">
           <div class="logo-icon">RK</div>
-          <span class="logo-text" v-if="sidebarOpen">reimburseKu</span>
+          <div class="logo-text">
+            <span class="brand">reimburseKu</span>
+            <span class="role">FINANCE</span>
+          </div>
         </RouterLink>
-        <p class="role-label" v-if="sidebarOpen">Finance</p>
       </div>
 
-      <nav class="nav-menu">
+      <nav class="sidebar-nav">
         <RouterLink
-          v-for="item in navItems"
+          v-for="item in menuItems"
           :key="item.to"
           :to="item.to"
           class="nav-item"
-          active-class="nav-active"
+          :class="{ 'active': route.path.startsWith(item.to) }"
         >
-          <component :is="item.icon" :size="18" />
-          <span v-if="sidebarOpen">{{ item.label }}</span>
+          <component :is="item.icon" :size="20" />
+          <span>{{ item.label }}</span>
         </RouterLink>
       </nav>
 
       <div class="sidebar-footer">
         <button class="nav-item logout-btn" @click="logout">
-          <LogOut :size="18" />
-          <span v-if="sidebarOpen">Keluar</span>
+          <LogOut :size="20" />
+          <span>Keluar</span>
         </button>
       </div>
     </aside>
 
-    <main class="main-content" :class="{ expanded: !sidebarOpen }">
-      <div class="topbar">
-        <button class="toggle-btn" @click="sidebarOpen = !sidebarOpen">
-          <Menu v-if="!sidebarOpen" :size="20" />
-          <X v-else :size="20" />
-        </button>
-        <div class="topbar-right">
-          <div class="admin-badge">Finance</div>
+    <!-- Main Content -->
+    <div class="main-wrapper">
+      <header class="top-bar">
+        <div class="top-left">
+          <!-- Tombol toggle dihapus sesuai permintaan -->
         </div>
-      </div>
+        <div class="top-right">
+          <div class="user-profile">
+            <div class="avatar">A</div>
+            <span class="user-name">Administrator</span>
+          </div>
+        </div>
+      </header>
 
-      <div class="page-wrapper">
+      <main class="page-content">
         <RouterView />
-      </div>
-    </main>
+      </main>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.layout-container {
-  display: flex;
-  min-height: 100vh;
-  background-color: #f4f6f9;
-}
+.layout-container { display: flex; min-height: 100vh; background: #f8fafc; }
 
+/* Sidebar Styles */
 .sidebar {
-  width: 240px;
-  background-color: #10b981; /* A nice green for finance maybe, or stick to primary? */
-  /* Let's stick to var(--color-primary) to maintain UI consistency */
-  background-color: var(--color-primary);
-  color: white;
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  z-index: 20;
-  transition: width 0.25s ease;
-  overflow: hidden;
+  width: 260px; background: #3b82f6; color: white; display: flex; flex-direction: column;
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 50; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.sidebar.collapsed {
-  width: 64px;
-}
-
-.sidebar-top {
-  padding: 1.5rem 1rem;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  text-decoration: none;
-  color: white;
-  margin-bottom: 0.5rem;
-}
-
+.sidebar-top { padding: 1.5rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.logo-area { display: flex; align-items: center; gap: 0.875rem; text-decoration: none; color: white; }
 .logo-icon {
-  width: 36px;
-  height: 36px;
-  background-color: white;
-  color: var(--color-primary);
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.8rem;
-  flex-shrink: 0;
+  width: 40px; height: 40px; background: white; color: #3b82f6; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; flex-shrink: 0;
 }
+.logo-text { display: flex; flex-direction: column; }
+.brand { font-size: 1.125rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+.role { font-size: 0.65rem; font-weight: 700; color: rgba(255,255,255,0.7); letter-spacing: 0.1em; margin-top: 2px; }
 
-.logo-text {
-  font-size: 1.1rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.role-label {
-  font-size: 0.7rem;
-  color: rgba(255,255,255,0.6);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-left: 0.25rem;
-}
-
-.nav-menu {
-  flex: 1;
-  padding: 1rem 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  overflow-y: auto;
-}
-
+.sidebar-nav { flex: 1; padding: 1.5rem 0.75rem; display: flex; flex-direction: column; gap: 0.375rem; }
 .nav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.625rem 0.875rem;
-  border-radius: 8px;
-  color: rgba(255,255,255,0.8);
-  text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.2s;
-  white-space: nowrap;
-  cursor: pointer;
-  border: none;
-  background: none;
-  width: 100%;
-  text-align: left;
+  display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; border-radius: 10px;
+  color: rgba(255,255,255,0.85); text-decoration: none; font-size: 0.875rem; font-weight: 600; transition: all 0.2s;
+}
+.nav-item:hover { background: rgba(255,255,255,0.1); color: white; }
+.nav-item.active { background: rgba(255,255,255,0.2); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+
+.sidebar-footer { padding: 1rem 0.75rem; border-top: 1px solid rgba(255,255,255,0.1); }
+.logout-btn:hover { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+
+/* Main Content Styles */
+.main-wrapper { flex: 1; margin-left: 260px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
+
+.top-bar {
+  height: 64px; background: white; border-bottom: 1px solid #f1f5f9; padding: 0 1.5rem;
+  display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40;
 }
 
-.nav-item:hover {
-  background-color: rgba(255,255,255,0.15);
-  color: white;
+.top-right { display: flex; align-items: center; gap: 1.5rem; }
+.user-profile {
+  display: flex; align-items: center; gap: 0.75rem; padding: 0.375rem 0.75rem;
+  background: #f8fafc; border-radius: 999px; border: 1px solid #f1f5f9; cursor: pointer; transition: all 0.2s;
 }
-
-.nav-active {
-  background-color: rgba(255,255,255,0.2);
-  color: white;
-  font-weight: 600;
+.user-profile:hover { background: #f1f5f9; }
+.avatar {
+  width: 28px; height: 28px; background: #e2e8f0; color: #64748b; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem;
 }
+.user-name { font-size: 0.8125rem; font-weight: 600; color: #475569; }
 
-.sidebar-footer {
-  padding: 1rem 0.5rem;
-  border-top: 1px solid rgba(255,255,255,0.1);
-}
+.page-content { padding: 1.5rem 2rem; flex: 1; }
 
-.logout-btn {
-  color: rgba(255,255,255,0.7);
-}
-
-.logout-btn:hover {
-  background-color: rgba(239,68,68,0.2);
-  color: #fca5a5;
-}
-
-.main-content {
-  flex: 1;
-  margin-left: 240px;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  transition: margin-left 0.25s ease;
-}
-
-.main-content.expanded {
-  margin-left: 64px;
-}
-
-.topbar {
-  background: white;
-  border-bottom: 1px solid var(--color-border);
-  padding: 0.75rem 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.toggle-btn {
-  padding: 0.375rem;
-  border-radius: 6px;
-  color: var(--color-text-muted);
-  transition: all 0.2s;
-}
-
-.toggle-btn:hover {
-  background-color: var(--color-background);
-  color: var(--color-text-main);
-}
-
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.admin-badge {
-  background-color: var(--color-primary-light);
-  color: var(--color-primary);
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
-}
-
-.page-wrapper {
-  padding: 2rem;
-  flex: 1;
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    width: 64px;
-  }
-  .main-content {
-    margin-left: 64px;
-  }
-  .page-wrapper {
-    padding: 1.25rem;
-  }
+@media (max-width: 1024px) {
+  .sidebar { width: 80px; }
+  .sidebar .logo-text, .sidebar span { display: none; }
+  .main-wrapper { margin-left: 80px; }
 }
 </style>

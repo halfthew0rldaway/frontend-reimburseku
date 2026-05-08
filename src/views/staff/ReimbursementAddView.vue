@@ -16,14 +16,14 @@ const data = ref({
 })
 
 const submit = () => {
-  router.push('/staff/dashboard')
+  router.push('/staf/dasbor')
 }
 </script>
 
 <template>
   <div class="add-page">
     <div class="page-header">
-      <button class="back-btn" @click="router.push('/staff/dashboard')">
+      <button class="back-btn" @click="router.push('/staf/dasbor')">
         <ArrowLeft :size="20" />
       </button>
       <div>

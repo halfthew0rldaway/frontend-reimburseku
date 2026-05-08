@@ -10,7 +10,7 @@ const handleLogin = () => {
   isLoading.value = true
   setTimeout(() => {
     isLoading.value = false
-    router.push('/staff/dashboard')
+    router.push('/staf/dasbor')
   }, 1000)
 }
 </script>

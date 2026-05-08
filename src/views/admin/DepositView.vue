@@ -1,168 +1,115 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { Plus, Trash2, X, Archive } from 'lucide-vue-next'
+import { ref, computed } from 'vue'
+import { Plus, Search, ChevronDown, Archive, Wallet, Calendar } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
 
 const router = useRouter()
-const deposits = ref([])
-const loading = ref(true)
+
+const deposits = ref([
+  { id: 1, source: 'Kas Besar', target: 'Dana Petty Cash', amount: 'Rp 5.000.000', ref_bank: 'TRF-BCA-99128', date: '20 Jan 2025', proof: 'bukti.jpg', note: 'Top up bulanan' },
+  { id: 2, source: 'Operasional', target: 'Dana Parkir', amount: 'Rp 500.000', ref_bank: 'TRF-MDR-1102', date: '15 Jan 2025', proof: 'bukti2.jpg', note: 'Dana darurat' },
+])
+
+const searchQuery = ref('')
+const selectedMonth = ref('Januari 2026')
+const sortOption = ref('Sort By')
 const showModal = ref(false)
 const isSaving = ref(false)
-const deleteConfirmId = ref(null)
 
-const form = ref({
-  amount: '',
-  source: '',
-  description: '',
-  date: '',
-})
+const form = ref({ source: '', target: '', amount: '', ref_bank: '', note: '' })
 
-function getHeaders() {
-  return { Authorization: `Bearer ${localStorage.getItem('token')}` }
-}
-
-function formatRupiah(val) {
-  if (!val && val !== 0) return '—'
-  return 'Rp ' + Number(val).toLocaleString('id-ID')
-}
-
-function formatDate(d) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
-}
-
-async function loadDeposits() {
-  loading.value = true
-  try {
-    const res = await axios.get('http://127.0.0.1:8000/api/deposit', { headers: getHeaders() })
-    deposits.value = res.data.data?.data ?? res.data.data ?? []
-  } catch { deposits.value = [] }
-  finally { loading.value = false }
+function openAdd() {
+  form.value = { source: '', target: '', amount: '', ref_bank: '', note: '' }
+  showModal.value = true
 }
 
 async function save() {
   isSaving.value = true
-  try {
-    const fd = new FormData()
-    Object.entries(form.value).forEach(([k, v]) => { if (v) fd.append(k, v) })
-    await axios.post('http://127.0.0.1:8000/api/deposit/save', fd, { headers: getHeaders() })
+  setTimeout(() => {
+    isSaving.value = false
     showModal.value = false
-    form.value = { amount: '', source: '', description: '', date: '' }
-    loadDeposits()
-  } catch (err) {
-    alert(err.response?.data?.message ?? 'Gagal menyimpan.')
-  } finally { isSaving.value = false }
+  }, 1000)
 }
 
-async function deleteDeposit() {
-  try {
-    await axios.delete(`http://127.0.0.1:8000/api/deposit/delete/${deleteConfirmId.value}`, { headers: getHeaders() })
-    deleteConfirmId.value = null
-    loadDeposits()
-  } catch (err) {
-    alert(err.response?.data?.message ?? 'Gagal menghapus.')
-  }
-}
+const goToArchive = () => router.push('/admin/deposit/arsip')
 
-onMounted(loadDeposits)
+const filteredDeposits = computed(() => {
+  return deposits.value.filter(d => 
+    d.source.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    d.target.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+})
 </script>
 
 <template>
-  <div class="page">
-    <div class="page-head">
-      <div>
-        <h1 class="page-title">Deposit Perusahaan</h1>
-        <p class="page-sub">Kelola saldo kas dan riwayat deposit perusahaan</p>
-      </div>
-      <div class="head-actions">
-        <button class="btn btn-outline" @click="router.push('/admin/arsip-deposit')">
-          <Archive :size="15" /> Arsip Deposit
-        </button>
-        <button class="btn btn-primary" @click="showModal = true">
-          <Plus :size="16" /> Tambah Deposit
-        </button>
-      </div>
+  <div class="deposit-page">
+    <div class="page-header">
+      <h1 class="page-title">Deposit</h1>
+      <button class="btn btn-primary btn-archive" @click="goToArchive">
+        <Archive :size="14" /> Arsip
+      </button>
     </div>
 
-    <div class="table-card">
-      <div v-if="loading" class="loading-text">Memuat data...</div>
-      <table v-else class="data-table">
-        <thead>
-          <tr>
-            <th>No</th>
-            <th>Jumlah</th>
-            <th>Sumber</th>
-            <th>Deskripsi</th>
-            <th>Tanggal</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="deposits.length === 0">
-            <td colspan="6" class="empty-cell">Belum ada deposit.</td>
-          </tr>
-          <tr v-for="(d, i) in deposits" :key="d.id">
-            <td class="text-muted">{{ i + 1 }}</td>
-            <td class="font-semibold amount-cell">{{ formatRupiah(d.amount) }}</td>
-            <td>{{ d.source ?? '—' }}</td>
-            <td class="text-muted">{{ d.description ?? '—' }}</td>
-            <td class="text-muted">{{ formatDate(d.date ?? d.created_at) }}</td>
-            <td>
-              <button class="icon-btn delete-btn" @click="deleteConfirmId = d.id" title="Hapus">
-                <Trash2 :size="14" />
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Modal Tambah Deposit -->
-    <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
-      <div class="modal">
-        <div class="modal-head">
-          <h3>Tambah Deposit</h3>
-          <button class="close-btn" @click="showModal = false"><X :size="18" /></button>
-        </div>
-        <form @submit.prevent="save" style="padding: 1.5rem;">
-          <div class="form-group">
-            <label class="form-label">Jumlah (Rp) <span class="req">*</span></label>
-            <input v-model="form.amount" type="number" class="form-control" required min="1" />
+    <div class="card main-card">
+      <div class="card-header">
+        <h2 class="card-header-title">Deposit</h2>
+        <div class="header-actions">
+          <div class="search-box">
+            <Search :size="14" class="search-icon" />
+            <input v-model="searchQuery" type="text" placeholder="Cari Deposit..." class="search-input" />
           </div>
-          <div class="form-group">
-            <label class="form-label">Sumber Dana</label>
-            <input v-model="form.source" type="text" class="form-control" placeholder="contoh: Bank BCA" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Tanggal</label>
-            <input v-model="form.date" type="date" class="form-control" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Deskripsi</label>
-            <textarea v-model="form.description" class="form-control" rows="2"></textarea>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-outline" @click="showModal = false">Batal</button>
-            <button type="submit" class="btn btn-primary" :disabled="isSaving">
-              {{ isSaving ? 'Menyimpan...' : 'Simpan' }}
+          <div class="filter-dropdown">
+            <button class="btn btn-outline btn-filter">
+              {{ selectedMonth }} <ChevronDown :size="12" />
             </button>
           </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Delete Confirm -->
-    <div v-if="deleteConfirmId" class="modal-overlay" @click.self="deleteConfirmId = null">
-      <div class="modal modal-sm">
-        <div class="modal-head">
-          <h3>Hapus Deposit?</h3>
-          <button class="close-btn" @click="deleteConfirmId = null"><X :size="18" /></button>
+          <div class="sort-dropdown">
+            <button class="btn btn-outline btn-sort">
+              {{ sortOption }} <ChevronDown :size="12" />
+            </button>
+          </div>
         </div>
-        <p class="confirm-text">Data deposit akan dihapus secara permanen.</p>
-        <div class="modal-footer">
-          <button class="btn btn-outline" @click="deleteConfirmId = null">Batal</button>
-          <button class="btn btn-danger" @click="deleteDeposit">Hapus</button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="modern-table">
+          <thead>
+            <tr>
+              <th>SUMBER DANA</th>
+              <th>TUJUAN ALOKASI</th>
+              <th>NOMINAL</th>
+              <th>NO. REF BANK</th>
+              <th>TANGGAL</th>
+              <th>BUKTI TRANSFER</th>
+              <th>CATATAN</th>
+              <th width="80" class="text-center">AKSI</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="d in filteredDeposits" :key="d.id">
+              <td class="font-semibold">{{ d.source }}</td>
+              <td class="text-primary-dark font-medium">{{ d.target }}</td>
+              <td class="font-bold text-success">{{ d.amount }}</td>
+              <td class="text-muted font-mono">{{ d.ref_bank }}</td>
+              <td class="text-muted">{{ d.date }}</td>
+              <td>
+                <button class="btn-text-sm">Lihat Bukti</button>
+              </td>
+              <td class="note-cell" :title="d.note">{{ d.note }}</td>
+              <td class="text-center">
+                <button class="btn-icon archive-row" title="Arsipkan"><Archive :size="12" /></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-footer">
+        <div class="pagination">
+          <button class="page-btn"><ChevronDown :size="12" style="transform: rotate(90deg)" /></button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn">2</button>
+          <button class="page-btn"><ChevronDown :size="12" style="transform: rotate(-90deg)" /></button>
         </div>
       </div>
     </div>
@@ -170,72 +117,40 @@ onMounted(loadDeposits)
 </template>
 
 <style scoped>
-.page { display: flex; flex-direction: column; gap: 1.5rem; }
-.page-head { display: flex; justify-content: space-between; align-items: flex-start; }
-.page-title { font-size: 1.375rem; font-weight: 700; color: var(--color-text-main); }
-.page-sub { font-size: 0.8125rem; color: var(--color-text-muted); margin-top: 0.25rem; }
-.head-actions { display: flex; gap: 0.75rem; }
+.deposit-page { display: flex; flex-direction: column; gap: 1rem; background: #f8fafc; height: 100%; overflow: hidden; }
 
-.amount-cell { color: #16a34a; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; }
+.page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; }
 
-.table-card {
-  background: white; border: 1px solid var(--color-border);
-  border-radius: 12px; box-shadow: var(--shadow-sm); overflow: hidden;
-}
-.data-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-.data-table th {
-  text-align: left; padding: 0.75rem 1rem;
-  font-size: 0.75rem; font-weight: 600; color: var(--color-text-muted);
-  text-transform: uppercase; letter-spacing: 0.05em;
-  background: #f9fafb; border-bottom: 1px solid var(--color-border);
-}
-.data-table td {
-  padding: 0.875rem 1rem; border-bottom: 1px solid #f1f5f9;
-  color: var(--color-text-main); vertical-align: middle;
-}
-.data-table tr:last-child td { border-bottom: none; }
-.data-table tr:hover td { background: #fafafa; }
+.btn-archive { display: flex; align-items: center; gap: 0.375rem; padding: 0.4rem 0.875rem; border-radius: 8px; font-weight: 700; font-size: 0.75rem; background: #3b82f6; color: white; border: none; cursor: pointer; }
 
-.icon-btn {
-  width: 30px; height: 30px; border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  border: 1px solid var(--color-border); background: white;
-  cursor: pointer; transition: all 0.15s;
-}
-.delete-btn:hover { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+.main-card { background: white; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 1px 2px rgba(0,0,0,0.05); overflow: hidden; }
+.card-header { padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f8fafc; }
+.card-header-title { font-size: 0.875rem; font-weight: 700; color: #1e293b; }
 
-.loading-text, .empty-cell {
-  padding: 2.5rem; text-align: center;
-  color: var(--color-text-muted); font-size: 0.875rem;
-}
+.header-actions { display: flex; gap: 0.625rem; align-items: center; }
+.search-box { position: relative; }
+.search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+.search-input { padding: 0.4rem 0.75rem 0.4rem 2.125rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.75rem; outline: none; width: 220px; }
 
-.modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-  display: flex; align-items: center; justify-content: center; z-index: 100;
-}
-.modal {
-  background: white; border-radius: 14px; width: 100%; max-width: 480px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-}
-.modal-sm { max-width: 360px; }
-.modal-head {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--color-border);
-}
-.modal-head h3 { font-size: 1rem; font-weight: 600; }
-.close-btn { color: var(--color-text-muted); padding: 0.25rem; border-radius: 4px; }
-.close-btn:hover { background: #f1f5f9; }
-.confirm-text { padding: 1rem 1.5rem; color: var(--color-text-muted); font-size: 0.875rem; }
-.req { color: var(--color-danger); }
-.modal-footer {
-  display: flex; justify-content: flex-end; gap: 0.75rem;
-  padding: 0 1.5rem 1.5rem;
-}
-.btn-danger {
-  background-color: var(--color-danger); color: white;
-  display: inline-flex; align-items: center; gap: 0.5rem;
-  padding: 0.625rem 1.25rem; border-radius: var(--radius-md);
-  font-size: 0.875rem; font-weight: 500;
-}
-.btn-danger:hover { background-color: #dc2626; }
+.btn-filter, .btn-sort { display: flex; align-items: center; gap: 0.375rem; padding: 0.4rem 0.875rem; font-size: 0.75rem; color: #64748b; border: 1px solid #e2e8f0; border-radius: 8px; background: white; cursor: pointer; }
+
+.table-responsive { overflow-x: auto; max-height: calc(100vh - 220px); }
+.modern-table { width: 100%; border-collapse: collapse; }
+.modern-table th { text-align: left; padding: 0.75rem 1.25rem; font-size: 0.6rem; font-weight: 600; color: #64748b; background: #f8fafc; border-bottom: 1px solid #f1f5f9; text-transform: uppercase; letter-spacing: 0.05em; }
+.modern-table td { padding: 0.75rem 1.25rem; font-size: 0.75rem; color: #475569; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+
+.text-primary-dark { color: #2563eb; }
+.text-success { color: #16a34a; }
+.font-mono { font-family: monospace; font-size: 0.7rem; }
+.note-cell { max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.7rem; }
+
+.btn-text-sm { background: none; border: none; color: #3b82f6; font-size: 0.7rem; font-weight: 700; cursor: pointer; padding: 0; }
+
+.btn-icon.archive-row { background: #f1f5f9; color: #3b82f6; width: 24px; height: 24px; border-radius: 6px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+.table-footer { padding: 0.75rem 1.25rem; display: flex; justify-content: center; background: #f8fafc; }
+.pagination { display: flex; gap: 0.25rem; }
+.page-btn { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: #64748b; cursor: pointer; }
+.page-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
 </style>

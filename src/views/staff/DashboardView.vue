@@ -1,106 +1,166 @@
 <script setup>
-import { ref } from 'vue'
-import { Plus, Ticket, Car, FileText, CheckCircle2, Clock, XCircle, Wallet } from 'lucide-vue-next'
+import { ref, computed } from 'vue'
+import { Plus, Car, UtensilsCrossed, ParkingMeter, MoreHorizontal, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const reimbursements = ref([
-  { id: 1, title: 'Uang Makan', status: 'Disetujui', amount: 'Rp.500.000', date: '12/10/2023', icon: FileText, color: 'text-green-500', badgeClass: 'badge-success' },
-  { id: 2, title: 'Servis Motor Kendaraan', status: 'Ditolak', amount: 'Rp.22.000', date: '21/10/2023', icon: Car, color: 'text-red-500', badgeClass: 'badge-danger' },
-  { id: 3, title: 'Tiket Bus', status: 'Menunggu', amount: 'Rp.200.000', date: '24/10/2023', icon: Ticket, color: 'text-yellow-500', badgeClass: 'badge-warning' },
-  { id: 4, title: 'Perbaikan Laptop', status: 'Dibayar', amount: 'Rp.500.000', date: '02/11/2023', icon: FileText, color: 'text-blue-500', badgeClass: 'badge-info' },
-  { id: 5, title: 'Beli ATK', status: 'Disetujui', amount: 'Rp.1.000.000', date: '06/11/2023', icon: FileText, color: 'text-green-500', badgeClass: 'badge-success' },
+// Filter status aktif
+const filterAktif = ref('semua')
+const filterBulan = ref('2025-09')
+
+const filterList = [
+  { key: 'semua',    label: 'Semua',   warna: '' },
+  { key: 'menunggu', label: 'Menunggu', warna: '#f59e0b' },
+  { key: 'diterima', label: 'Diterima', warna: '#3b82f6' },
+  { key: 'ditolak',  label: 'Tolak',   warna: '#ef4444' },
+  { key: 'dibayar',  label: 'Dibayar', warna: '#22c55e' },
+]
+
+const semuaData = ref([
+  { id: 1, judul: 'Grab Food bulan ini',      status: 'dibayar',  catatan: '',                         jumlah: 'Rp.300.000',   tanggal: '26/10/2025' },
+  { id: 2, judul: 'Parkir Motor Kendaraan',   status: 'ditolak',  catatan: 'Nota Terlampir tidak valid', jumlah: 'Rp.25.000',   tanggal: '25/10/2025' },
+  { id: 3, judul: 'Tiket Bus',                status: 'menunggu', catatan: '',                         jumlah: 'Rp.300.000',   tanggal: '24/10/2025' },
+  { id: 4, judul: 'Perbaikan Laptop',         status: 'diterima', catatan: '',                         jumlah: 'Rp.500.000',   tanggal: '23/10/2025' },
+  { id: 5, judul: 'Perbaiki AC',              status: 'dibayar',  catatan: '',                         jumlah: 'Rp.1.000.000', tanggal: '20/10/2025' },
 ])
 
-const filterMonth = ref('Oktober')
+// Pagination
+const halamanAktif = ref(1)
+const itemPerHalaman = 5
+const totalHalaman = 5 // dummy 5 halaman
+
+const dataFiltered = computed(() => {
+  if (filterAktif.value === 'semua') return semuaData.value
+  return semuaData.value.filter(d => d.status === filterAktif.value)
+})
+
+// Stat kategori (kanan)
+const kategoriStats = [
+  { label: 'Transportasi', jumlah: 'Rp.100.000', ikon: Car,             bg: '#22c55e' },
+  { label: 'Makanan',      jumlah: 'Rp.200.000', ikon: UtensilsCrossed, bg: '#ec4899' },
+  { label: 'Parkir',       jumlah: 'Rp.500.000', ikon: ParkingMeter,    bg: '#a855f7' },
+  { label: 'Dan lain-lain',jumlah: 'Rp.2.000.000',ikon: MoreHorizontal, bg: '#3b82f6' },
+]
+
+// Badge info per status
+function getBadgeClass(status) {
+  switch (status) {
+    case 'dibayar':  return 'chip chip-bayar'
+    case 'ditolak':  return 'chip chip-tolak'
+    case 'menunggu': return 'chip chip-menunggu'
+    case 'diterima': return 'chip chip-diterima'
+    default: return 'chip'
+  }
+}
+
+function getLabelStatus(status) {
+  const map = { dibayar: 'Dibayar', ditolak: 'Ditolak', menunggu: 'Menunggu', diterima: 'Diterima' }
+  return map[status] || status
+}
+
+function gantiHalaman(h) {
+  if (h >= 1 && h <= totalHalaman) halamanAktif.value = h
+}
 </script>
 
 <template>
-  <div class="dashboard-page">
-    <div class="page-top-actions">
-      <button class="btn btn-primary shadow-sm" @click="router.push('/staff/reimbursement/add')">
+  <div class="dasbor-staf">
+    <!-- Header & Tombol Tambah -->
+    <div class="header-utama">
+      <h2 class="judul-halaman">Dashboard Staff</h2>
+      <button class="btn btn-primary tombol-tambah" @click="router.push('/staf/reimbursement/tambah')">
         <Plus :size="16" /> Tambah Reimbursement
       </button>
     </div>
 
-    <div class="dashboard-grid">
-      <!-- Left Column -->
-      <div class="main-column">
-        <div class="section-header">
-          <h2 class="section-title">Riwayat Reimbursement</h2>
-          <div class="filter-wrap">
-            <select v-model="filterMonth" class="form-control select-sm">
-              <option value="Semua">Semua</option>
-              <option value="Oktober">Oktober</option>
-              <option value="November">November</option>
-            </select>
+    <div class="grid-dasbor">
+      <!-- Kolom kiri: Riwayat -->
+      <div class="kolom-kiri">
+        <div class="section-title-row">
+          <h3 class="judul-seksi">Riwayat Reimbursement</h3>
+        </div>
+
+        <div class="filter-bulan-wrap">
+          <div class="filter-chip-row">
+            <button
+              v-for="f in filterList"
+              :key="f.key"
+              class="filter-chip"
+              :class="{ 'filter-chip-aktif': filterAktif === f.key }"
+              @click="filterAktif = f.key"
+            >
+              <span v-if="f.warna" class="titik-warna" :style="{ background: f.warna }"></span>
+              {{ f.label }}
+            </button>
+          </div>
+
+          <div class="pilih-bulan">
+            <input type="month" v-model="filterBulan" class="input-bulan" />
           </div>
         </div>
 
-        <div class="list-container card">
-          <div v-for="item in reimbursements" :key="item.id" class="list-item" @click="router.push('/staff/reimbursement/' + item.id)">
-            <div class="item-left">
-              <div class="item-icon" :class="item.color">
-                <component :is="item.icon" :size="20" />
+        <!-- Daftar item -->
+        <div class="daftar-container">
+          <div v-if="dataFiltered.length === 0" class="kosong-teks">
+            Tidak ada data untuk filter ini.
+          </div>
+
+          <div
+            v-for="item in dataFiltered"
+            :key="item.id"
+            class="item-riwayat"
+            @click="router.push('/staf/reimbursement/' + item.id)"
+          >
+            <div class="item-kiri">
+              <p class="item-judul">{{ item.judul }}</p>
+              <div class="item-bawah">
+                <span :class="getBadgeClass(item.status)">{{ getLabelStatus(item.status) }}</span>
+                <span v-if="item.catatan" class="item-catatan">{{ item.catatan }}</span>
               </div>
-              <div class="item-info">
-                <h4 class="item-title">{{ item.title }}</h4>
-                <span class="badge" :class="item.badgeClass">{{ item.status }}</span>
-              </div>
+              <p class="item-jumlah">{{ item.jumlah }}</p>
             </div>
-            <div class="item-right">
-              <div class="item-amount font-bold">{{ item.amount }}</div>
-              <div class="item-date text-muted text-sm">{{ item.date }}</div>
+            <div class="item-kanan">
+              <span class="item-tanggal">{{ item.tanggal }}</span>
             </div>
           </div>
-          
-          <div class="pagination">
-            <button class="page-btn active">1</button>
-            <button class="page-btn">2</button>
-            <button class="page-btn">3</button>
-            <span class="page-dots">...</span>
-            <button class="page-btn">10</button>
+
+          <!-- Pagination -->
+          <div class="paginasi">
+            <button class="btn-paging" @click="gantiHalaman(halamanAktif - 1)" :disabled="halamanAktif === 1">
+              <ChevronLeft :size="16" />
+            </button>
+            <button
+              v-for="h in totalHalaman"
+              :key="h"
+              class="btn-paging"
+              :class="{ 'paging-aktif': halamanAktif === h }"
+              @click="gantiHalaman(h)"
+            >{{ h }}</button>
+            <button class="btn-paging" @click="gantiHalaman(halamanAktif + 1)" :disabled="halamanAktif === totalHalaman">
+              <ChevronRight :size="16" />
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- Right Column -->
-      <div class="side-column">
-        <div class="section-header">
-          <h2 class="section-title">Statistik dan Laporan</h2>
-        </div>
+      <!-- Kolom kanan: Statistik -->
+      <div class="kolom-kanan">
+        <h2 class="judul-seksi">Statistik dan Laporan</h2>
 
-        <div class="stats-grid">
-          <div class="stat-box bg-green">
-            <div class="stat-icon"><CheckCircle2 :size="24" /></div>
-            <div class="stat-data">
-              <div class="stat-label">Disetujui</div>
-              <div class="stat-val">Rp 1.500.000</div>
+        <div class="grid-statistik">
+          <div
+            v-for="s in kategoriStats"
+            :key="s.label"
+            class="kartu-stat"
+            :style="{ backgroundColor: s.bg }"
+          >
+            <div class="stat-ikon">
+              <component :is="s.ikon" :size="28" />
             </div>
-          </div>
-          
-          <div class="stat-box bg-pink">
-            <div class="stat-icon"><XCircle :size="24" /></div>
-            <div class="stat-data">
-              <div class="stat-label">Ditolak</div>
-              <div class="stat-val">Rp 22.000</div>
-            </div>
-          </div>
-
-          <div class="stat-box bg-purple">
-            <div class="stat-icon"><Clock :size="24" /></div>
-            <div class="stat-data">
-              <div class="stat-label">Menunggu</div>
-              <div class="stat-val">Rp 200.000</div>
-            </div>
-          </div>
-
-          <div class="stat-box bg-blue">
-            <div class="stat-icon"><Wallet :size="24" /></div>
-            <div class="stat-data">
-              <div class="stat-label">Total Cair</div>
-              <div class="stat-val">Rp 2.000.000</div>
+            <div class="stat-info">
+              <p class="stat-label">{{ s.label }}</p>
+              <p class="stat-jumlah">{{ s.jumlah }}</p>
             </div>
           </div>
         </div>
@@ -110,159 +170,297 @@ const filterMonth = ref('Oktober')
 </template>
 
 <style scoped>
-.dashboard-page {
+.dasbor-staf {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
-.page-top-actions {
-  display: flex;
-  justify-content: flex-end;
+/* Baris atas */
+
+
+.tombol-tambah {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
 }
 
-.dashboard-grid {
+/* Grid utama */
+.grid-dasbor {
   display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: 2rem;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
 }
 
-.section-header {
+.header-utama {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.section-title {
-  font-size: 1.125rem;
+.judul-halaman {
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-text-main);
 }
 
-.select-sm {
-  padding: 0.375rem 2rem 0.375rem 0.75rem;
-  border-radius: 20px;
-  background-color: white;
-  font-size: 0.875rem;
+.judul-seksi {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin-bottom: 1rem;
 }
 
-/* List Container */
-.list-container {
+/* ─── Kolom kiri ─── */
+.kolom-kiri {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Filter chip */
+.filter-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.875rem;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.3rem 0.875rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
   background: white;
-  border-radius: 12px;
-  padding: 1rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
 }
 
-.list-item {
+.filter-chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.filter-chip-aktif {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.titik-warna {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* Input bulan */
+.pilih-bulan {
+  margin-bottom: 0;
+}
+
+.filter-bulan-wrap {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.input-bulan {
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: var(--color-text-main);
+  background: white;
+  outline: none;
+  width: 100%;
+  max-width: 220px;
+  cursor: pointer;
+}
+
+.input-bulan:focus {
+  border-color: var(--color-primary);
+}
+
+/* Daftar */
+.daftar-container {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.item-riwayat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
   border-bottom: 1px solid #f1f5f9;
   cursor: pointer;
-  transition: background-color 0.2s;
-  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
-.list-item:hover {
-  background-color: #f8fafc;
-}
-
-.list-item:last-child {
+.item-riwayat:last-of-type {
   border-bottom: none;
 }
 
-.item-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.item-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+.item-riwayat:hover {
   background-color: #f8fafc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.item-title {
+.item-kiri {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.item-judul {
   font-size: 0.9375rem;
   font-weight: 600;
-  margin-bottom: 0.25rem;
+  color: var(--color-text-main);
 }
 
-.item-right {
+.item-bawah {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.item-catatan {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.item-jumlah {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-top: 0.25rem;
+}
+
+.item-kanan {
   text-align: right;
+  flex-shrink: 0;
+  padding-left: 1rem;
 }
 
-.item-amount {
-  font-size: 1rem;
-  margin-bottom: 0.25rem;
+.item-tanggal {
+  font-size: 0.8125rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
-.pagination {
+/* Chip status */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.175rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.chip-bayar   { background: #dcfce7; color: #166534; }
+.chip-tolak   { background: #fee2e2; color: #b91c1c; }
+.chip-menunggu{ background: #fef3c7; color: #d97706; }
+.chip-diterima{ background: #dbeafe; color: #1d4ed8; }
+
+/* Paginasi */
+.paginasi {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 0.5rem;
-  padding: 1.5rem 0 0.5rem;
+  gap: 0.375rem;
+  padding: 1rem;
+  border-top: 1px solid #f1f5f9;
 }
 
-.page-btn {
+.btn-paging {
   width: 32px;
   height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   background: white;
   border: 1px solid var(--color-border);
   color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
 }
 
-.page-btn.active {
-  background-color: var(--color-primary);
-  color: white;
+.btn-paging:hover:not(:disabled):not(.paging-aktif) {
+  background: #f1f5f9;
+}
+
+.btn-paging:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.paging-aktif {
+  background: var(--color-primary);
   border-color: var(--color-primary);
+  color: white;
 }
 
-.page-btn:hover:not(.active) {
-  background-color: #f1f5f9;
-}
-
-.page-dots {
+.kosong-teks {
+  padding: 2.5rem;
+  text-align: center;
   color: var(--color-text-muted);
+  font-size: 0.875rem;
 }
 
-/* Stats Cards */
-.stats-grid {
+/* ─── Kolom kanan: Statistik ─── */
+.kolom-kanan {
+  display: flex;
+  flex-direction: column;
+}
+
+.grid-statistik {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 
-.stat-box {
-  border-radius: 12px;
-  padding: 1.5rem;
+.kartu-stat {
+  border-radius: 14px;
+  padding: 1rem;
   color: white;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  justify-content: space-between;
+  min-height: 100px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+  transition: all 0.25s ease;
+  position: relative;
 }
 
-.stat-icon {
-  width: 40px;
-  height: 40px;
-  background: rgba(255,255,255,0.2);
-  border-radius: 8px;
+.kartu-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.stat-ikon {
+  width: 44px;
+  height: 44px;
+  background: rgba(255,255,255,0.22);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -272,36 +470,27 @@ const filterMonth = ref('Oktober')
   font-size: 0.875rem;
   font-weight: 500;
   opacity: 0.9;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
-.stat-val {
-  font-size: 1.25rem;
+.stat-jumlah {
+  font-size: 1.125rem;
   font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-.bg-green { background-color: #22c55e; }
-.bg-pink { background-color: #ec4899; }
-.bg-purple { background-color: #a855f7; }
-.bg-blue { background-color: #3b82f6; }
-
-/* Text colors */
-.text-green-500 { color: #22c55e; }
-.text-red-500 { color: #ef4444; }
-.text-yellow-500 { color: #eab308; }
-.text-blue-500 { color: #3b82f6; }
-
-@media (max-width: 1024px) {
-  .dashboard-grid {
+/* Responsive */
+@media (max-width: 1100px) {
+  .grid-dasbor {
     grid-template-columns: 1fr;
   }
-  .stats-grid {
+  .grid-statistik {
     grid-template-columns: repeat(4, 1fr);
   }
 }
 
 @media (max-width: 768px) {
-  .stats-grid {
+  .grid-statistik {
     grid-template-columns: 1fr 1fr;
   }
 }
