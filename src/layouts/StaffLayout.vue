@@ -1,6 +1,9 @@
 <script setup>
 import { RouterView } from 'vue-router'
 import { Edit2 } from 'lucide-vue-next'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
 </script>
 
 <template>
@@ -18,8 +21,8 @@ import { Edit2 } from 'lucide-vue-next'
             <img src="https://i.pravatar.cc/150?img=32" alt="Avatar" class="avatar-img" />
             <div class="status-indicator"></div>
           </div>
-          <h3 class="user-name">Silviana Rodrigo</h3>
-          <p class="user-role">SOFTWARE ENGINEER</p>
+          <h3 class="user-name">{{ authStore.user?.name }}</h3>
+          <p class="user-role">{{ authStore.user?.position }}</p>
           
           <router-link to="/staf/profil" class="edit-profile-btn">
             <Edit2 :size="14" />

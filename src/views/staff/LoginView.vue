@@ -3,9 +3,10 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Zap, BarChart3, ShieldCheck, ArrowRight } from 'lucide-vue-next'
 import AuthService from '@/api/AuthService'
+import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const isLoading = ref(false)
-
+const authStore = useAuthStore()
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
@@ -21,7 +22,11 @@ async function handleLogin() {
       password: password.value,
     })
 
-    localStorage.setItem('token', res.data.token)
+    // 1. Simpan Token
+    authStore.setToken(res.data.token)
+
+    // 2. Simpan Data User
+    authStore.setUser(res.data.user)
     router.push('/staf/dasbor')
 
   } catch (err) {
