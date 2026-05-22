@@ -2,16 +2,33 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Zap, BarChart3, ShieldCheck, ArrowRight } from 'lucide-vue-next'
-
+import AuthService from '@/api/AuthService'
 const router = useRouter()
 const isLoading = ref(false)
 
-const handleLogin = () => {
+const email = ref('')
+const password = ref('')
+const showPassword = ref(false)
+const errorMsg = ref('')
+async function handleLogin() {
+  errorMsg.value = ''
   isLoading.value = true
-  setTimeout(() => {
-    isLoading.value = false
+
+  try {
+    // Pemanggilan API kini sangat bersih
+    const res = await AuthService.login({
+      email: email.value,
+      password: password.value,
+    })
+
+    localStorage.setItem('token', res.data.token)
     router.push('/staf/dasbor')
-  }, 1000)
+
+  } catch (err) {
+    errorMsg.value = err.response?.data?.message || 'Email atau password salah.'
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>
 
@@ -25,7 +42,7 @@ const handleLogin = () => {
       <div class="hero-content">
         <h2>Sistem Manajemen Reimbursement</h2>
         <p>Kelola dan pantau proses reimbursement Anda dengan mudah, cepat, dan transparan.</p>
-        
+
         <div class="features">
           <div class="feature-item">
             <div class="feature-icon">
@@ -56,12 +73,38 @@ const handleLogin = () => {
           <h2>Selamat Datang!</h2>
           <p>Lanjutkan ke Dashboard Staff (Mode Demo)</p>
         </div>
+        <form @submit.prevent="handleLogin">
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input v-model="email" type="email" class="form-control" placeholder="finance@example.com" required />
+          </div>
 
-        <button @click="handleLogin" class="btn btn-primary login-btn" :disabled="isLoading">
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <div class="input-wrap">
+              <input v-model="password" :type="showPassword ? 'text' : 'password'" class="form-control"
+                placeholder="••••••••" required />
+              <button type="button" class="eye-btn" @click="showPassword = !showPassword">
+                <EyeOff v-if="showPassword" :size="16" />
+                <Eye v-else :size="16" />
+              </button>
+            </div>
+          </div>
+
+          <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>
+
+          <button type="submit" class="btn btn-primary login-btn" :disabled="isLoading">
+            <span v-if="!isLoading">Masuk
+              <ArrowRight :size="16" />
+            </span>
+            <span v-else class="loader"></span>
+          </button>
+        </form>
+        <!-- <button @click="handleLogin" class="btn btn-primary login-btn" :disabled="isLoading">
           <span v-if="!isLoading">Masuk ke Dashboard</span>
           <span v-else class="loader"></span>
           <ArrowRight v-if="!isLoading" :size="18" />
-        </button>
+        </button> -->
       </div>
     </div>
   </div>
@@ -164,7 +207,7 @@ const handleLogin = () => {
   width: 500px;
   height: 500px;
   border-radius: 50%;
-  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
   z-index: 1;
 }
 
@@ -211,7 +254,7 @@ const handleLogin = () => {
 .loader {
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(255,255,255,0.3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
   border-top-color: white;
   animation: spin 1s ease-in-out infinite;
@@ -219,7 +262,9 @@ const handleLogin = () => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 1024px) {
