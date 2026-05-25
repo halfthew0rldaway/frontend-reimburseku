@@ -1,13 +1,18 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { Plus, Car, UtensilsCrossed, ParkingMeter, MoreHorizontal, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { Plus, Car, UtensilsCrossed, ParkingMeter, MoreHorizontal, ChevronLeft, ChevronRight, Calendar } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
 // Filter status aktif
 const filterAktif = ref('semua')
-const filterBulan = ref('2025-09')
+const filterBulan = ref('2025-09') // Format: YYYY-MM
+
+// Modal State
+const showModalBulan = ref(false)
+const tempBulan = ref(9)
+const tempTahun = ref(2025)
 
 const filterList = [
   { key: 'semua',    label: 'Semua',   warna: '' },
@@ -28,14 +33,40 @@ const semuaData = ref([
 // Pagination
 const halamanAktif = ref(1)
 const itemPerHalaman = 5
-const totalHalaman = 5 // dummy 5 halaman
+const totalHalaman = 5 
 
 const dataFiltered = computed(() => {
   if (filterAktif.value === 'semua') return semuaData.value
   return semuaData.value.filter(d => d.status === filterAktif.value)
 })
 
-// Stat kategori (kanan)
+// Format tampilan bulan di Button (Contoh: "September 2025")
+const namaBulanLengkap = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+const labelBulanTampil = computed(() => {
+  const [thn, bln] = filterBulan.value.split('-')
+  return `${namaBulanLengkap[parseInt(bln) - 1]} ${thn}`
+})
+
+// Daftar bulan untuk modal
+const bulanModalList = [
+  { val: 1, label: 'Jan' }, { val: 2, label: 'Feb' }, { val: 3, label: 'Mar' }, { val: 4, label: 'Apr' },
+  { val: 5, label: 'Mei' }, { val: 6, label: 'Jun' }, { val: 7, label: 'Jul' }, { val: 8, label: 'Agt' },
+  { val: 9, label: 'Sep' }, { val: 10, label: 'Okt' }, { val: 11, label: 'Nov' }, { val: 12, label: 'Des' }
+]
+
+function bukaModalBulan() {
+  const [thn, bln] = filterBulan.value.split('-')
+  tempTahun.value = parseInt(thn)
+  tempBulan.value = parseInt(bln)
+  showModalBulan.value = true
+}
+
+function terapkanFilterBulan() {
+  const blnFormat = tempBulan.value.toString().padStart(2, '0')
+  filterBulan.value = `${tempTahun.value}-${blnFormat}`
+  showModalBulan.value = false
+}
+
 const kategoriStats = [
   { label: 'Transportasi', jumlah: 'Rp.100.000', ikon: Car,             bg: '#22c55e' },
   { label: 'Makanan',      jumlah: 'Rp.200.000', ikon: UtensilsCrossed, bg: '#ec4899' },
@@ -43,7 +74,6 @@ const kategoriStats = [
   { label: 'Dan lain-lain',jumlah: 'Rp.2.000.000',ikon: MoreHorizontal, bg: '#3b82f6' },
 ]
 
-// Badge info per status
 function getBadgeClass(status) {
   switch (status) {
     case 'dibayar':  return 'chip chip-bayar'
@@ -63,10 +93,8 @@ function gantiHalaman(h) {
   if (h >= 1 && h <= totalHalaman) halamanAktif.value = h
 }
 </script>
-
 <template>
   <div class="dasbor-staf">
-    <!-- Header & Tombol Tambah -->
     <div class="header-utama">
       <h2 class="judul-halaman">Dashboard Staff</h2>
       <button class="btn btn-primary tombol-tambah" @click="router.push('/staf/reimbursement/tambah')">
@@ -75,13 +103,12 @@ function gantiHalaman(h) {
     </div>
 
     <div class="grid-dasbor">
-      <!-- Kolom kiri: Riwayat -->
       <div class="kolom-kiri">
         <div class="section-title-row">
           <h3 class="judul-seksi">Riwayat Reimbursement</h3>
         </div>
 
-        <div class="filter-bulan-wrap">
+        <div class="filter-kiri-wrap">
           <div class="filter-chip-row">
             <button
               v-for="f in filterList"
@@ -95,12 +122,12 @@ function gantiHalaman(h) {
             </button>
           </div>
 
-          <div class="pilih-bulan">
-            <input type="month" v-model="filterBulan" class="input-bulan" />
-          </div>
+          <button class="btn-tanggal-full" @click="bukaModalBulan">
+            <span>{{ labelBulanTampil }}</span>
+            <Calendar :size="18" class="ikon-kalender" />
+          </button>
         </div>
 
-        <!-- Daftar item -->
         <div class="daftar-container">
           <div v-if="dataFiltered.length === 0" class="kosong-teks">
             Tidak ada data untuk filter ini.
@@ -125,7 +152,6 @@ function gantiHalaman(h) {
             </div>
           </div>
 
-          <!-- Pagination -->
           <div class="paginasi">
             <button class="btn-paging" @click="gantiHalaman(halamanAktif - 1)" :disabled="halamanAktif === 1">
               <ChevronLeft :size="16" />
@@ -144,17 +170,10 @@ function gantiHalaman(h) {
         </div>
       </div>
 
-      <!-- Kolom kanan: Statistik -->
       <div class="kolom-kanan">
         <h2 class="judul-seksi">Statistik dan Laporan</h2>
-
         <div class="grid-statistik">
-          <div
-            v-for="s in kategoriStats"
-            :key="s.label"
-            class="kartu-stat"
-            :style="{ backgroundColor: s.bg }"
-          >
+          <div v-for="s in kategoriStats" :key="s.label" class="kartu-stat" :style="{ backgroundColor: s.bg }">
             <div class="stat-ikon">
               <component :is="s.ikon" :size="28" />
             </div>
@@ -166,10 +185,192 @@ function gantiHalaman(h) {
         </div>
       </div>
     </div>
+
+    <div v-if="showModalBulan" class="modal-backdrop" @click.self="showModalBulan = false">
+      <div class="modal-box">
+        <h3 class="modal-judul">Pilih Bulan</h3>
+        
+        <div class="modal-tahun-kontrol">
+          <button class="btn-kontrol-tahun" @click="tempTahun--"><ChevronLeft :size="18"/></button>
+          <span class="label-tahun">{{ tempTahun }}</span>
+          <button class="btn-kontrol-tahun" @click="tempTahun++"><ChevronRight :size="18"/></button>
+        </div>
+
+        <div class="grid-bulan">
+          <button
+            v-for="b in bulanModalList"
+            :key="b.val"
+            class="btn-bulan-item"
+            :class="{ 'aktif': tempBulan === b.val }"
+            @click="tempBulan = b.val"
+          >
+            {{ b.label }}
+          </button>
+        </div>
+
+        <div class="modal-aksi">
+          <button class="btn-batal" @click="showModalBulan = false">Batal</button>
+          <button class="btn-terapkan" @click="terapkanFilterBulan">Terapkan</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
-
 <style scoped>
+/* Struktur Baru Filter Kiri */
+.filter-kiri-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+/* Tombol Tanggal Sesuai UI Foto */
+.btn-tanggal-full {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  border: 1.5px solid #60a5fa; /* Biru terang sesuai foto */
+  color: #3b82f6;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-tanggal-full:hover {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+}
+
+.ikon-kalender {
+  color: #60a5fa;
+}
+
+/* --- MODAL BULAN --- */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+  backdrop-filter: blur(2px);
+}
+
+.modal-box {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 340px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.modal-judul {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-align: center;
+  color: var(--color-text-main);
+}
+
+.modal-tahun-kontrol {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.btn-kontrol-tahun {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-kontrol-tahun:hover {
+  color: var(--color-primary);
+}
+
+.label-tahun {
+  font-weight: 700;
+  font-size: 1.0625rem;
+  color: var(--color-text-main);
+}
+
+.grid-bulan {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn-bulan-item {
+  background: white;
+  border: 1px solid var(--color-border);
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--color-text-main);
+}
+
+.btn-bulan-item:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-bulan-item.aktif {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  font-weight: 600;
+}
+
+.modal-aksi {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.btn-batal {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-terapkan {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: var(--color-primary, #3b82f6);
+  color: white;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-terapkan:hover {
+  opacity: 0.9;
+}
 .dasbor-staf {
   display: flex;
   flex-direction: column;

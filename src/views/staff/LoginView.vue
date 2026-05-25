@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Zap, BarChart3, ShieldCheck, ArrowRight } from 'lucide-vue-next'
-import AuthService from '@/api/AuthService'
+import AuthService from '@/api/ApiService'
 import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const isLoading = ref(false)

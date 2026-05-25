@@ -16,5 +16,10 @@ export default {
      */
     getProfile() {
         return apiClient.get('/user')
+    },
+    
+
+    getCategories(){
+        return apiClient.get('/category')
     }
 }
