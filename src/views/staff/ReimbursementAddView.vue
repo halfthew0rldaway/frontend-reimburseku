@@ -5,6 +5,7 @@ import { ArrowLeft, UploadCloud } from 'lucide-vue-next'
 import apiClient from '@/api/apiClient' // Sesuaikan dengan path Axios client Anda
 import { useAuthStore } from '@/stores/auth'
 import apiService from '@/api/ApiService'
+import Swal from 'sweetalert2'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -42,18 +43,28 @@ const handleFileUpload = (event) => {
   if (file) {
     // Validasi ukuran file (contoh: maks 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Ukuran file maksimal 5MB')
+      Swal.fire({
+        icon: 'error',
+        title: 'File Terlalu Besar',
+        text: 'Ukuran file maksimal 5MB'
+      })
+      event.target.value = ''
       return
     }
     selectedFile.value = file
   }
 }
 
+
 // Fungsi Submit ke API Laravel
 const submit = async () => {
   // Validasi sederhana
   if (!data.value.kategori || !data.value.tanggal || !data.value.total || !selectedFile.value) {
-    alert('Harap lengkapi Kategori, Tanggal, Total, dan Bukti Struk!')
+    Swal.fire({
+      icon: 'warning',
+      title: 'Data Belum Lengkap',
+      text: 'Harap lengkapi Kategori, Tanggal, Total, dan Bukti Struk!'
+    })
     return
   }
 
@@ -65,23 +76,29 @@ const submit = async () => {
   formData.append('expense_date', data.value.tanggal)
 
   // Membersihkan format "Rp." jika ada, hanya menyisakan angka
-  const cleanTotal = data.value.total.replace(/[^0-9]/g, '')
+  const cleanTotal = String(data.value.total).replace(/[^0-9]/g, '')
   formData.append('amount', cleanTotal)
 
   formData.append('description', data.value.catatan)
   formData.append('attachment', selectedFile.value)
 
   try {
-    await apiClient.post('/reimbursements', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
+    await apiService.saveReimbursement(formData)
 
-    alert('Reimbursement berhasil diajukan!')
+    Swal.fire({
+      icon: 'success',
+      title: 'Berhasil!',
+      text: 'Reimbursement berhasil diajukan!',
+      showConfirmButton: false,
+      timer: 1500
+    })
     router.push('/staf/dasbor')
   } catch (error) {
-    alert(error.response?.data?.message || 'Gagal mengirim pengajuan')
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal',
+      text: error.response?.data?.message || 'Gagal mengirim pengajuan'
+    })
     console.error(error)
   } finally {
     isLoading.value = false
@@ -99,7 +116,7 @@ const displayTotal = computed({
   },
   set: (newValue) => {
     // Saat user mengetik, hapus semua karakter SELAIN angka (termasuk Rp, titik, dan spasi)
-    const rawNumber = newValue.replace(/[^0-9]/g, '');
+    const rawNumber = String(newValue).replace(/[^0-9]/g, '');
 
     // Simpan kembali sebagai integer ke dalam data.total
     data.value.total = rawNumber ? parseInt(rawNumber, 10) : '';

@@ -1,32 +1,141 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { User, FileText, Bell, ChevronLeft, ChevronRight, X, Send } from 'lucide-vue-next'
+import ApiService from '@/api/ApiService'
 
-const stats = [
-  { label: 'TOTAL KARYAWAN', value: '5', icon: User, color: '#3b82f6', bg: '#eff6ff' },
-  { label: 'TOTAL KLAIM MENUNGGU', value: '10', icon: FileText, color: '#ef4444', bg: '#fef2f2' },
-]
+const stats = ref([
+  { label: 'TOTAL KARYAWAN', value: '0', icon: User, color: '#3b82f6', bg: '#eff6ff' },
+  { label: 'TOTAL KLAIM MENUNGGU', value: '0', icon: FileText, color: '#ef4444', bg: '#fef2f2' },
+])
 
-const categories = [
-  { label: 'Transportasi (25%)', color: '#f59e0b', dash: '25 75', offset: '25' },
-  { label: 'Makanan (25%)', color: '#22c55e', dash: '25 75', offset: '0' },
-  { label: 'Parkir (10%)', color: '#ef4444', dash: '10 90', offset: '-25' },
-  { label: 'Dan-lain-lain (40%)', color: '#3b82f6', dash: '40 60', offset: '-35' },
-]
+import VueApexCharts from 'vue3-apexcharts'
 
-const waitingList = [
-  { id: 1, name: 'Fajri Mubarok', category: 'Makanan', date: '20 Jan 2025', amount: '-Rp.300.000' },
-  { id: 2, name: 'Eki', category: 'Parkir', date: '19 Jan 2025', amount: '-Rp.25.000' },
-  { id: 3, name: 'Fajri Mubarok', category: 'Makanan', date: '18 Jan 2025', amount: '-Rp.300.000' },
-  { id: 4, name: 'Budi Santoso', category: 'Makanan', date: '17 Jan 2025', amount: '-Rp.150.000' },
-  { id: 5, name: 'Ayu Lestari', category: 'Transportasi', date: '16 Jan 2025', amount: '-Rp.200.000' },
-]
+const categories = ref([
+  { label: 'Transportasi', color: '#f59e0b', dash: '25 75', offset: '25' },
+  { label: 'Makanan', color: '#22c55e', dash: '25 75', offset: '0' },
+  { label: 'Parkir', color: '#ef4444', dash: '10 90', offset: '-25' },
+  { label: 'Dan-lain-lain', color: '#3b82f6', dash: '40 60', offset: '-35' },
+])
 
-const logs = [
-  { id: 1, time: 'Hari ini, 10:45 AM', text: 'Super Admin menyetujui klaim', target: 'Fajri Mubarok', color: '#22c55e' },
-  { id: 2, time: 'Hari ini, 08:12 AM', text: 'Staff Dewi Kurnia tambah pengajuan rmb', target: '', color: '#94a3b8' },
-  { id: 3, time: 'Kemarin, 14:30 PM', text: 'Finance transfer Rp.5M ke kas keluar', target: '', color: '#3b82f6' },
-]
+const donutOptions = ref({
+  chart: {
+    type: 'donut',
+    fontFamily: 'inherit'
+  },
+  colors: ['#f59e0b', '#22c55e', '#ef4444', '#3b82f6'],
+  labels: ['Transportasi', 'Makanan', 'Parkir', 'Dan-lain-lain'],
+  dataLabels: { enabled: false },
+  plotOptions: {
+    pie: {
+      donut: {
+        size: '80%'
+      }
+    }
+  },
+  stroke: { show: false },
+  legend: { show: false },
+  tooltip: {
+    y: { formatter: (val) => val + "%" }
+  }
+})
+
+const donutSeries = ref([25, 25, 10, 40])
+
+const waitingList = ref([])
+const logs = ref([])
+
+const formatRupiah = (angka) => {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka)
+}
+
+// Calculate real category totals for donut chart
+const populateDonutData = (reimbursements) => {
+  const catTotals = {}
+  let totalAll = 0
+  
+  reimbursements.forEach(item => {
+    const catName = item.category_name || item.category?.category_name || 'Lain-lain'
+    if (!catTotals[catName]) catTotals[catName] = 0
+    catTotals[catName] += item.amount
+    totalAll += item.amount
+  })
+  
+  if (totalAll > 0) {
+    const sortedCats = Object.entries(catTotals)
+      .sort((a, b) => b[1] - a[1]) // Sort desc
+      .slice(0, 4) // Max 4 categories
+      
+    // Default colors for chart
+    const colorPalette = ['#f59e0b', '#22c55e', '#ef4444', '#3b82f6', '#8b5cf6']
+    
+    categories.value = sortedCats.map((cat, index) => ({
+      label: cat[0],
+      color: colorPalette[index % colorPalette.length],
+      dash: '0 100', offset: '0'
+    }))
+    
+    donutOptions.value.labels = categories.value.map(c => c.label)
+    donutOptions.value.colors = categories.value.map(c => c.color)
+    
+    donutSeries.value = sortedCats.map(cat => Math.round((cat[1] / totalAll) * 100))
+  }
+}
+
+onMounted(async () => {
+  try {
+    const [empRes, reimbRes, msgRes] = await Promise.allSettled([
+      ApiService.getEmployees(),
+      ApiService.getReimbursements(),
+      ApiService.getReimbursementMessages()
+    ])
+
+    const employees = empRes.status === 'fulfilled' && empRes.value.data?.data ? (empRes.value.data.data.data || empRes.value.data.data) : []
+    stats.value[0].value = employees.length.toString()
+
+    const reimbursements = reimbRes.status === 'fulfilled' && reimbRes.value.data?.data ? (reimbRes.value.data.data.data || reimbRes.value.data.data) : []
+    const pending = reimbursements.filter(r => (r.last_status || r.status || 'PENDING').toUpperCase() === 'PENDING')
+    stats.value[1].value = pending.length.toString()
+    
+    if (reimbursements.length > 0) {
+      populateDonutData(reimbursements)
+    }
+
+    const empMap = employees.reduce((acc, curr) => { acc[curr.id_employees] = curr; return acc }, {})
+    
+    waitingList.value = pending.slice(0, 5).map(item => {
+      const emp = empMap[item.employees_id] || {}
+      let parseableDate = item.expense_date;
+      if (typeof parseableDate === 'string' && parseableDate.includes(' ') && !parseableDate.includes('T')) {
+        parseableDate = parseableDate.replace(' ', 'T') + 'Z';
+      }
+      return {
+        id: item.id_request,
+        name: emp.name || item.employee_name || 'Unknown',
+        category: item.category_name || item.category?.category_name || 'Kategori',
+        date: new Date(parseableDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+        amount: `-${formatRupiah(item.amount)}`
+      }
+    })
+
+    const messages = msgRes.status === 'fulfilled' && msgRes.value.data?.data ? (msgRes.value.data.data.data || msgRes.value.data.data) : []
+    logs.value = messages.slice(0, 5).map((m, i) => {
+      let parseableDate = m.created_at;
+      if (typeof parseableDate === 'string' && parseableDate.includes(' ') && !parseableDate.includes('T')) {
+        parseableDate = parseableDate.replace(' ', 'T') + 'Z';
+      }
+      return {
+        id: m.id_message || i,
+        time: new Date(parseableDate).toLocaleString('id-ID'),
+        text: m.message || 'Notifikasi',
+        target: m.user_id ? 'Pesan Sistem' : '',
+        color: '#3b82f6'
+      }
+    })
+
+  } catch (err) {
+    console.error('Failed to load dashboard data', err)
+  }
+})
 
 // Modal State
 const showNotifModal = ref(false)
@@ -39,9 +148,26 @@ function openNotif(name) {
   showNotifModal.value = true
 }
 
-function sendNotif() {
-  alert(`Notifikasi pengingat dikirim ke tim Finance untuk ${selectedUser.value}`)
-  showNotifModal.value = false
+async function sendNotif() {
+  try {
+    await ApiService.saveReimbursementMessage({ message: message.value })
+    alert('Notifikasi berhasil dikirim')
+    showNotifModal.value = false
+    
+    // Refresh messages
+    const msgRes = await ApiService.getReimbursementMessages()
+    const messages = msgRes.data?.data?.data || msgRes.data?.data || []
+    logs.value = messages.slice(0, 3).map((m, i) => ({
+      id: m.id_message || i,
+      time: new Date(m.created_at).toLocaleString('id-ID'),
+      text: m.message || 'Notifikasi',
+      target: m.user_id ? 'Pesan Sistem' : '',
+      color: '#3b82f6'
+    }))
+  } catch (err) {
+    alert('Gagal mengirim notifikasi')
+    console.error(err)
+  }
 }
 </script>
 
@@ -72,10 +198,7 @@ function sendNotif() {
           <div class="card-header">Reimburse berdasarkan Kategori</div>
           <div class="chart-container">
             <div class="donut-box">
-              <svg viewBox="0 0 42 42" class="donut-svg">
-                <circle class="donut-ring" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#f1f5f9" stroke-width="4.5"></circle>
-                <circle v-for="c in categories" :key="c.label" class="donut-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" :stroke="c.color" stroke-width="4.5" :stroke-dasharray="c.dash" :stroke-dashoffset="c.offset"></circle>
-              </svg>
+              <VueApexCharts type="donut" width="100%" height="200" :options="donutOptions" :series="donutSeries" />
             </div>
             <div class="chart-legend">
               <div v-for="c in categories" :key="c.label" class="legend-item">

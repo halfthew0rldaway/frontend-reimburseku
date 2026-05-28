@@ -1,19 +1,54 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { ArrowLeft, Image as ImageIcon } from 'lucide-vue-next'
+import ApiService from '@/api/ApiService'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const route = useRoute()
+const authStore = useAuthStore()
 
 const data = ref({
-  rekening: 'BCA 31234123 Atas nama Silviana',
-  nama: 'Silviana Rodrigo',
-  posisi: 'STAFF Software Engineer',
-  kategori: 'Makan/Minum',
-  tanggal: '23/10/2023',
-  total: 'Rp.300.000',
-  catatan: 'Grab Food selama cuti\nMakan siang lembur divisi',
-  bukti: 'IMG_20231023_093123.jpg'
+  rekening: '-',
+  nama: '-',
+  posisi: '-',
+  kategori: '-',
+  tanggal: '-',
+  total: '-',
+  catatan: '-',
+  bukti: '-',
+  buktiUrl: ''
+})
+
+const formatRupiah = (angka) => {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka)
+}
+
+onMounted(async () => {
+  const id = route.params.id
+  if (id) {
+    try {
+      const res = await ApiService.getReimbursementDetail(id)
+      const detail = res.data?.data || res.data
+      
+      const user = authStore.user || {}
+      
+      data.value = {
+        rekening: user.bank ? `${user.bank} - ${user.account_number || ''}` : '-',
+        nama: user.name || '-',
+        posisi: user.position || '-',
+        kategori: detail.category_id || detail.category_name || 'Kategori',
+        tanggal: new Date(detail.expense_date).toLocaleDateString('id-ID'),
+        total: formatRupiah(detail.amount),
+        catatan: detail.description || '-',
+        bukti: detail.attachment_url ? 'Lihat Bukti' : '-',
+        buktiUrl: detail.attachment_url || ''
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
 })
 </script>
 

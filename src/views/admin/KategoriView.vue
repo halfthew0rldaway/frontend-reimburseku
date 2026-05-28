@@ -1,13 +1,26 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Plus, Pencil, Trash2, X, Search, ChevronDown } from 'lucide-vue-next'
+import ApiService from '@/api/ApiService'
 
-const categories = ref([
-  { id: 1, name: 'Transportasi', description: 'Penggantian biaya bensin, parkir, tol' },
-  { id: 2, name: 'Parkir', description: 'Khusus biaya Parkir Gedung & Motor dsb...' },
-  { id: 3, name: 'Makanan', description: 'Biaya konsumsi harian dan jamuan klien' },
-  { id: 4, name: 'Dan-lain-lain', description: 'Kebutuhan miscellaneous dan tak terduga' },
-])
+const categories = ref([])
+
+const fetchCategories = async () => {
+  try {
+    const res = await ApiService.getCategories()
+    const listData = res.data?.data?.data || res.data?.data || []
+    
+    categories.value = listData.map(c => ({
+      id: c.id_category,
+      name: c.category_name || '-',
+      description: c.description || '-'
+    }))
+  } catch (err) {
+    console.error('Failed to load categories', err)
+  }
+}
+
+onMounted(fetchCategories)
 
 const searchQuery = ref('')
 const showModal = ref(false)
@@ -20,6 +33,18 @@ function openAdd() {
   isEditing.value = false
   form.value = { id: null, name: '', description: '' }
   showModal.value = true
+}
+
+const deleteCategory = async (id) => {
+  if (confirm('Yakin ingin menghapus kategori ini?')) {
+    try {
+      await ApiService.deleteCategory(id)
+      fetchCategories()
+    } catch (err) {
+      alert('Gagal menghapus kategori')
+      console.error(err)
+    }
+  }
 }
 
 const filteredCategories = computed(() => {
@@ -68,7 +93,7 @@ const filteredCategories = computed(() => {
               <td class="text-center">
                 <div class="action-btns">
                   <button class="btn-icon edit"><Pencil :size="12" /></button>
-                  <button class="btn-icon delete"><Trash2 :size="12" /></button>
+                  <button class="btn-icon delete" @click="deleteCategory(cat.id)"><Trash2 :size="12" /></button>
                 </div>
               </td>
             </tr>

@@ -9,7 +9,7 @@ const router = useRouter()
 // Tambahkan fungsi logout dasar agar tidak error saat diklik
 const logout = () => {
   localStorage.removeItem('token')
-  router.push('/')
+  router.push('/masuk')
 }
 </script>
 

@@ -1,14 +1,40 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Filter, Search, Plus, FileText } from 'lucide-vue-next'
+import ApiService from '@/api/ApiService'
 
-const reimbursements = ref([
-  { id: 'RMB-001', date: '27 Apr 2026', category: 'Transportasi', title: 'Taksi meeting client', amount: 'Rp 150.000', status: 'menunggu' },
-  { id: 'RMB-002', date: '25 Apr 2026', category: 'Makan', title: 'Makan siang tim', amount: 'Rp 85.000', status: 'disetujui' },
-  { id: 'RMB-003', date: '22 Apr 2026', category: 'Penginapan', title: 'Hotel dinas luar kota', amount: 'Rp 1.200.000', status: 'dibayar' },
-  { id: 'RMB-004', date: '20 Apr 2026', category: 'Lain-lain', title: 'Beli ATK dadakan', amount: 'Rp 50.000', status: 'ditolak' },
-  { id: 'RMB-005', date: '18 Apr 2026', category: 'Transportasi', title: 'Bensin dinas', amount: 'Rp 200.000', status: 'dibayar' },
-])
+const reimbursements = ref([])
+
+const mapStatusToFrontend = (backendStatus) => {
+  const status = backendStatus?.toUpperCase() || ''
+  if (status === 'PENDING') return 'menunggu'
+  if (status === 'APPROVED') return 'disetujui'
+  if (status === 'REJECTED') return 'ditolak'
+  if (status === 'PAID') return 'dibayar'
+  return 'menunggu'
+}
+
+const formatRupiah = (angka) => {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka)
+}
+
+onMounted(async () => {
+  try {
+    const res = await ApiService.getMyReimbursements()
+    const responseData = res.data?.data?.data || res.data?.data || []
+    reimbursements.value = responseData.map(item => ({
+      id: `RMB-${item.id_request}`,
+      rawId: item.id_request,
+      date: new Date(item.expense_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+      category: item.category_name,
+      title: item.description || 'Pengajuan Reimbursement',
+      amount: formatRupiah(item.amount),
+      status: mapStatusToFrontend(item.last_status)
+    }))
+  } catch (error) {
+    console.error('Failed to load reimbursements', error)
+  }
+})
 
 const getStatusBadgeClass = (status) => {
   switch(status) {
@@ -84,7 +110,7 @@ const getStatusBadgeClass = (status) => {
                 </span>
               </td>
               <td>
-                <router-link :to="'/staff/reimbursement/' + item.id" class="btn btn-sm btn-outline">
+                <router-link :to="'/staf/reimbursement/' + item.rawId" class="btn btn-sm btn-outline">
                   <FileText :size="14" />
                   Detail
                 </router-link>

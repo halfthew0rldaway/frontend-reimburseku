@@ -1,15 +1,57 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ArrowLeft, Search, ChevronDown, RotateCcw, Info } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
+import ApiService from '@/api/ApiService'
 
 const router = useRouter()
 
-const archivedDeposits = ref([
-  { id: 10, source: 'Dana Hibah', target: 'Dana Darurat', amount: 'Rp 10.000.000', ref_bank: 'TRF-BNI-0022', date: '01 Des 2024', note: 'Dana cadangan tahun lalu' },
-])
+const archivedDeposits = ref([])
+
+const formatRupiah = (angka) => {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka)
+}
+
+const fetchArchives = async () => {
+  try {
+    const res = await ApiService.getDepositDrafts()
+    const listData = res.data?.data || [] // The API might just return an array here based on Controller structure
+    
+    archivedDeposits.value = (Array.isArray(listData) ? listData : []).map(d => ({
+      id: d.id_deposit,
+      source: 'Deposit Kas',
+      target: 'Reimbursement',
+      amount: formatRupiah(d.amount),
+      ref_bank: d.bank_ref_number || '-',
+      date: new Date(d.deleted_at || d.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+      note: d.notes || '-'
+    }))
+  } catch (error) {
+    console.error('Failed to load archives', error)
+  }
+}
+
+onMounted(fetchArchives)
+
+const recoverDeposit = async (id) => {
+  if (confirm('Yakin ingin memulihkan deposit ini?')) {
+    try {
+      await ApiService.recoveryDeposit(id)
+      fetchArchives()
+    } catch (err) {
+      alert('Gagal memulihkan deposit')
+      console.error(err)
+    }
+  }
+}
 
 const searchQuery = ref('')
+const filteredDeposits = computed(() => {
+  return archivedDeposits.value.filter(d => 
+    d.source.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    d.ref_bank.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+})
 </script>
 
 <template>
@@ -59,7 +101,7 @@ const searchQuery = ref('')
             </tr>
           </thead>
           <tbody>
-            <tr v-for="d in archivedDeposits" :key="d.id">
+            <tr v-for="d in filteredDeposits" :key="d.id">
               <td class="font-semibold">{{ d.source }}</td>
               <td class="text-primary-dark font-medium">{{ d.target }}</td>
               <td class="font-bold text-success">{{ d.amount }}</td>
@@ -67,7 +109,7 @@ const searchQuery = ref('')
               <td class="text-muted">{{ d.date }}</td>
               <td class="note-cell" :title="d.note">{{ d.note }}</td>
               <td class="text-center">
-                <button class="btn-restore" title="Pulihkan Data">
+                <button class="btn-restore" title="Pulihkan Data" @click="recoverDeposit(d.id)">
                   <RotateCcw :size="12" /> Pulihkan
                 </button>
               </td>

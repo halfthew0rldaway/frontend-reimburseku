@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Plus, Car, UtensilsCrossed, ParkingMeter, MoreHorizontal, ChevronLeft, ChevronRight, Calendar } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
+import ApiService from '@/api/ApiService'
 
 const router = useRouter()
 
@@ -22,18 +23,42 @@ const filterList = [
   { key: 'dibayar',  label: 'Dibayar', warna: '#22c55e' },
 ]
 
-const semuaData = ref([
-  { id: 1, judul: 'Grab Food bulan ini',      status: 'dibayar',  catatan: '',                         jumlah: 'Rp.300.000',   tanggal: '26/10/2025' },
-  { id: 2, judul: 'Parkir Motor Kendaraan',   status: 'ditolak',  catatan: 'Nota Terlampir tidak valid', jumlah: 'Rp.25.000',   tanggal: '25/10/2025' },
-  { id: 3, judul: 'Tiket Bus',                status: 'menunggu', catatan: '',                         jumlah: 'Rp.300.000',   tanggal: '24/10/2025' },
-  { id: 4, judul: 'Perbaikan Laptop',         status: 'diterima', catatan: '',                         jumlah: 'Rp.500.000',   tanggal: '23/10/2025' },
-  { id: 5, judul: 'Perbaiki AC',              status: 'dibayar',  catatan: '',                         jumlah: 'Rp.1.000.000', tanggal: '20/10/2025' },
-])
+const semuaData = ref([])
 
 // Pagination
 const halamanAktif = ref(1)
 const itemPerHalaman = 5
-const totalHalaman = 5 
+const totalHalaman = ref(1)
+
+const mapStatusToFrontend = (backendStatus) => {
+  const status = backendStatus?.toUpperCase() || ''
+  if (status === 'PENDING') return 'menunggu'
+  if (status === 'APPROVED') return 'diterima'
+  if (status === 'REJECTED') return 'ditolak'
+  if (status === 'PAID') return 'dibayar'
+  return 'menunggu'
+}
+
+const formatRupiah = (angka) => {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka)
+}
+
+onMounted(async () => {
+  try {
+    const res = await ApiService.getMyReimbursements()
+    const responseData = res.data?.data?.data || res.data?.data || [] // depending on paginate format
+    semuaData.value = responseData.map(item => ({
+      id: item.id_request,
+      judul: item.category_name || 'Pengajuan',
+      status: mapStatusToFrontend(item.last_status),
+      catatan: item.rejection_reason || item.description || '',
+      jumlah: formatRupiah(item.amount),
+      tanggal: new Date(item.expense_date).toLocaleDateString('id-ID')
+    }))
+  } catch (err) {
+    console.error('Failed to fetch reimbursements:', err)
+  }
+})
 
 const dataFiltered = computed(() => {
   if (filterAktif.value === 'semua') return semuaData.value

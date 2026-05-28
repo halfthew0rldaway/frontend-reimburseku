@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Zap, BarChart3, ShieldCheck, ArrowRight } from 'lucide-vue-next'
+import { Zap, BarChart3, ShieldCheck, ArrowRight, Eye, EyeOff } from 'lucide-vue-next'
 import AuthService from '@/api/ApiService'
 import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
@@ -27,7 +27,16 @@ async function handleLogin() {
 
     // 2. Simpan Data User
     authStore.setUser(res.data.user)
-    router.push('/staf/dasbor')
+
+    // 3. Redirect berdasarkan role
+    const roleId = Number(res.data.user.role_id)
+    if (roleId === 3) {
+      router.push('/admin/dasbor')
+    } else if (roleId === 2) {
+      router.push('/finance/dasbor')
+    } else {
+      router.push('/staf/dasbor')
+    }
 
   } catch (err) {
     errorMsg.value = err.response?.data?.message || 'Email atau password salah.'
@@ -76,12 +85,12 @@ async function handleLogin() {
       <div class="login-card">
         <div class="login-header">
           <h2>Selamat Datang!</h2>
-          <p>Lanjutkan ke Dashboard Staff (Mode Demo)</p>
+          <p>Masuk ke portal ReimburseKu</p>
         </div>
         <form @submit.prevent="handleLogin">
           <div class="form-group">
             <label class="form-label">Email</label>
-            <input v-model="email" type="email" class="form-control" placeholder="finance@example.com" required />
+            <input v-model="email" type="email" class="form-control" placeholder="nama@email.com" required />
           </div>
 
           <div class="form-group">

@@ -1,14 +1,35 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Plus, Pencil, Trash2, X, Search, ChevronDown, Check } from 'lucide-vue-next'
+import ApiService from '@/api/ApiService'
 
-const employees = ref([
-  { id: 1, account_id: 'BANK BCA - 12345678', name: 'Fajar Mubarak', email: 'fajar@company.id', gender: 'Laki-laki', dob: '20 Jan 1999', address: 'Jl. Mangga No. 12, DKI Jakarta', position: 'Staff Kopel', role: 'Staff' },
-  { id: 2, account_id: 'DANA - 081234567890', name: 'Dewi Kurnia', email: 'dewi@company.id', gender: 'Perempuan', dob: '15 Mar 1995', address: 'Jl. Cempaka No. 5, Jawa Barat', position: 'Finance Officer', role: 'Finance' },
-  { id: 3, account_id: 'BANK MANDIRI - 11223344', name: 'Budi Santoso', email: 'budi@company.id', gender: 'Laki-laki', dob: '10 Ags 1990', address: 'Jl. Sudirman No. 45, Jawa Tengah', position: 'Product Manager', role: 'Staff' },
-  { id: 4, account_id: 'BANK BRI - 12121212', name: 'Ayu Lestari', email: 'ayu@company.id', gender: 'Perempuan', dob: '05 Sep 1996', address: 'Jl. Gatot Subroto No. 2, DKI Jakarta', position: 'Sales Administrator', role: 'Staff' },
-  { id: 5, account_id: 'BANK BNI - 22334455', name: 'Eka', email: 'eka@company.id', gender: 'Laki-laki', dob: '22 Apr 1991', address: 'Kebayoran Lama, Jakarta Selatan', position: 'Junior Auditor', role: 'Finance' },
-])
+const employees = ref([])
+const rolesMap = { 1: 'Admin', 2: 'Finance', 3: 'Staff' }
+
+onMounted(async () => {
+  fetchEmployees()
+})
+
+async function fetchEmployees() {
+  try {
+    const res = await ApiService.getEmployees()
+    const listData = res.data?.data?.data || res.data?.data || []
+    
+    employees.value = listData.map((emp, i) => ({
+      id: emp.id_employees,
+      account_id: emp.account_number || '-',
+      name: emp.name || '-',
+      email: emp.email || '-',
+      gender: emp.gender || '-',
+      dob: emp.date_of_birth ? new Date(emp.date_of_birth).toLocaleDateString('id-ID') : '-',
+      address: emp.address || '-',
+      position: emp.position || '-',
+      role: rolesMap[emp.role_id] || 'Staff'
+    }))
+  } catch (error) {
+    console.error('Failed to load employees', error)
+  }
+}
 
 const searchQuery = ref('')
 const sortOption = ref('Terbaru')
@@ -36,6 +57,18 @@ function openAdd() {
   isEditing.value = false
   form.value = { id: null, name: '', email: '', position: '', role: 'Staff', bank: 'BCA', account_number: '', gender: 'Laki-laki', dob: '', address: '' }
   showModal.value = true
+}
+
+async function deleteEmp(id) {
+  if (confirm('Yakin ingin menghapus karyawan ini?')) {
+    try {
+      await ApiService.deleteEmployee(id)
+      fetchEmployees()
+    } catch (err) {
+      console.error(err)
+      alert('Gagal menghapus karyawan')
+    }
+  }
 }
 
 const filteredEmployees = computed(() => {
@@ -103,7 +136,7 @@ const filteredEmployees = computed(() => {
               <td class="text-center">
                 <div class="action-btns">
                   <button class="btn-icon edit"><Pencil :size="12" /></button>
-                  <button class="btn-icon delete"><Trash2 :size="12" /></button>
+                  <button class="btn-icon delete" @click="deleteEmp(emp.id)"><Trash2 :size="12" /></button>
                 </div>
               </td>
             </tr>
