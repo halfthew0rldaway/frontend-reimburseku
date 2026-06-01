@@ -8,7 +8,7 @@ const router = useRouter()
 
 // Tambahkan fungsi logout dasar agar tidak error saat diklik
 const logout = () => {
-  localStorage.removeItem('token')
+  authStore.clearAuth() // Pastikan ini membersihkan data auth dengan benar
   router.push('/masuk')
 }
 </script>
@@ -21,7 +21,7 @@ const logout = () => {
           <div class="logo-icon"></div>
           <span class="logo-text">reimburseKu</span>
         </router-link>
-        
+
         <div class="user-profile">
           <div class="avatar-container">
             <img src="https://i.pravatar.cc/150?img=32" alt="Avatar" class="avatar-img" />
@@ -29,7 +29,7 @@ const logout = () => {
           </div>
           <h3 class="user-name">{{ authStore.user?.name || 'User' }}</h3>
           <p class="user-role">{{ authStore.user?.position || 'Staff' }}</p>
-          
+
           <router-link to="/staf/profil" class="edit-profile-btn">
             <Edit2 :size="14" />
             <span>Edit Profile</span>
@@ -44,7 +44,7 @@ const logout = () => {
             <span>Keluar</span>
           </button>
         </div>
-        
+
         <div class="sidebar-bg-decor">
           <div class="bar bar-1"></div>
           <div class="bar bar-2"></div>
@@ -74,11 +74,13 @@ const logout = () => {
 
 .sidebar {
   width: 250px;
-  background-color: var(--color-primary, #1e293b); /* Fallback color jika variabel kosong */
+  background-color: var(--color-primary, #1e293b);
+  /* Fallback color jika variabel kosong */
   color: white;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Sekarang hanya membagi jarak antara Top dan Bottom */
+  justify-content: space-between;
+  /* Sekarang hanya membagi jarak antara Top dan Bottom */
   position: fixed;
   top: 0;
   left: 0;
@@ -188,34 +190,37 @@ const logout = () => {
 
 /* Nav Item Standar */
 .nav-item {
-  display: flex; 
-  align-items: center; 
-  gap: 1rem; 
-  padding: 0.75rem 1rem; 
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
   border-radius: 10px;
-  color: rgba(255,255,255,0.85); 
-  text-decoration: none; 
-  font-size: 0.875rem; 
-  font-weight: 600; 
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
   transition: all 0.2s;
 }
-.nav-item:hover { 
-  background: rgba(255,255,255,0.1); 
-  color: white; 
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
-.nav-item.active { 
-  background: rgba(255,255,255,0.2); 
-  color: white; 
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+
+.nav-item.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 /* Styling Khusus Tombol Logout */
-.sidebar-footer { 
-  padding: 0 1rem 1rem 1rem; 
-  border-top: 1px solid rgba(255,255,255,0.1); 
+.sidebar-footer {
+  padding: 0 1rem 1rem 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: 1rem;
   position: relative;
-  z-index: 2; /* Memastikan tombol bisa diklik di atas dekorasi */
+  z-index: 2;
+  /* Memastikan tombol bisa diklik di atas dekorasi */
 }
 
 .logout-btn {
@@ -228,9 +233,9 @@ const logout = () => {
   transition: all 0.3s ease;
 }
 
-.logout-btn:hover { 
-  background: rgba(239, 68, 68, 0.15); 
-  color: #ef4444; 
+.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
 }
 
 .logout-btn:active {
@@ -249,7 +254,8 @@ const logout = () => {
 .sidebar-bg-decor {
   display: flex;
   align-items: flex-end;
-  height: 60px; /* Diperkecil sedikit agar tidak menabrak tombol */
+  height: 60px;
+  /* Diperkecil sedikit agar tidak menabrak tombol */
   opacity: 0.15;
   padding: 0 1rem;
   gap: 4px;
@@ -261,11 +267,25 @@ const logout = () => {
   border-radius: 4px 4px 0 0;
 }
 
-.bar-1 { height: 40%; }
-.bar-2 { height: 70%; }
-.bar-3 { height: 100%; }
-.bar-4 { height: 60%; }
-.bar-5 { height: 80%; }
+.bar-1 {
+  height: 40%;
+}
+
+.bar-2 {
+  height: 70%;
+}
+
+.bar-3 {
+  height: 100%;
+}
+
+.bar-4 {
+  height: 60%;
+}
+
+.bar-5 {
+  height: 80%;
+}
 
 /* Main Content */
 .main-content {
@@ -285,8 +305,16 @@ const logout = () => {
 }
 
 @media (max-width: 768px) {
-  .sidebar { width: 200px; }
-  .main-content { margin-left: 200px; }
-  .page-container { padding: 1.5rem; }
+  .sidebar {
+    width: 200px;
+  }
+
+  .main-content {
+    margin-left: 200px;
+  }
+
+  .page-container {
+    padding: 1.5rem;
+  }
 }
 </style>
