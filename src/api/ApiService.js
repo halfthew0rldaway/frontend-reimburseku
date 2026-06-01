@@ -7,20 +7,31 @@ export default {
     getProfile() {
         return apiClient.get('/user')
     },
-    
+
     // STAFF
     updateProfile(data) {
         return apiClient.post('/update-profile', data)
     },
-    getMyReimbursements() {
-        return apiClient.get('/reimburse/my-reimbursements')
+    getMyReimbursements(page = 1) {
+        // Meneruskan parameter page ke backend
+        return apiClient.get(`/reimburse/my-reimbursements?page=${page}`)
     },
+    getMyReimbursementsByMonth(page = 1, month) {
+        // month formatnya harus 'YYYY-MM' (contoh: '2025-09')
+        return apiClient.get(`/reimburse/my-reimbursements/month?page=${page}&month=${month}`)
+    },
+
     getReimbursementDetail(id) {
         return apiClient.get(`/reimburse/detail/${id}`)
     },
     saveReimbursement(data) {
         return apiClient.post('/reimburse/save', data, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+            headers: {
+                // Trik ampuh: Atur ke multipart/form-data
+                'Content-Type': 'multipart/form-data',
+                // ATAU jika masih error, gunakan ini untuk memaksa browser membuat boundary otomatis:
+                // 'Content-Type': undefined 
+            }
         })
     },
 
@@ -56,7 +67,7 @@ export default {
     getEmployees() {
         return apiClient.get('/employee')
     },
-    
+
     // ADMIN - Notifications / Messages
     getReimbursementMessages() {
         return apiClient.get('/reimbursement-message')

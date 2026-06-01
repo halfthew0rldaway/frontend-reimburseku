@@ -23,16 +23,13 @@ async function handleLogin() {
     })
 
     // 1. Simpan Token
-    authStore.setToken(res.data.token)
-
-    // 2. Simpan Data User
-    authStore.setUser(res.data.user)
+    authStore.setAuthData(res.data)
 
     // 3. Redirect berdasarkan role
-    const roleId = Number(res.data.user.role_id)
-    if (roleId === 3) {
+    const roleSlug = res.data.role.slug
+    if (roleSlug === 'admin') {
       router.push('/admin/dasbor')
-    } else if (roleId === 2) {
+    } else if (roleSlug === 'finance-staff') { // <--- Tambahkan else di sini
       router.push('/finance/dasbor')
     } else {
       router.push('/staf/dasbor')

@@ -14,7 +14,7 @@ const listKategori = ref([])
 const fileInput = ref(null)
 const selectedFile = ref(null)
 const isLoading = ref(false)
-
+const isLoadingCategories = ref(true) // STATE BARU: Khusus untuk loading kategori
 const data = ref({
   rekening: 'BCA 31234123 (Silviana Rodrigo)',
   nama: 'Silviana Rodrigo',
@@ -26,11 +26,25 @@ const data = ref({
 })
 
 onMounted(async () => {
+  isLoadingCategories.value = true
   try {
     const res = await apiService.getCategories()
-    listKategori.value = res.data.data || res.data
+    const apiData = res.data.data || res.data
+    
+    // Gabungkan data API dengan data statis "Dan lain-lain" di urutan paling bawah
+    listKategori.value = [
+      ...apiData,
+      { id_category: 0, name: 'Dan lain-lain' }
+    ]
   } catch (error) {
     console.error('Gagal mengambil kategori:', error)
+    
+    // Jika API gagal/error, tetap sediakan opsi statis agar user tetap bisa submit
+    listKategori.value = [
+      { id_category: 0, name: 'Dan lain-lain' }
+    ]
+  } finally {
+    isLoadingCategories.value = false
   }
 })
 
@@ -58,12 +72,41 @@ const handleFileUpload = (event) => {
 
 // Fungsi Submit ke API Laravel
 const submit = async () => {
-  // Validasi sederhana
-  if (!data.value.kategori || !data.value.tanggal || !data.value.total || !selectedFile.value) {
+  // Array untuk mengumpulkan pesan error spesifik
+  let errorMessages = [];
+
+  // 1. Validasi Kategori
+  if (!data.value.kategori) {
+    errorMessages.push('Silakan pilih Kategori reimbursement.');
+  }
+
+  // 2. Validasi Tanggal
+  if (!data.value.tanggal) {
+    errorMessages.push('Silakan isi Tanggal Tagihan.');
+  }
+
+  // 3. Validasi Total Tagihan (Otomatis dibersihkan oleh displayTotal)
+  // Kita cek apakah nilainya sudah diisi (tidak kosong/null)
+  if (data.value.total === '' || data.value.total === null) {
+    errorMessages.push('Silakan isi Total Tagihan.');
+  }
+
+  // 4. Validasi File Struk
+  if (!selectedFile.value) {
+    errorMessages.push('Silakan upload Bukti Struk.');
+  }
+
+  // JIKA ADA ERROR, tampilkan detail pesan error
+  if (errorMessages.length > 0) {
     Swal.fire({
       icon: 'warning',
       title: 'Data Belum Lengkap',
-      text: 'Harap lengkapi Kategori, Tanggal, Total, dan Bukti Struk!'
+      html: `
+        <p style="margin-bottom: 10px;">Harap lengkapi bidang-bidang berikut:</p>
+        <ul style="text-align: left; list-style-position: inside;">
+          ${errorMessages.map(msg => `<li>${msg}</li>`).join('')}
+        </ul>
+      ` // Menggunakan html untuk menampilkan daftar berpoin
     })
     return
   }
@@ -72,17 +115,25 @@ const submit = async () => {
 
   // Wajib menggunakan FormData untuk mengirim File + Teks
   const formData = new FormData()
+  
+  // Mapping sesuai field API backend / Postman
   formData.append('category_id', data.value.kategori)
   formData.append('expense_date', data.value.tanggal)
 
-  // Membersihkan format "Rp." jika ada, hanya menyisakan angka
+  // Membersihkan format "Rp" dan titik, hanya menyisakan angka (contoh: 156000)
   const cleanTotal = String(data.value.total).replace(/[^0-9]/g, '')
   formData.append('amount', cleanTotal)
 
-  formData.append('description', data.value.catatan)
+  // Hanya kirim description jika user benar-benar mengisinya
+  if (data.value.catatan && data.value.catatan.trim() !== '') {
+    formData.append('description', data.value.catatan)
+  }
+
+  // Masukkan file
   formData.append('attachment', selectedFile.value)
 
   try {
+    // Memanggil API Service yang sudah kita bersihkan dari manual header
     await apiService.saveReimbursement(formData)
 
     Swal.fire({
@@ -92,7 +143,10 @@ const submit = async () => {
       showConfirmButton: false,
       timer: 1500
     })
+    
+    // Redirect kembali ke dashboard setelah berhasil
     router.push('/staf/dasbor')
+    
   } catch (error) {
     Swal.fire({
       icon: 'error',
@@ -104,7 +158,6 @@ const submit = async () => {
     isLoading.value = false
   }
 }
-
 const displayTotal = computed({
   get: () => {
     // Jika data total kosong, tampilkan string kosong
@@ -160,8 +213,8 @@ const preventLetters = (event) => {
 
         <div class="grid-3-cols">
           <div class="form-group">
-            <label class="form-label">Nomor Rekening</label>
-            <input type="text" class="form-control" disabled :value="data.rekening" />
+            <label class="form-label">{{authStore.accountPayout?.provider_type ==='e-wallet' ? 'Nomor E-wallet' : 'Nomor Rekening'}}</label>
+            <input type="text" class="form-control" disabled :value="authStore.accountPayout?.account_number ? authStore.accountPayout.account_number + ' - ' + authStore.accountPayout.account_holder_name : 'N/A'" />
           </div>
           <div class="form-group">
             <label class="form-label">Nama</label>
@@ -192,10 +245,16 @@ const preventLetters = (event) => {
         <div class="grid-2-cols-uneven">
           <!-- Left fields -->
           <div class="left-fields">
-            <div class="form-group">
+       <div class="form-group">
               <label class="form-label">Kategori *</label>
-              <select class="form-control" v-model="data.kategori">
-                <option value="" disabled>Pilih Kategori</option>
+              <!-- Disable select saat loading -->
+              <select class="form-control" v-model="data.kategori" :disabled="isLoadingCategories">
+                
+                <!-- Teks opsi pertama berubah dinamis berdasarkan state loading -->
+                <option value="" disabled>
+                  {{ isLoadingCategories ? 'Memuat Kategori...' : 'Pilih Kategori' }}
+                </option>
+                
                 <option v-for="kat in listKategori" :key="kat.id_category" :value="kat.id_category">
                   {{ kat.name || kat.category_name }}
                 </option>

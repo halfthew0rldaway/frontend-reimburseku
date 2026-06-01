@@ -6,14 +6,17 @@ import ApiService from '@/api/ApiService'
 
 const router = useRouter()
 
-// Filter status aktif
-const filterAktif = ref('semua')
-const filterBulan = ref('2025-09') // Format: YYYY-MM
+// 1. Set Default Filter ke Bulan & Tahun Saat Ini (Otomatis)
+const dateNow = new Date()
+const currentYear = dateNow.getFullYear()
+const currentMonth = dateNow.getMonth() + 1 // getMonth() dimulai dari 0
 
-// Modal State
+const filterAktif = ref('semua')
+const filterBulan = ref(`${currentYear}-${currentMonth.toString().padStart(2, '0')}`) // Format: YYYY-MM
 const showModalBulan = ref(false)
-const tempBulan = ref(9)
-const tempTahun = ref(2025)
+const tempBulan = ref(currentMonth)
+const tempTahun = ref(currentYear)
+const isLoading = ref(true)
 
 const filterList = [
   { key: 'semua',    label: 'Semua',   warna: '' },
@@ -23,13 +26,12 @@ const filterList = [
   { key: 'dibayar',  label: 'Dibayar', warna: '#22c55e' },
 ]
 
+// Data State
 const semuaData = ref([])
-
-// Pagination
 const halamanAktif = ref(1)
-const itemPerHalaman = 5
 const totalHalaman = ref(1)
 
+// Helper Functions
 const mapStatusToFrontend = (backendStatus) => {
   const status = backendStatus?.toUpperCase() || ''
   if (status === 'PENDING') return 'menunggu'
@@ -40,39 +42,94 @@ const mapStatusToFrontend = (backendStatus) => {
 }
 
 const formatRupiah = (angka) => {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka)
+  return new Intl.NumberFormat('id-ID', { 
+    style: 'currency', 
+    currency: 'IDR', 
+    minimumFractionDigits: 0 
+  }).format(angka)
 }
 
-onMounted(async () => {
+// 2. Modifikasi Fungsi Fetch untuk menggunakan API By Month
+const fetchReimbursements = async (page = 1) => {
+  isLoading.value = true
   try {
-    const res = await ApiService.getMyReimbursements()
-    const responseData = res.data?.data?.data || res.data?.data || [] // depending on paginate format
+    // Memanggil endpoint baru dengan mengirimkan parameter bulan
+    const res = await ApiService.getMyReimbursementsByMonth(page, filterBulan.value)
+    
+    const responseData = res.data?.data || [] 
+    const metaData = res.data?.meta || {}
+
     semuaData.value = responseData.map(item => ({
       id: item.id_request,
-      judul: item.category_name || 'Pengajuan',
+      kategori: item.category_name || 'Lain-lain',
+      judul: item.category_name || 'Pengajuan Reimburse',
       status: mapStatusToFrontend(item.last_status),
       catatan: item.rejection_reason || item.description || '',
+      jumlahAsli: item.amount, 
       jumlah: formatRupiah(item.amount),
-      tanggal: new Date(item.expense_date).toLocaleDateString('id-ID')
+      tanggal: new Date(item.expense_date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })
     }))
+
+    halamanAktif.value = metaData.current_page || 1
+    totalHalaman.value = metaData.last_page || 1
+
   } catch (err) {
     console.error('Failed to fetch reimbursements:', err)
+  } finally{
+    isLoading.value = false 
   }
+}
+
+// Panggil API saat komponen pertama kali dimuat
+onMounted(() => {
+  fetchReimbursements(halamanAktif.value)
 })
 
+// Computed Filter Status
 const dataFiltered = computed(() => {
   if (filterAktif.value === 'semua') return semuaData.value
   return semuaData.value.filter(d => d.status === filterAktif.value)
 })
 
-// Format tampilan bulan di Button (Contoh: "September 2025")
+// Statistik Dinamis berdasarkan data yang di-fetch
+const kategoriStats = computed(() => {
+  const stats = {
+    'Transportasi': { label: 'Transportasi', total: 0, ikon: Car, bg: '#22c55e' },
+    'Makanan': { label: 'Makanan', total: 0, ikon: UtensilsCrossed, bg: '#ec4899' },
+    'Parkir': { label: 'Parkir', total: 0, ikon: ParkingMeter, bg: '#a855f7' },
+    'Lain-lain': { label: 'Dan lain-lain', total: 0, ikon: MoreHorizontal, bg: '#3b82f6' }
+  }
+
+  dataFiltered.value.forEach(item => {
+    const namaKategori = item.kategori.toLowerCase()
+    if (namaKategori.includes('transport')) stats['Transportasi'].total += item.jumlahAsli
+    else if (namaKategori.includes('makan') || namaKategori.includes('minum')) stats['Makanan'].total += item.jumlahAsli
+    else if (namaKategori.includes('parkir')) stats['Parkir'].total += item.jumlahAsli
+    else stats['Lain-lain'].total += item.jumlahAsli
+  })
+
+  return Object.values(stats).map(s => ({
+    label: s.label,
+    jumlah: formatRupiah(s.total),
+    ikon: s.ikon,
+    bg: s.bg
+  }))
+})
+
+// Fungsi Paginasi
+function gantiHalaman(h) {
+  if (h >= 1 && h <= totalHalaman.value) {
+    fetchReimbursements(h)
+  }
+}
+
+// Konfigurasi Bulan
 const namaBulanLengkap = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
 const labelBulanTampil = computed(() => {
   const [thn, bln] = filterBulan.value.split('-')
   return `${namaBulanLengkap[parseInt(bln) - 1]} ${thn}`
 })
 
-// Daftar bulan untuk modal
 const bulanModalList = [
   { val: 1, label: 'Jan' }, { val: 2, label: 'Feb' }, { val: 3, label: 'Mar' }, { val: 4, label: 'Apr' },
   { val: 5, label: 'Mei' }, { val: 6, label: 'Jun' }, { val: 7, label: 'Jul' }, { val: 8, label: 'Agt' },
@@ -86,19 +143,17 @@ function bukaModalBulan() {
   showModalBulan.value = true
 }
 
+// 3. Modifikasi Terapkan Filter
 function terapkanFilterBulan() {
   const blnFormat = tempBulan.value.toString().padStart(2, '0')
   filterBulan.value = `${tempTahun.value}-${blnFormat}`
   showModalBulan.value = false
+  
+  // Panggil ulang API dari halaman 1 menggunakan bulan yang baru dipilih
+  fetchReimbursements(1)
 }
 
-const kategoriStats = [
-  { label: 'Transportasi', jumlah: 'Rp.100.000', ikon: Car,             bg: '#22c55e' },
-  { label: 'Makanan',      jumlah: 'Rp.200.000', ikon: UtensilsCrossed, bg: '#ec4899' },
-  { label: 'Parkir',       jumlah: 'Rp.500.000', ikon: ParkingMeter,    bg: '#a855f7' },
-  { label: 'Dan lain-lain',jumlah: 'Rp.2.000.000',ikon: MoreHorizontal, bg: '#3b82f6' },
-]
-
+// UI Helpers
 function getBadgeClass(status) {
   switch (status) {
     case 'dibayar':  return 'chip chip-bayar'
@@ -112,10 +167,6 @@ function getBadgeClass(status) {
 function getLabelStatus(status) {
   const map = { dibayar: 'Dibayar', ditolak: 'Ditolak', menunggu: 'Menunggu', diterima: 'Diterima' }
   return map[status] || status
-}
-
-function gantiHalaman(h) {
-  if (h >= 1 && h <= totalHalaman) halamanAktif.value = h
 }
 </script>
 <template>
@@ -153,61 +204,72 @@ function gantiHalaman(h) {
           </button>
         </div>
 
-        <div class="daftar-container">
-          <div v-if="dataFiltered.length === 0" class="kosong-teks">
+   <div class="daftar-container">
+          <div v-if="isLoading" class="loading-overlay">
+            <div class="spinner"></div>
+            <p class="loading-teks">Memuat riwayat...</p>
+          </div>
+
+          <div v-else-if="dataFiltered.length === 0" class="kosong-teks">
             Tidak ada data untuk filter ini.
           </div>
 
-          <div
-            v-for="item in dataFiltered"
-            :key="item.id"
-            class="item-riwayat"
-            @click="router.push('/staf/reimbursement/' + item.id)"
-          >
-            <div class="item-kiri">
-              <p class="item-judul">{{ item.judul }}</p>
-              <div class="item-bawah">
-                <span :class="getBadgeClass(item.status)">{{ getLabelStatus(item.status) }}</span>
-                <span v-if="item.catatan" class="item-catatan">{{ item.catatan }}</span>
+          <template v-else>
+            <!-- 1. BUNGKUS DAFTAR ITEM DENGAN CLASS INI -->
+            <div class="daftar-list">
+              <div
+                v-for="item in dataFiltered"
+                :key="item.id"
+                class="item-riwayat"
+                @click="router.push('/staf/reimbursement/' + item.id)"
+              >
+                <div class="item-kiri">
+                  <p class="item-judul">{{ item.judul }}</p>
+                  <div class="item-bawah">
+                    <span :class="getBadgeClass(item.status)">{{ getLabelStatus(item.status) }}</span>
+                    <span v-if="item.catatan" class="item-catatan">{{ item.catatan }}</span>
+                  </div>
+                  <p class="item-jumlah">{{ item.jumlah }}</p>
+                </div>
+                <div class="item-kanan">
+                  <span class="item-tanggal">{{ item.tanggal }}</span>
+                </div>
               </div>
-              <p class="item-jumlah">{{ item.jumlah }}</p>
             </div>
-            <div class="item-kanan">
-              <span class="item-tanggal">{{ item.tanggal }}</span>
-            </div>
-          </div>
 
-          <div class="paginasi">
-            <button class="btn-paging" @click="gantiHalaman(halamanAktif - 1)" :disabled="halamanAktif === 1">
-              <ChevronLeft :size="16" />
-            </button>
-            <button
-              v-for="h in totalHalaman"
-              :key="h"
-              class="btn-paging"
-              :class="{ 'paging-aktif': halamanAktif === h }"
-              @click="gantiHalaman(h)"
-            >{{ h }}</button>
-            <button class="btn-paging" @click="gantiHalaman(halamanAktif + 1)" :disabled="halamanAktif === totalHalaman">
-              <ChevronRight :size="16" />
-            </button>
-          </div>
+            <!-- 2. PAGINASI AKAN MENGISI SISA BAGIAN BAWAH -->
+            <div class="paginasi">
+              <button class="btn-paging" @click="gantiHalaman(halamanAktif - 1)" :disabled="halamanAktif === 1">
+                <ChevronLeft :size="16" />
+              </button>
+              <button
+                v-for="h in totalHalaman"
+                :key="h"
+                class="btn-paging"
+                :class="{ 'paging-aktif': halamanAktif === h }"
+                @click="gantiHalaman(h)"
+              >{{ h }}</button>
+              <button class="btn-paging" @click="gantiHalaman(halamanAktif + 1)" :disabled="halamanAktif === totalHalaman">
+                <ChevronRight :size="16" />
+              </button>
+            </div>
+          </template>
         </div>
       </div>
 
       <div class="kolom-kanan">
         <h2 class="judul-seksi">Statistik dan Laporan</h2>
-        <div class="grid-statistik">
-          <div v-for="s in kategoriStats" :key="s.label" class="kartu-stat" :style="{ backgroundColor: s.bg }">
-            <div class="stat-ikon">
-              <component :is="s.ikon" :size="28" />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">{{ s.label }}</p>
-              <p class="stat-jumlah">{{ s.jumlah }}</p>
-            </div>
-          </div>
-        </div>
+     <div class="grid-statistik">
+  <div v-for="s in kategoriStats" :key="s.label" class="kartu-stat" :style="{ backgroundColor: s.bg }">
+    <div class="stat-ikon">
+      <component :is="s.ikon" :size="28" />
+    </div>
+    <div class="stat-info">
+      <p class="stat-label">{{ s.label }}</p>
+      <p class="stat-jumlah">{{ s.jumlah }}</p>
+    </div>
+  </div>
+</div>
       </div>
     </div>
 
@@ -519,15 +581,59 @@ function gantiHalaman(h) {
   border-color: var(--color-primary);
 }
 
-/* Daftar */
 .daftar-container {
   background: white;
   border: 1px solid var(--color-border);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
+  position: relative; 
+  min-height: 300px; /* Menjaga tinggi kotak agar tidak menyusut saat loading */
+  display: flex;
+  flex-direction: column;
+}
+.daftar-list {
+  flex: 1; /* Memaksa elemen ini mendorong paginasi ke paling bawah */
+  display: flex;
+  flex-direction: column;
+}
+/* --- CSS LOADING SPINNER --- */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8); /* Semi transparan putih */
+  backdrop-filter: blur(2px); /* Efek blur pada background di belakangnya */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
 }
 
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e2e8f0; /* Warna trek lingkaran abu-abu terang */
+  border-top: 4px solid var(--color-primary, #3b82f6); /* Warna garis berputar */
+  border-radius: 50%;
+  animation: spin 1s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+  margin-bottom: 1rem;
+}
+
+.loading-teks {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+/* Animasi putaran 360 derajat */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 .item-riwayat {
   display: flex;
   justify-content: space-between;
@@ -612,6 +718,8 @@ function gantiHalaman(h) {
   gap: 0.375rem;
   padding: 1rem;
   border-top: 1px solid #f1f5f9;
+  margin-top: auto; 
+  background: white;
 }
 
 .btn-paging {
@@ -650,6 +758,7 @@ function gantiHalaman(h) {
   text-align: center;
   color: var(--color-text-muted);
   font-size: 0.875rem;
+  margin: auto;
 }
 
 /* ─── Kolom kanan: Statistik ─── */
