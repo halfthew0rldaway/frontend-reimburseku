@@ -178,11 +178,12 @@ const preventLetters = (event) => {
 </script>
 <template>
   <div class="add-page">
-    <div class="page-header">
+ <div class="page-header">
       <button class="back-btn" @click="router.push('/staf/dasbor')">
         <ArrowLeft :size="20" />
       </button>
-      <div>
+      
+      <div class="header-info">
         <h1 class="page-title">Tambah Reimbursement</h1>
         <p class="text-muted">Buat pengajuan reimburse baru anda</p>
       </div>
@@ -201,11 +202,12 @@ const preventLetters = (event) => {
           <h3 class="section-title">Informasi Karyawan</h3>
         </div>
 
-        <div class="grid-3-cols">
-          <div class="form-group">
+<div class="grid-2-cols">
+          <div class="form-group col-span-2">
             <label class="form-label">{{authStore.accountPayout?.provider_type ==='e-wallet' ? 'Nomor E-wallet' : 'Nomor Rekening'}}</label>
             <input type="text" class="form-control" disabled :value="authStore.accountPayout?.account_number ? authStore.accountPayout.account_number + ' - ' + authStore.accountPayout.account_holder_name : 'N/A'" />
           </div>
+          
           <div class="form-group">
             <label class="form-label">Nama</label>
             <input type="text" class="form-control" disabled :value="authStore.user?.name || 'User'" />
@@ -303,11 +305,36 @@ const preventLetters = (event) => {
 <style scoped>
 .page-header {
   display: flex;
-  align-items: flex-start;
-  gap: 1rem;
+  flex-direction: row;
+  align-items: center; /* Sejajar tengah antara tombol dan teks */
+  justify-content: flex-start !important; /* KUNCI: Memaksa semua item rapat ke KIRI */
+  gap: 1.25rem; /* Memberikan jarak yang pas antara tombol dan teks */
   margin-bottom: 2rem;
+  width: 100%;
 }
 
+/* Pastikan div pembungkus teks (jika diberi class .header-info) rata kiri */
+.header-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.page-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin: 0; 
+  line-height: 1.2;
+}
+
+.text-muted {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  margin-top: 0.25rem; 
+}
 .back-btn {
   width: 36px;
   height: 36px;
@@ -325,11 +352,7 @@ const preventLetters = (event) => {
   color: var(--color-primary);
 }
 
-.page-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--color-text-main);
-}
+
 
 .detail-card {
   padding: 2rem;
@@ -426,6 +449,26 @@ const preventLetters = (event) => {
 
   .grid-2-cols-uneven {
     grid-template-columns: 1fr;
+  }
+}
+.grid-2-cols {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+/* Memaksa elemen mengambil lebar penuh (2 kolom) */
+.col-span-2 {
+  grid-column: span 2;
+}
+
+/* Responsif untuk layar HP */
+@media (max-width: 768px) {
+  .grid-2-cols {
+    grid-template-columns: 1fr;
+  }
+  .col-span-2 {
+    grid-column: span 1;
   }
 }
 </style>

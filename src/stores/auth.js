@@ -31,6 +31,27 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.setItem('role', JSON.stringify(data.role))
     }
 
+    function updateUserData(payload) {
+        // Update State
+        user.value = {
+            ...user.value,
+            ...payload.data
+        }
+
+        // Update localStorage
+        localStorage.setItem('user', JSON.stringify(user.value))
+    }
+
+    function updateAccountPayoutData(payload) {
+        // Update State
+        accountPayout.value = {
+            ...accountPayout.value,
+            ...payload.account_payout
+        }
+
+        // Update localStorage
+        localStorage.setItem('account_payout', JSON.stringify(accountPayout.value))
+    }
     // Fungsi untuk menghapus semua data saat Logout
     function clearAuth() {
         token.value = null
@@ -50,6 +71,6 @@ export const useAuthStore = defineStore('auth', () => {
 
     return { 
         token, user, accountPayout, role, 
-        setAuthData, clearAuth
+        setAuthData, clearAuth, updateUserData, updateAccountPayoutData
     }
 })
