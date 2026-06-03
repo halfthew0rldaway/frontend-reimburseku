@@ -303,9 +303,9 @@ const logout = () => {
 }
 
 .page-container {
-  padding: 2rem 3rem;
+  padding: 2.5rem 4%;
   flex: 1;
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   width: 100%;
 }

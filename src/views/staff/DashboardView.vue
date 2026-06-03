@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Plus, Car, UtensilsCrossed, ParkingMeter, MoreHorizontal, ChevronLeft, ChevronRight, Calendar } from 'lucide-vue-next'
+import { Plus, Car, UtensilsCrossed, ParkingMeter, MoreHorizontal, ChevronLeft, ChevronRight, Calendar, Check, X, Clock, CheckCircle2, Zap } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { formatRupiah, mapStatusToFrontend } from '@/utils/format'
 import ApiService from '@/api/ApiService'
@@ -154,7 +154,34 @@ function getBadgeClass(status) {
 
 function getLabelStatus(status) {
   const map = { dibayar: 'Dibayar', ditolak: 'Ditolak', menunggu: 'Menunggu', diterima: 'Diterima' }
-  return map[status] || status
+  return map[status.toLowerCase()] || status
+}
+
+const getStatusIcon = (status) => {
+  const s = status.toLowerCase()
+  if (s === 'menunggu') return Clock
+  if (s === 'diterima' || s === 'disetujui') return CheckCircle2
+  if (s === 'dibayar') return Zap
+  if (s === 'ditolak') return X
+  return Clock
+}
+
+const getStatusPillClass = (status) => {
+  const s = status.toLowerCase()
+  if (s === 'menunggu') return 'pill-warning'
+  if (s === 'diterima' || s === 'disetujui') return 'pill-info'
+  if (s === 'dibayar') return 'pill-success'
+  if (s === 'ditolak') return 'pill-danger'
+  return ''
+}
+
+const getBorderColor = (kategori) => {
+  if (!kategori) return '#3B82F6' // Default Lain-lain
+  const name = kategori.toLowerCase()
+  if (name.includes('transport')) return '#22c55e' // Hijau
+  if (name.includes('makan') || name.includes('minum')) return '#ec4899' // Pink
+  if (name.includes('parkir')) return '#a855f7' // Ungu
+  return '#3B82F6' // Biru untuk Lain-lain
 }
 </script>
 <template>
@@ -204,23 +231,29 @@ function getLabelStatus(status) {
 
           <template v-else>
             <!-- 1. BUNGKUS DAFTAR ITEM DENGAN CLASS INI -->
-            <div class="daftar-list">
+            <div class="daftar-list reimbursement-cards">
               <div
                 v-for="item in dataFiltered"
                 :key="item.id"
-                class="item-riwayat"
+                class="reimbursement-card"
+                :style="{ borderRightColor: getBorderColor(item.kategori) }"
                 @click="router.push('/staf/reimbursement/' + item.id)"
               >
-                <div class="item-kiri">
-                  <p class="item-judul">{{ item.judul }}</p>
-                  <div class="item-bawah">
-                    <span :class="getBadgeClass(item.status)">{{ getLabelStatus(item.status) }}</span>
-                    <span v-if="item.catatan" class="item-catatan">{{ item.catatan }}</span>
+                <div class="card-content">
+                  <div class="card-info">
+                    <h3 class="card-title">{{ item.judul }}</h3>
+                    
+                    <div class="status-badge-container">
+                      <span class="status-pill" :class="getStatusPillClass(item.status)">
+                        <component :is="getStatusIcon(item.status)" :size="12" class="status-icon" />
+                        {{ getLabelStatus(item.status) }}
+                      </span>
+                      <span v-if="item.catatan && item.status.toLowerCase() === 'ditolak'" class="status-reason">{{ item.catatan }}</span>
+                    </div>
+                    
+                    <div class="amount">{{ item.jumlah }}</div>
                   </div>
-                  <p class="item-jumlah">{{ item.jumlah }}</p>
-                </div>
-                <div class="item-kanan">
-                  <span class="item-tanggal">{{ item.tanggal }}</span>
+                  <div class="date">{{ item.tanggal }}</div>
                 </div>
               </div>
             </div>
@@ -465,8 +498,8 @@ function getLabelStatus(status) {
 /* Grid utama */
 .grid-dasbor {
   display: grid;
-  grid-template-columns: 1.6fr 1fr;
-  gap: 1.5rem;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 2rem;
   align-items: start;
 }
 
@@ -622,81 +655,128 @@ function getLabelStatus(status) {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-.item-riwayat {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 1.25rem;
-  border-bottom: 1px solid #f1f5f9;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.item-riwayat:last-of-type {
-  border-bottom: none;
-}
-
-.item-riwayat:hover {
-  background-color: #f8fafc;
-}
-
-.item-kiri {
+/* Cards layout */
+.reimbursement-cards {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 1rem;
+  padding: 1.25rem;
+  max-height: 550px;
+  overflow-y: auto;
 }
 
-.item-judul {
-  font-size: 0.9375rem;
+/* Custom Scrollbar */
+.reimbursement-cards::-webkit-scrollbar {
+  width: 6px;
+}
+.reimbursement-cards::-webkit-scrollbar-track {
+  background: transparent;
+}
+.reimbursement-cards::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+.reimbursement-cards::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.reimbursement-card {
+  display: flex;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f3f4f6;
+  border-right-width: 6px;
+  border-right-style: solid;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.reimbursement-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.card-content {
+  padding: 1.25rem 1.5rem;
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 0.95rem;
   font-weight: 600;
-  color: var(--color-text-main);
+  color: #111827;
 }
 
-.item-bawah {
+.status-badge-container {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
-.item-catatan {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-}
-
-.item-jumlah {
-  font-size: 1.0625rem;
-  font-weight: 700;
-  color: var(--color-primary);
-  margin-top: 0.25rem;
-}
-
-.item-kanan {
-  text-align: right;
-  flex-shrink: 0;
-  padding-left: 1rem;
-}
-
-.item-tanggal {
-  font-size: 0.8125rem;
-  color: var(--color-text-muted);
-  white-space: nowrap;
-}
-
-/* Chip status */
-.chip {
+.status-pill {
   display: inline-flex;
   align-items: center;
-  padding: 0.175rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  gap: 0.25rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  border: 1px solid transparent;
 }
 
-.chip-bayar   { background: #dcfce7; color: #166534; }
-.chip-tolak   { background: #fee2e2; color: #b91c1c; }
-.chip-menunggu{ background: #fef3c7; color: #d97706; }
-.chip-diterima{ background: #dbeafe; color: #1d4ed8; }
+.pill-success {
+  background-color: #ECFDF5;
+  color: #10B981;
+  border-color: #A7F3D0;
+}
+
+.pill-danger {
+  background-color: #FEF2F2;
+  color: #EF4444;
+  border-color: #FECACA;
+}
+
+.pill-warning {
+  background-color: #FFFBEB;
+  color: #F59E0B;
+  border-color: #FDE68A;
+}
+
+.pill-info {
+  background-color: #EFF6FF;
+  color: #3B82F6;
+  border-color: #BFDBFE;
+}
+
+.status-reason {
+  font-size: 0.8rem;
+  color: #9CA3AF;
+}
+
+.amount {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.date {
+  font-size: 0.75rem;
+  color: #9CA3AF;
+  white-space: nowrap;
+}
 
 /* Paginasi */
 .paginasi {

@@ -181,7 +181,7 @@ const activeFilter = ref('Semua')
 </template>
 
 <style scoped>
-.finance-dasbor { display: flex; flex-direction: column; gap: 1.5rem; background: #f8fafc; height: 100%; overflow: hidden; padding-bottom: 0.5rem; }
+.finance-dasbor { display: flex; flex-direction: column; gap: 1.5rem; background: #f8fafc; height: calc(100vh - 64px - 3rem); overflow: hidden; padding-bottom: 0.5rem; }
 
 .page-header { margin-bottom: 0; }
 .page-title { font-size: 1.35rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
@@ -249,6 +249,10 @@ const activeFilter = ref('Semua')
 .filter-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2); }
 
 .history-list { flex: 1; overflow-y: auto; padding: 0.5rem 0; }
+.history-list::-webkit-scrollbar { width: 6px; }
+.history-list::-webkit-scrollbar-track { background: transparent; }
+.history-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+.history-list::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 .empty-state { padding: 2rem; text-align: center; color: #64748b; font-size: 0.8rem; font-weight: 500; }
 .history-row { padding: 0.875rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f8fafc; transition: background 0.2s; cursor: default; }
 .history-row:hover { background: #fcfdfe; }

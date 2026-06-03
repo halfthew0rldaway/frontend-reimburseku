@@ -93,7 +93,7 @@ onMounted(async () => {
     stats.value[0].value = employees.length.toString()
 
     const reimbursements = reimbRes.status === 'fulfilled' && reimbRes.value.data?.data ? (reimbRes.value.data.data.data || reimbRes.value.data.data) : []
-    const pending = reimbursements.filter(r => (r.last_status || r.status || 'PENDING').toUpperCase() === 'PENDING')
+    const pending = reimbursements.filter(r => (r.last_status || r.status || '').toLowerCase() === 'menunggu')
     stats.value[1].value = pending.length.toString()
     
     if (reimbursements.length > 0) {
