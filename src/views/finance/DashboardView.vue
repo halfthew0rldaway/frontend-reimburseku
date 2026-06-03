@@ -1,17 +1,16 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { ChevronLeft, ChevronRight, TrendingUp, Calendar } from 'lucide-vue-next'
+import { ref, onMounted, defineAsyncComponent } from 'vue'
+import { ChevronLeft, ChevronRight, TrendingUp, Calendar, ChevronDown } from 'lucide-vue-next'
 import ApiService from '@/api/ApiService'
-import VueApexCharts from 'vue3-apexcharts'
+const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'))
+import { formatRupiah, mapStatusToFrontend } from '@/utils/format'
 
 const stats = ref([
   { label: 'Saldo Kas', value: 'Rp 0', isBlue: true },
   { label: 'Telah Dibayarkan', value: 'Rp 0', isBlue: false },
 ])
 
-const formatRupiah = (angka) => {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka)
-}
+
 
 const chartOptions = ref({
   chart: {
@@ -70,6 +69,7 @@ const series = ref([{
 }])
 
 const history = ref([])
+const isLoading = ref(true)
 
 onMounted(async () => {
   try {
@@ -81,15 +81,6 @@ onMounted(async () => {
     const data = statsRes.data?.data || {}
     stats.value[0].value = formatRupiah(data.saldo_kas || 0)
     stats.value[1].value = formatRupiah(data.telah_dibayarkan || 0)
-
-    const mapStatusToFrontend = (backendStatus) => {
-      const status = backendStatus?.toUpperCase() || ''
-      if (status === 'PENDING') return 'Menunggu'
-      if (status === 'APPROVED') return 'Disetujui'
-      if (status === 'REJECTED') return 'Ditolak'
-      if (status === 'PAID') return 'Selesai'
-      return 'Menunggu'
-    }
 
     const listData = reimburseRes.data?.data?.data || reimburseRes.data?.data || []
     
@@ -103,6 +94,8 @@ onMounted(async () => {
     }))
   } catch (error) {
     console.error('Failed to load dashboard data', error)
+  } finally {
+    isLoading.value = false
   }
 })
 
@@ -135,7 +128,7 @@ const activeFilter = ref('Semua')
       <div class="card chart-card">
         <div class="card-head">
           <h3 class="card-title">Pengeluaran Seminggu terakhir</h3>
-          <div class="month-selector">Januari 2026 <ChevronLeft :size="14" style="transform: rotate(-90deg); margin-left: 4px;" /></div>
+          <div class="month-selector">Januari 2026 <ChevronDown :size="14" style="margin-left: 4px;" /></div>
         </div>
         <div class="chart-content">
           <VueApexCharts type="area" height="100%" :options="chartOptions" :series="series" />
@@ -152,10 +145,14 @@ const activeFilter = ref('Semua')
         </div>
         
         <div class="history-list">
-          <div v-if="history.length === 0" class="empty-state">
+          <div v-if="isLoading" class="empty-state">
+            Memuat riwayat...
+          </div>
+          <div v-else-if="history.length === 0" class="empty-state">
             Belum ada riwayat hari ini.
           </div>
-          <div v-else v-for="item in history" :key="item.id" class="history-row">
+          <template v-else>
+            <div v-for="item in history" :key="item.id" class="history-row">
             <div class="h-left">
               <div class="avatar-circle">{{ item.name[0] }}</div>
               <div class="h-info">
@@ -167,15 +164,16 @@ const activeFilter = ref('Semua')
               <p class="h-amount">{{ item.amount }}</p>
               <span class="status-pill" :class="item.status.toLowerCase()">{{ item.status }}</span>
             </div>
-          </div>
+            </div>
+          </template>
         </div>
         
         <div class="pagination">
-          <button class="p-btn" disabled><ChevronLeft :size="14" /></button>
+          <button class="p-btn" aria-label="Halaman Sebelumnya" disabled><ChevronLeft :size="14" /></button>
           <span class="p-num active">1</span>
           <span class="p-num">2</span>
           <span class="p-num">3</span>
-          <button class="p-btn"><ChevronRight :size="14" /></button>
+          <button class="p-btn" aria-label="Halaman Selanjutnya"><ChevronRight :size="14" /></button>
         </div>
       </div>
     </div>
@@ -238,20 +236,20 @@ const activeFilter = ref('Semua')
 /* Chart */
 .chart-card { flex: 1; }
 .chart-card .card-head { border-bottom: 1px solid #f8fafc; padding-bottom: 1rem; }
-.month-selector { font-size: 0.75rem; color: #64748b; font-weight: 600; cursor: pointer; display: flex; align-items: center; padding: 0.4rem 0.75rem; border-radius: 8px; background: #f8fafc; transition: background 0.2s; }
+.month-selector { font-size: 0.75rem; color: #475569; font-weight: 600; cursor: pointer; display: flex; align-items: center; padding: 0.4rem 0.75rem; border-radius: 8px; background: #f8fafc; transition: background 0.2s; }
 .month-selector:hover { background: #f1f5f9; color: #0f172a; }
-.chart-content { padding: 1rem 1.5rem 0.5rem 0.5rem; flex: 1; min-height: 0; width: 100%; position: relative; }
+.chart-content { padding: 1rem 1.5rem 0.5rem 0.5rem; flex: 1; min-height: 300px; width: 100%; position: relative; }
 
 /* History */
 .list-card { flex: 1; display: flex; flex-direction: column; }
 .filter-row { padding: 0 1.5rem 1rem; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 0.5rem; scrollbar-width: none; -ms-overflow-style: none; border-bottom: 1px solid #f8fafc; }
 .filter-row::-webkit-scrollbar { display: none; }
-.filter-btn { background: #f8fafc; border: 1px solid #f1f5f9; color: #64748b; font-size: 0.7rem; font-weight: 600; padding: 0.4rem 0.875rem; border-radius: 20px; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all 0.2s; }
+.filter-btn { background: #f8fafc; border: 1px solid #f1f5f9; color: #475569; font-size: 0.7rem; font-weight: 600; padding: 0.4rem 0.875rem; border-radius: 20px; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all 0.2s; }
 .filter-btn:hover { background: #f1f5f9; color: #334155; }
 .filter-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2); }
 
 .history-list { flex: 1; overflow-y: auto; padding: 0.5rem 0; }
-.empty-state { padding: 2rem; text-align: center; color: #94a3b8; font-size: 0.8rem; font-weight: 500; }
+.empty-state { padding: 2rem; text-align: center; color: #64748b; font-size: 0.8rem; font-weight: 500; }
 .history-row { padding: 0.875rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f8fafc; transition: background 0.2s; cursor: default; }
 .history-row:hover { background: #fcfdfe; }
 .history-row:last-child { border-bottom: none; }
@@ -260,7 +258,7 @@ const activeFilter = ref('Semua')
 .avatar-circle { width: 36px; height: 36px; border-radius: 50%; background: #eff6ff; color: #3b82f6; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; border: 1px solid #dbeafe; }
 .h-info { display: flex; flex-direction: column; gap: 0.125rem; }
 .h-name { font-size: 0.85rem; font-weight: 700; color: #1e293b; }
-.h-meta { font-size: 0.7rem; color: #94a3b8; font-weight: 500; }
+.h-meta { font-size: 0.7rem; color: #64748b; font-weight: 500; }
 
 .h-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; }
 .h-amount { font-size: 0.85rem; font-weight: 700; color: #0f172a; }

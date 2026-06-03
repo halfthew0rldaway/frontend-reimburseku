@@ -1,14 +1,15 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, defineAsyncComponent } from 'vue'
 import { User, FileText, Bell, ChevronLeft, ChevronRight, X, Send } from 'lucide-vue-next'
 import ApiService from '@/api/ApiService'
+import { formatRupiah } from '@/utils/format'
 
 const stats = ref([
   { label: 'TOTAL KARYAWAN', value: '0', icon: User, color: '#3b82f6', bg: '#eff6ff' },
   { label: 'TOTAL KLAIM MENUNGGU', value: '0', icon: FileText, color: '#ef4444', bg: '#fef2f2' },
 ])
 
-import VueApexCharts from 'vue3-apexcharts'
+const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'))
 
 const categories = ref([
   { label: 'Transportasi', color: '#f59e0b', dash: '25 75', offset: '25' },
@@ -43,10 +44,9 @@ const donutSeries = ref([25, 25, 10, 40])
 
 const waitingList = ref([])
 const logs = ref([])
+const isLoading = ref(true)
 
-const formatRupiah = (angka) => {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka)
-}
+
 
 // Calculate real category totals for donut chart
 const populateDonutData = (reimbursements) => {
@@ -134,6 +134,8 @@ onMounted(async () => {
 
   } catch (err) {
     console.error('Failed to load dashboard data', err)
+  } finally {
+    isLoading.value = false
   }
 })
 
@@ -235,7 +237,14 @@ async function sendNotif() {
             <span class="header-badge">18</span>
           </div>
           <div class="approval-list">
-            <div v-for="item in waitingList" :key="item.id" class="approval-item">
+            <div v-if="isLoading" style="padding: 2rem; text-align: center; color: #94a3b8; font-size: 0.8rem; font-weight: 500;">
+              Memuat data...
+            </div>
+            <div v-else-if="waitingList.length === 0" style="padding: 2rem; text-align: center; color: #94a3b8; font-size: 0.8rem; font-weight: 500;">
+              Tidak ada persetujuan yang menunggu.
+            </div>
+            <template v-else>
+              <div v-for="item in waitingList" :key="item.id" class="approval-item">
               <div class="item-left">
                 <div class="avatar">
                   <img :src="`https://ui-avatars.com/api/?name=${item.name}&background=random&color=fff`" alt="user" />
@@ -256,6 +265,7 @@ async function sendNotif() {
                 </button>
               </div>
             </div>
+            </template>
           </div>
           <div class="pagination">
             <button class="p-arrow"><ChevronLeft :size="14" /></button>

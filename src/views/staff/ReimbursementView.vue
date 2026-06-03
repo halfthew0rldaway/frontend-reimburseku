@@ -1,22 +1,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { formatRupiah, mapStatusToFrontend } from '@/utils/format'
 import { Filter, Search, Plus, FileText } from 'lucide-vue-next'
 import ApiService from '@/api/ApiService'
 
 const reimbursements = ref([])
-
-const mapStatusToFrontend = (backendStatus) => {
-  const status = backendStatus?.toUpperCase() || ''
-  if (status === 'PENDING') return 'menunggu'
-  if (status === 'APPROVED') return 'disetujui'
-  if (status === 'REJECTED') return 'ditolak'
-  if (status === 'PAID') return 'dibayar'
-  return 'menunggu'
-}
-
-const formatRupiah = (angka) => {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka)
-}
 
 onMounted(async () => {
   try {
@@ -54,7 +42,7 @@ const getStatusBadgeClass = (status) => {
         <h1 class="page-title">Daftar Reimbursement</h1>
         <p class="text-muted mt-1">Kelola semua pengajuan reimbursement Anda</p>
       </div>
-      <router-link to="/staff/reimbursement/add" class="btn btn-primary">
+      <router-link to="/staf/reimbursement/tambah" class="btn btn-primary">
         <Plus :size="18" />
         Pengajuan Baru
       </router-link>

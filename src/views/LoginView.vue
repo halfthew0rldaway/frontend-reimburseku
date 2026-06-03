@@ -255,6 +255,35 @@ async function handleLogin() {
   color: var(--color-text-muted);
 }
 
+.input-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.input-wrap .form-control {
+  padding-right: 2.75rem;
+}
+
+.eye-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.eye-btn:hover {
+  color: var(--color-text-main);
+}
+
 .login-btn {
   width: 100%;
   height: 3rem;

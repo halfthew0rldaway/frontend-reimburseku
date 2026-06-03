@@ -1,16 +1,15 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Plus, Search, ChevronDown, Archive, Wallet, Calendar, Trash2 } from 'lucide-vue-next'
+import { Search, ChevronDown, Archive, Trash2, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import ApiService from '@/api/ApiService'
+import { formatRupiah } from '@/utils/format'
 
 const router = useRouter()
 
 const deposits = ref([])
 
-const formatRupiah = (angka) => {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka)
-}
+
 
 const fetchDeposits = async () => {
   try {
@@ -38,23 +37,7 @@ onMounted(fetchDeposits)
 const searchQuery = ref('')
 const selectedMonth = ref('Januari 2026')
 const sortOption = ref('Sort By')
-const showModal = ref(false)
-const isSaving = ref(false)
 
-const form = ref({ source: '', target: '', amount: '', ref_bank: '', note: '' })
-
-function openAdd() {
-  form.value = { source: '', target: '', amount: '', ref_bank: '', note: '' }
-  showModal.value = true
-}
-
-async function save() {
-  isSaving.value = true
-  setTimeout(() => {
-    isSaving.value = false
-    showModal.value = false
-  }, 1000)
-}
 
 const goToArchive = () => router.push('/admin/deposit/arsip')
 
@@ -144,10 +127,10 @@ const filteredDeposits = computed(() => {
 
       <div class="table-footer">
         <div class="pagination">
-          <button class="page-btn"><ChevronDown :size="12" style="transform: rotate(90deg)" /></button>
+          <button class="page-btn"><ChevronLeft :size="12" /></button>
           <button class="page-btn active">1</button>
           <button class="page-btn">2</button>
-          <button class="page-btn"><ChevronDown :size="12" style="transform: rotate(-90deg)" /></button>
+          <button class="page-btn"><ChevronRight :size="12" /></button>
         </div>
       </div>
     </div>

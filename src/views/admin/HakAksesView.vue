@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Plus, Pencil, Trash2, X, Search, ChevronDown } from 'lucide-vue-next'
+import { Plus, Pencil, Trash2, Search, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import ApiService from '@/api/ApiService'
 
 const roles = ref([])
@@ -24,16 +24,10 @@ const fetchRoles = async () => {
 onMounted(fetchRoles)
 
 const searchQuery = ref('')
-const showModal = ref(false)
-const isEditing = ref(false)
-const isSaving = ref(false)
 
-const form = ref({ id: null, name: '', slug: '', description: '' })
 
 function openAdd() {
-  isEditing.value = false
-  form.value = { id: null, name: '', slug: '', description: '' }
-  showModal.value = true
+  // TODO: Implementasi modal tambah hak akses
 }
 
 const deleteRole = async (id) => {
@@ -106,10 +100,10 @@ const filteredRoles = computed(() => {
 
       <div class="table-footer">
         <div class="pagination">
-          <button class="page-btn"><ChevronDown :size="12" style="transform: rotate(90deg)" /></button>
+          <button class="page-btn"><ChevronLeft :size="12" /></button>
           <button class="page-btn active">1</button>
           <button class="page-btn">2</button>
-          <button class="page-btn"><ChevronDown :size="12" style="transform: rotate(-90deg)" /></button>
+          <button class="page-btn"><ChevronRight :size="12" /></button>
         </div>
       </div>
     </div>

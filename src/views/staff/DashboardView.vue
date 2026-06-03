@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { Plus, Car, UtensilsCrossed, ParkingMeter, MoreHorizontal, ChevronLeft, ChevronRight, Calendar } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
+import { formatRupiah, mapStatusToFrontend } from '@/utils/format'
 import ApiService from '@/api/ApiService'
 
 const router = useRouter()
@@ -32,22 +33,9 @@ const halamanAktif = ref(1)
 const totalHalaman = ref(1)
 
 // Helper Functions
-const mapStatusToFrontend = (backendStatus) => {
-  const status = backendStatus?.toUpperCase() || ''
-  if (status === 'PENDING') return 'menunggu'
-  if (status === 'APPROVED') return 'diterima'
-  if (status === 'REJECTED') return 'ditolak'
-  if (status === 'PAID') return 'dibayar'
-  return 'menunggu'
-}
 
-const formatRupiah = (angka) => {
-  return new Intl.NumberFormat('id-ID', { 
-    style: 'currency', 
-    currency: 'IDR', 
-    minimumFractionDigits: 0 
-  }).format(angka)
-}
+
+
 
 // 2. Modifikasi Fungsi Fetch untuk menggunakan API By Month
 const fetchReimbursements = async (page = 1) => {
