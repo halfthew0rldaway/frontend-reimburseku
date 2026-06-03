@@ -42,7 +42,7 @@ onMounted(async () => {
     tanggal_lahir: data.birth_date || '',
     jenis_kelamin: data.gender || '',
     alamat: data.address || '',
-    bank: accountData.provider_id || '',
+    bank: '',
     rekening: accountData.account_number || '',
     nama_pemilik: accountData.account_holder_name || ''
   }
@@ -51,6 +51,17 @@ onMounted(async () => {
   try {
     const res = await ApiService.getProviders()
     providers.value = res.data?.data || []
+    
+    // 3. AUTO-SELECT METODE PEMBAYARAN BERDASARKAN provider_code
+    if (accountData.provider_code) {
+      // Cari provider yang kodenya sama dengan yang ada di store ('gopay' == 'gopay')
+      const matchedProvider = providers.value.find(p => p.code_provider === accountData.provider_code)
+      
+      // Jika ketemu, masukkan id_provider-nya ke form agar dropdown otomatis terpilih
+      if (matchedProvider) {
+        user.value.bank = matchedProvider.id_provider
+      }
+    }
   } catch (error) {
     console.error('Gagal mengambil data provider', error)
   } finally {
@@ -85,27 +96,19 @@ const getProviderName = computed(() => {
 
 const saveProfile = async () => {
 
-  // 1. SIAPKAN ARRAY UNTUK MENAMPUNG ERROR
   let errorMessages = []
 
-  // Bersihkan spasi atau strip (jika user iseng mengetik spasi)
   const cleanTelepon = user.value.telepon ? user.value.telepon.replace(/\s|-/g, '') : ''
   const cleanRekening = user.value.rekening ? user.value.rekening.replace(/\s|-/g, '') : ''
 
-  // 2. REGEX UNTUK VALIDASI
-  // Regex HP: Diawali 08, 62, atau +62, diikuti 8-12 digit angka (total 10-15 digit)
   const phoneRegex = /^(08|62|\+62)[0-9]{8,12}$/
-  // Regex Bank: Hanya angka, 9 sampai 18 digit
   const bankRegex = /^[0-9]{9,18}$/
 
-  // 3. VALIDASI NOMOR TELEPON (Profil Utama)
   if (cleanTelepon && !phoneRegex.test(cleanTelepon)) {
     errorMessages.push('Format Nomor Telepon utama tidak valid (Gunakan awalan 08 / 62, 10-14 digit).')
   }
 
-  // 4. VALIDASI PENARIKAN DANA (Bank / E-Wallet)
   if (user.value.bank && cleanRekening) {
-    // Cek apakah provider yang dipilih adalah e-wallet atau bank
     const selectedProvider = providers.value.find(p => p.id_provider === user.value.bank)
     const isEwallet = selectedProvider?.provider_type === 'e-wallet'
 
@@ -120,17 +123,13 @@ const saveProfile = async () => {
     }
   }
 
-  // 5. CEK JIKA ADA ERROR, CEGAH SUBMIT
   if (errorMessages.length > 0) {
-    // Tampilkan alert bawaan browser dengan list error
     alert("Mohon perbaiki data berikut:\n\n- " + errorMessages.join('\n- '))
     return // Hentikan fungsi di sini, jangan lanjut ke API
   }
 
-  // JIKA LOLOS VALIDASI, LANJUT MENYIMPAN...
   isSaving.value = true
   try {
-    // FIX BUG 1: Memasukkan account_holder_name dan role_id ke payload
     const payload = {
       role_id: authStore.user?.role_id || 1,
       name: user.value.nama,
@@ -145,18 +144,22 @@ const saveProfile = async () => {
       account_holder_name: user.value.nama_pemilik
     }
 
-    await ApiService.updateProfile(payload)
+    const res = await ApiService.updateProfile(payload)
+    const responseData = res
 
-    // Update store (tergantung bagaimana struktur update store Anda)
-    authStore.updateUserData({
-      ...authStore.user,
-      ...payload.data
-    })
+    if (responseData.data) {
+      authStore.updateUserData({
+        ...authStore.user,
+        ...responseData.data
+      })
+    }
 
-    authStore.updateAccountPayoutData({
-      ...authStore.accountPayout,
-      ...payload.account_payout
-    })
+    if (responseData.account_payout) {
+      authStore.updateAccountPayoutData({
+        ...authStore.accountPayout,
+        ...responseData.account_payout
+      })
+    }
 
     alert('Profil berhasil diperbarui')
   } catch (error) {

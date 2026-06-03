@@ -205,7 +205,7 @@ const preventLetters = (event) => {
 <div class="grid-2-cols">
           <div class="form-group col-span-2">
             <label class="form-label">{{authStore.accountPayout?.provider_type ==='e-wallet' ? 'Nomor E-wallet' : 'Nomor Rekening'}}</label>
-            <input type="text" class="form-control" disabled :value="authStore.accountPayout?.account_number ? authStore.accountPayout.account_number + ' - ' + authStore.accountPayout.account_holder_name : 'N/A'" />
+            <input type="text" class="form-control" disabled :value="authStore.accountPayout?.account_number ? authStore.accountPayout?.provider_name + ' ' + authStore.accountPayout?.account_number + ' A/N ' + authStore.accountPayout?.account_holder_name : 'N/A'" />
           </div>
           
           <div class="form-group">

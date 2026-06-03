@@ -39,7 +39,7 @@ onMounted(async () => {
       const user = authStore.user || {}
       const accountPayout = authStore.accountPayout || {}
       data.value = {
-        rekening: accountPayout?.account_holder_name ? `${accountPayout?.account_number} - ${accountPayout?.account_holder_name || ''}` : '-',
+        rekening: accountPayout?.account_holder_name ? `${accountPayout?.provider_name} ${accountPayout?.account_number} A/N ${accountPayout?.account_holder_name || ''}` : '-',
         nama: user.name || '-',
         posisi: user.position || '-',
         kategori:  detail.category_name || 'Kategori',
@@ -87,7 +87,7 @@ const zoomOut = () => {
       <button class="back-btn" @click="router.push('/staf/dasbor')">
         <ArrowLeft :size="20" />
       </button>
-      <div>
+  <div class="header-info">
         <h1 class="page-title">Detail Reimbursement</h1>
         <p class="text-muted">Informasi lengkap reimburse anda</p>
       </div>
@@ -102,8 +102,8 @@ const zoomOut = () => {
           <h3 class="section-title">Informasi Karyawan</h3>
         </div>
         
-        <div class="grid-3-cols">
-          <div class="form-group">
+        <div class="grid-2-cols">
+          <div class="form-group col-span-2">
             <label class="form-label">Nomor Rekening</label>
             <div class="readonly-field">{{ data.rekening }}</div>
           </div>
@@ -199,9 +199,19 @@ const zoomOut = () => {
 <style scoped>
 .page-header {
   display: flex;
-  align-items: flex-start;
-  gap: 1rem;
+  flex-direction: row;
+  align-items: center; /* Mengubah dari flex-start ke center agar sejajar vertikal */
+  justify-content: flex-start !important;
+  gap: 1.25rem; /* Jarak yang pas antara tombol dan teks */
   margin-bottom: 2rem;
+  width: 100%;
+}
+
+.header-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .back-btn {
@@ -214,6 +224,9 @@ const zoomOut = () => {
   align-items: center;
   justify-content: center;
   color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0; /* Mencegah tombol mengecil atau gepeng */
 }
 
 .back-btn:hover {
@@ -225,6 +238,15 @@ const zoomOut = () => {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-text-main);
+  margin: 0; 
+  line-height: 1.2;
+}
+
+.text-muted {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  margin-top: 0.25rem; /* Jarak tipis antara judul dan deskripsi */
 }
 
 .detail-card {
@@ -439,5 +461,25 @@ const zoomOut = () => {
   font-weight: 600;
   min-width: 45px;
   text-align: center;
+}
+.grid-2-cols {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+/* Memaksa elemen mengambil lebar penuh (2 kolom) */
+.col-span-2 {
+  grid-column: span 2;
+}
+
+/* Responsif untuk layar HP */
+@media (max-width: 768px) {
+  .grid-2-cols {
+    grid-template-columns: 1fr;
+  }
+  .col-span-2 {
+    grid-column: span 1;
+  }
 }
 </style>
