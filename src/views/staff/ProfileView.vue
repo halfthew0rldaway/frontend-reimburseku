@@ -1,13 +1,58 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import ApiService from '@/api/ApiService'
+import { useAuthStore } from '@/stores/auth'
+import { User, CreditCard, Save } from 'lucide-vue-next'
+
+const authStore = useAuthStore()
 
 const user = ref({
-  nama: 'Silviana Rodrigo',
-  email: 'softweng@mail.com',
-  posisi: 'Software Engineer',
-  bank: 'BCA',
-  rekening: '3213124121 (Silviana R.)'
+  nama: '',
+  email: '',
+  posisi: '',
+  bank: '',
+  rekening: ''
 })
+
+const isSaving = ref(false)
+
+onMounted(() => {
+  const data = authStore.user || {}
+  user.value = {
+    nama: data.name || '',
+    email: data.email || '',
+    posisi: data.position || '',
+    bank: data.bank || '',
+    rekening: data.account_number || ''
+  }
+})
+
+const saveProfile = async () => {
+  isSaving.value = true
+  try {
+    const payload = {
+      name: user.value.nama,
+      email: user.value.email,
+      position: user.value.posisi,
+      bank: user.value.bank,
+      account_number: user.value.rekening
+    }
+    await ApiService.updateProfile(payload)
+    
+    // Update local auth store
+    authStore.setUser({
+      ...authStore.user,
+      ...payload
+    })
+    
+    alert('Profil berhasil diperbarui')
+  } catch (error) {
+    alert(error.response?.data?.message || 'Gagal memperbarui profil')
+    console.error(error)
+  } finally {
+    isSaving.value = false
+  }
+}
 </script>
 
 <template>
@@ -22,7 +67,7 @@ const user = ref({
       <div class="form-card card">
         <div class="section-title-wrap">
           <div class="section-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <User :size="16" />
           </div>
           <h3 class="section-title">Informasi Akun</h3>
         </div>
@@ -44,7 +89,7 @@ const user = ref({
 
         <div class="section-title-wrap">
           <div class="section-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+            <CreditCard :size="16" />
           </div>
           <h3 class="section-title">Informasi Rekening Bank</h3>
         </div>
@@ -65,9 +110,9 @@ const user = ref({
         </div>
 
         <div class="form-actions">
-          <button class="btn btn-primary">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-            Simpan Perubahan
+          <button class="btn btn-primary" @click="saveProfile" :disabled="isSaving">
+            <Save :size="16" />
+            {{ isSaving ? 'Menyimpan...' : 'Simpan Perubahan' }}
           </button>
         </div>
       </div>
