@@ -304,14 +304,25 @@ const zoomOut = () => {
   margin: 0 auto;
 }
 
-/* --- HEADER --- */
 .page-header {
   display: flex;
+  flex-direction: row;
   align-items: center;
+  justify-content: flex-start !important; /* Memaksa elemen rapat ke kiri */
   gap: 1.25rem;
   margin-bottom: 2rem;
+  width: 100%;
 }
 
+.header-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Memaksa teks rata kiri */
+  text-align: left;
+  flex-grow: 1; /* Mengambil sisa ruang di kanan agar tidak terdorong */
+}
+
+/* Pastikan style tombol back ini juga ada agar tidak membesar sendiri */
 .back-btn {
   width: 40px;
   height: 40px;
@@ -324,7 +335,7 @@ const zoomOut = () => {
   color: var(--color-text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
-  flex-shrink: 0;
+  flex-shrink: 0; /* Mencegah tombol gepeng atau mengecil */
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
