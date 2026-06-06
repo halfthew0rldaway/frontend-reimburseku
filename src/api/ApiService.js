@@ -35,6 +35,10 @@ export default {
         })
     },
 
+    getLogApprovalReimbursement(id) {
+        return apiClient.get(`/approval-reimbursement/log/${id}`)
+    },
+
     // FINANCE
     getBalanceStats() {
         return apiClient.get('/deposit/get/balance-stats')
