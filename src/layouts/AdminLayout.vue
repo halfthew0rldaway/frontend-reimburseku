@@ -19,7 +19,7 @@ const navItems = [
 ]
 
 function logout() {
-  localStorage.removeItem('token')
+  authStore.clearAuth()
   router.push('/masuk')
 }
 </script>

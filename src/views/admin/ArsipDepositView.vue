@@ -1,16 +1,15 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { ArrowLeft, Search, ChevronDown, RotateCcw, Info } from 'lucide-vue-next'
+import { ArrowLeft, Search, ChevronDown, RotateCcw, Info, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import ApiService from '@/api/ApiService'
+import { formatRupiah } from '@/utils/format'
 
 const router = useRouter()
 
 const archivedDeposits = ref([])
 
-const formatRupiah = (angka) => {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka)
-}
+
 
 const fetchArchives = async () => {
   try {
@@ -120,10 +119,10 @@ const filteredDeposits = computed(() => {
 
       <div class="table-footer">
         <div class="pagination">
-          <button class="page-btn"><ChevronDown :size="12" style="transform: rotate(90deg)" /></button>
+          <button class="page-btn"><ChevronLeft :size="12" /></button>
           <button class="page-btn active">1</button>
           <button class="page-btn">2</button>
-          <button class="page-btn"><ChevronDown :size="12" style="transform: rotate(-90deg)" /></button>
+          <button class="page-btn"><ChevronRight :size="12" /></button>
         </div>
       </div>
     </div>

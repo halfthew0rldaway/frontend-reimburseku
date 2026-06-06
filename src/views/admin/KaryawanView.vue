@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Plus, Pencil, Trash2, X, Search, ChevronDown, Check } from 'lucide-vue-next'
+import { Plus, Pencil, Trash2, Search, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import ApiService from '@/api/ApiService'
 
 const employees = ref([])
@@ -32,31 +32,9 @@ async function fetchEmployees() {
 }
 
 const searchQuery = ref('')
-const sortOption = ref('Terbaru')
-const showModal = ref(false)
-const showSuccessModal = ref(false)
-const isEditing = ref(false)
-const isSaving = ref(false)
-
-const form = ref({
-  id: null,
-  name: '',
-  email: '',
-  position: '',
-  role: 'Staff',
-  bank: 'BCA',
-  account_number: '',
-  gender: 'Laki-laki',
-  dob: '',
-  address: '',
-})
-
-const roles = ['Staff', 'Finance', 'Admin']
 
 function openAdd() {
-  isEditing.value = false
-  form.value = { id: null, name: '', email: '', position: '', role: 'Staff', bank: 'BCA', account_number: '', gender: 'Laki-laki', dob: '', address: '' }
-  showModal.value = true
+  // TODO: Implementasi modal tambah karyawan
 }
 
 async function deleteEmp(id) {
@@ -146,10 +124,10 @@ const filteredEmployees = computed(() => {
 
       <div class="table-footer">
         <div class="pagination">
-          <button class="page-btn"><ChevronDown :size="12" style="transform: rotate(90deg)" /></button>
+          <button class="page-btn"><ChevronLeft :size="12" /></button>
           <button class="page-btn active">1</button>
           <button class="page-btn">2</button>
-          <button class="page-btn"><ChevronDown :size="12" style="transform: rotate(-90deg)" /></button>
+          <button class="page-btn"><ChevronRight :size="12" /></button>
         </div>
       </div>
     </div>

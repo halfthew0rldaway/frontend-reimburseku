@@ -65,9 +65,11 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.removeItem('role')
     }
 
-    // ============================
-    // 3. GETTERS (Fungsi Bantuan)
-    // ============================
+    // Fungsi untuk update data user saja (misal: edit profil)
+    function setUser(userData) {
+        user.value = userData
+        localStorage.setItem('user', JSON.stringify(userData))
+    }
 
     return { 
         token, user, accountPayout, role, 

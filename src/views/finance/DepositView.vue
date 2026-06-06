@@ -1,8 +1,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Plus, Search, ChevronDown, Wallet, ArrowDownLeft, ArrowUpRight } from 'lucide-vue-next'
+import { Plus, Search, ChevronDown, Wallet } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import ApiService from '@/api/ApiService'
+import { formatRupiah } from '@/utils/format'
 
 const router = useRouter()
 
@@ -14,9 +15,7 @@ const stats = ref([
 
 const transactions = ref([])
 
-const formatRupiah = (angka) => {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka)
-}
+
 
 onMounted(async () => {
   try {

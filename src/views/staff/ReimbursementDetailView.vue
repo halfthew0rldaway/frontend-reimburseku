@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ArrowLeft, Image as ImageIcon, X, ZoomIn, ZoomOut } from 'lucide-vue-next' // Tambahkan ikon baru
 import ApiService from '@/api/ApiService'
 import { useAuthStore } from '@/stores/auth'
+import { formatRupiah } from '@/utils/format'
 
 const router = useRouter()
 const route = useRoute()
@@ -25,9 +26,7 @@ const data = ref({
   buktiUrl: ''
 })
 
-const formatRupiah = (angka) => {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka)
-}
+
 
 onMounted(async () => {
   const id = route.params.id
@@ -97,7 +96,7 @@ const zoomOut = () => {
       <div class="form-section">
         <div class="section-title-wrap">
           <div class="section-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <User :size="16" />
           </div>
           <h3 class="section-title">Informasi Karyawan</h3>
         </div>
@@ -121,7 +120,7 @@ const zoomOut = () => {
       <div class="form-section mt-6">
         <div class="section-title-wrap">
           <div class="section-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <FileText :size="16" />
           </div>
           <h3 class="section-title">Informasi Pengajuan</h3>
         </div>

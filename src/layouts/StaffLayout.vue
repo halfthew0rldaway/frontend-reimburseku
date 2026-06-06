@@ -18,7 +18,7 @@ const logout = () => {
     <aside class="sidebar">
       <div class="sidebar-top">
         <router-link to="/staf/dasbor" class="logo">
-          <div class="logo-icon"></div>
+          <div class="logo-icon">RK</div>
           <span class="logo-text">reimburseKu</span>
         </router-link>
 
@@ -113,10 +113,16 @@ const logout = () => {
 }
 
 .logo-icon {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   background-color: white;
-  border-radius: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #3b82f6;
+  font-weight: 800;
+  font-size: 0.8rem;
 }
 
 .logo-text {
@@ -297,9 +303,9 @@ const logout = () => {
 }
 
 .page-container {
-  padding: 2rem 3rem;
+  padding: 2.5rem 4%;
   flex: 1;
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   width: 100%;
 }
