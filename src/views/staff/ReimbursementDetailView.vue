@@ -9,7 +9,7 @@ import { formatRupiah } from '@/utils/format'
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
-
+const isLoading = ref(true)
 // State Modal Preview Gambar
 const isModalOpen = ref(false)
 const zoomLevel = ref(1)
@@ -61,7 +61,12 @@ onMounted(async () => {
 
     } catch (err) {
       console.error('Gagal mengambil data detail atau log:', err)
+    }finally {
+      // Tambahkan blok finally ini
+      isLoading.value = false
     }
+  }else{
+    isLoading.value = false
   }
 })
 
@@ -127,17 +132,57 @@ const zoomOut = () => {
         </div>
       </div>
 
-      <div class="layout-grid">
+  <div v-if="isLoading" class="layout-grid">
+        <div class="left-column">
+          <div class="card detail-card">
+            <div class="skeleton skeleton-title"></div>
+            <div class="grid-2-cols mb-6">
+              <div class="skeleton skeleton-input col-span-2"></div>
+              <div class="skeleton skeleton-input"></div>
+              <div class="skeleton skeleton-input"></div>
+            </div>
+            
+            <hr class="section-divider" />
+            
+            <div class="skeleton skeleton-title"></div>
+            <div class="grid-2-cols-uneven">
+              <div class="left-fields">
+                <div class="skeleton skeleton-input"></div>
+                <div class="skeleton skeleton-input"></div>
+                <div class="skeleton skeleton-input"></div>
+              </div>
+              <div class="right-fields">
+                <div class="skeleton skeleton-input" style="height: 50px;"></div>
+                <div class="skeleton skeleton-input" style="height: 120px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="right-column">
+          <div class="card log-card" style="padding: 1.5rem;">
+            <div class="skeleton skeleton-title" style="width: 60%; margin-bottom: 2rem;"></div>
+            
+            <div v-for="i in 3" :key="i" style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+               <div class="skeleton skeleton-circle"></div>
+               <div style="flex: 1;">
+                 <div class="skeleton skeleton-text" style="width: 40%;"></div>
+                 <div class="skeleton skeleton-text" style="width: 80%;"></div>
+               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-else class="layout-grid">
+        
         <div class="left-column">
           <div class="card detail-card">
             <div class="form-section">
               <div class="section-title-wrap">
-                <div class="section-icon">
-                  <User :size="18" />
-                </div>
+                <div class="section-icon"><User :size="18" /></div>
                 <h3 class="section-title">Informasi Karyawan</h3>
               </div>
-              
               <div class="grid-2-cols">
                 <div class="form-group col-span-2">
                   <label class="form-label">Nomor Rekening</label>
@@ -158,19 +203,14 @@ const zoomOut = () => {
 
             <div class="form-section">
               <div class="section-title-wrap">
-                <div class="section-icon">
-                  <FileText :size="18" />
-                </div>
+                <div class="section-icon"><FileText :size="18" /></div>
                 <h3 class="section-title">Informasi Pengajuan</h3>
               </div>
-
               <div class="grid-2-cols-uneven">
                 <div class="left-fields">
                   <div class="form-group">
                     <label class="form-label">Kategori</label>
-                    <select class="form-control" disabled>
-                      <option>{{ data.kategori }}</option>
-                    </select>
+                    <select class="form-control" disabled><option>{{ data.kategori }}</option></select>
                   </div>
                   <div class="form-group">
                     <label class="form-label">Tanggal di Kirim</label>
@@ -181,15 +221,10 @@ const zoomOut = () => {
                     <input type="text" class="form-control font-bold text-primary" :value="data.total" disabled />
                   </div>
                 </div>
-
                 <div class="right-fields">
                   <div class="form-group">
                     <label class="form-label">Upload Bukti / Struk</label>
-                    <div 
-                      class="file-preview-box" 
-                      :class="{ 'is-clickable': data.buktiUrl }"
-                      @click="openModal"
-                    >
+                    <div class="file-preview-box" :class="{ 'is-clickable': data.buktiUrl }" @click="openModal">
                       <ImageIcon :size="20" :class="data.buktiUrl ? 'text-primary' : 'text-muted'" />
                       <span :class="data.buktiUrl ? 'text-primary font-medium' : 'text-muted'">{{ data.bukti }}</span>
                     </div>
@@ -207,51 +242,34 @@ const zoomOut = () => {
         <div class="right-column">
           <div class="card log-card">
             <div class="section-title-wrap log-header">
-              <div class="section-icon">
-                <History :size="18" />
-              </div>
+              <div class="section-icon"><History :size="18" /></div>
               <h3 class="section-title">Riwayat Status</h3>
             </div>
-
             <div class="log-scroll-area">
               <div v-if="approvalLogs.length === 0" class="empty-log">
                 Belum ada riwayat aktivitas.
               </div>
-
               <div v-else class="timeline-container">
-                <div 
-                  v-for="(log, index) in approvalLogs" 
-                  :key="log.id_log" 
-                  class="timeline-item"
-                >
+                <div v-for="(log, index) in approvalLogs" :key="log.id_log" class="timeline-item">
                   <div class="timeline-line" v-if="index !== approvalLogs.length - 1"></div>
-                  
-                  <div 
-                    class="timeline-icon-wrap" 
-                    :style="{ backgroundColor: getLogStyle(log.action).bg, borderColor: getLogStyle(log.action).border, color: getLogStyle(log.action).color }"
-                  >
+                  <div class="timeline-icon-wrap" :style="{ backgroundColor: getLogStyle(log.action).bg, borderColor: getLogStyle(log.action).border, color: getLogStyle(log.action).color }">
                     <component :is="getLogStyle(log.action).icon" :size="16" />
                   </div>
-                  
                   <div class="timeline-content">
                     <div class="timeline-header">
-                      <span 
-                        class="timeline-status-badge"
-                        :style="{ color: getLogStyle(log.action).color, backgroundColor: getLogStyle(log.action).bg }"
-                      >
+                      <span class="timeline-status-badge" :style="{ color: getLogStyle(log.action).color, backgroundColor: getLogStyle(log.action).bg }">
                         {{ getLogStyle(log.action).label }}
                       </span>
                       <span class="timeline-time">{{ formatDateTime(log.created_at) }}</span>
                     </div>
-                    <div class="timeline-body">
-                      {{ log.comments }}
-                    </div>
+                    <div class="timeline-body">{{ log.comments }}</div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        
       </div>
     </div>
 
@@ -285,6 +303,49 @@ const zoomOut = () => {
 </template>
 
 <style scoped>
+.skeleton {
+  background: #f1f5f9;
+  background: linear-gradient(110deg, #f1f5f9 8%, #e2e8f0 18%, #f1f5f9 33%);
+  border-radius: 8px;
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position-x: -200%;
+  }
+}
+
+.skeleton-title {
+  width: 40%;
+  height: 28px;
+  margin-bottom: 1.5rem;
+  border-radius: 6px;
+}
+
+.skeleton-input {
+  width: 100%;
+  height: 46px; /* Menyesuaikan tinggi input form kamu */
+  border-radius: 10px;
+}
+
+.skeleton-text {
+  height: 14px;
+  margin-bottom: 0.5rem;
+  border-radius: 4px;
+}
+
+.skeleton-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
 /* Variabel Warna Global Component */
 .detail-page {
   --color-primary: #3b82f6;
