@@ -337,7 +337,7 @@ const saveProfile = async () => {
               <span class="preview-val alamat-preview-text">{{ user.alamat || '-' }}</span>
             </div>
             <div class="preview-item">
-              <span class="preview-label">{{ accountLabel }} / E-Wallet</span>
+              <span class="preview-label">{{ accountLabel }} </span>
               <span class="preview-val">
                 {{ getProviderName }} - {{ user.rekening || '-' }}
                 <span v-if="user.nama_pemilik">
