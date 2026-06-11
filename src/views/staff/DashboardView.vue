@@ -103,21 +103,17 @@ const exportToPDF = () => {
 // === STATE & FUNGSI MENU NOTIFIKASI ===
 const showNotifMenu = ref(false)
 const notifications = ref([]) 
-const hasUnread = ref(false) // State untuk circle merah notifikasi
+const hasUnread = ref(false) 
 
 const toggleNotifMenu = () => {
   showNotifMenu.value = !showNotifMenu.value
   if (showNotifMenu.value) showExportMenu.value = false
 }
 
-// Fungsi ketika tombol "Tandai dibaca" diklik
 const tandaiSemuaDibaca = () => {
-  hasUnread.value = false // Hilangkan circle merah di UI
-  
+  hasUnread.value = false 
   if (notifications.value.length > 0) {
-    // Ambil ID dari notifikasi paling atas/terbaru
     const latestId = notifications.value[0].id
-    // Simpan ID tersebut ke localStorage browser
     localStorage.setItem('last_read_notif_id', String(latestId))
   }
 }
@@ -158,16 +154,14 @@ const fetchNotifications = async (page = 1) => {
         type: determineNotifType(item.title, item.message_content)
       }))
       
-      // LOGIKA TERBARU PERSISTENCE:
       if (notifications.value.length > 0) {
-        const latestIdFromApi = notifications.value[0].id // ID terbaru dari server
-        const storedLatestId = localStorage.getItem('last_read_notif_id') // ID terakhir yang ditandai dibaca oleh user
+        const latestIdFromApi = notifications.value[0].id 
+        const storedLatestId = localStorage.getItem('last_read_notif_id') 
         
-        // Jika ID dari server tidak sama dengan ID yang pernah dibaca (artinya ada notif baru / belum pernah klik tandai dibaca)
         if (String(latestIdFromApi) !== storedLatestId) {
           hasUnread.value = true
         } else {
-          hasUnread.value = false // Tetap hilang walaupun di-refresh karena sudah pernah dibaca
+          hasUnread.value = false 
         }
       } else {
         hasUnread.value = false
@@ -203,12 +197,14 @@ const fetchReimbursements = async (page = 1) => {
     semuaData.value = responseData.map(item => ({
       id: item.id_request,
       kategori: item.category_name || 'Lain-lain',
-      judul: item.category_name || 'Pengajuan Reimburse',
+      judul: item.description || item.category_name || 'Pengajuan Reimburse',
       status: mapStatusToFrontend(item.last_status),
       catatan: item.rejection_reason || item.description || '',
       jumlahAsli: item.amount, 
       jumlah: formatRupiah(item.amount),
-      tanggal: new Date(item.expense_date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      tanggal: new Date(item.expense_date).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+      tanggalIso: item.expense_date
+
     }))
 
     halamanAktif.value = metaData.current_page || 1
@@ -220,6 +216,57 @@ const fetchReimbursements = async (page = 1) => {
     isLoading.value = false 
   }
 }
+
+const pengajuanTerakhir = computed(() => {
+  if (semuaData.value.length === 0) return null
+
+  const today = new Date()
+  const yyyy = today.getFullYear()
+  const mm = String(today.getMonth() + 1).padStart(2, '0')
+  const dd = String(today.getDate()).padStart(2, '0')
+  const tanggalHariIni = `${yyyy}-${mm}-${dd}`
+
+  const dataHariIni = semuaData.value.find(item => item.tanggalIso === tanggalHariIni)
+
+  return dataHariIni || null
+})
+
+const timelineSteps = computed(() => {
+  if (!pengajuanTerakhir.value) return []
+  
+  const status = pengajuanTerakhir.value.status.toLowerCase()
+  
+  return [
+    { 
+      label: 'Diajukan', 
+      desc: 'Berhasil dikirim ke sistem', 
+      isComplete: true, 
+      isCurrent: status === 'menunggu', 
+      isRejected: false 
+    },
+    { 
+      label: 'Menunggu Persetujuan', 
+      desc: status === 'ditolak' ? 'Pengajuan ditolak' : ['diterima', 'disetujui', 'dibayar'].includes(status) ? 'Telah disetujui' : 'Menunggu antrean', 
+      isComplete: ['diterima', 'disetujui', 'dibayar'].includes(status) || status === 'ditolak', 
+      isCurrent: status === 'menunggu', 
+      isRejected: status === 'ditolak' 
+    },
+    { 
+      label: 'Proses Keuangan', 
+      desc: status === 'dibayar' ? 'Selesai diverifikasi' : status === 'ditolak' ? 'Dibatalkan' : ['diterima', 'disetujui'].includes(status) ? 'Sedang diproses Finance' : 'Menunggu tahap sebelumnya', 
+      isComplete: status === 'dibayar', 
+      isCurrent: ['diterima', 'disetujui'].includes(status), 
+      isRejected: status === 'ditolak'
+    },
+    { 
+      label: 'Dana Cair', 
+      desc: status === 'dibayar' ? 'Transfer berhasil dilakukan' : status === 'ditolak' ? 'Gagal' : 'Menunggu pencairan', 
+      isComplete: status === 'dibayar', 
+      isCurrent: status === 'dibayar', 
+      isRejected: status === 'ditolak'
+    }
+  ]
+})
 
 onMounted(() => {
   fetchReimbursements(halamanAktif.value)
@@ -319,14 +366,14 @@ const getBorderColor = (kategori) => {
 <template>
   <div class="dasbor-staf">
     
-    <!-- HEADER UTAMA DENGAN NOTIFIKASI -->
-   <div class="header-utama">
+    <div class="header-utama">
       <h2 class="judul-halaman">Beranda</h2>
       <div class="header-actions">
         
         <button class="btn btn-primary tombol-tambah" @click="router.push('/staf/reimbursement/tambah')">
           <Plus :size="16" /> 
-          <span class="text-tombol">Tambah Reimbursement</span> </button>
+          <span class="text-tombol">Tambah Reimbursement</span> 
+        </button>
 
         <div class="notif-wrapper">
           <button class="header-icon-btn" title="Notifikasi" @click="toggleNotifMenu">
@@ -365,7 +412,6 @@ const getBorderColor = (kategori) => {
       </div>
     </div>
 
-    <!-- RINGKASAN FINANSIAL (HIGHLIGHT CARDS) -->
     <div class="ringkasan-finansial">
       <div class="rf-card primary-card">
         <div class="rf-icon-wrapper"><Wallet :size="20" /></div>
@@ -500,10 +546,45 @@ const getBorderColor = (kategori) => {
             </div>
           </div>
         </div>
+
+        <div v-if="pengajuanTerakhir" class="tracker-section">
+          <h2 class="judul-seksi judul-tracker">Pelacakan Pengajuan Terakhir</h2>
+          <div class="tracker-card">
+            <div class="tracker-header-info">
+              <h4 class="tracker-judul-klaim">{{ pengajuanTerakhir.judul }}</h4>
+              <p class="tracker-harga-klaim">{{ pengajuanTerakhir.jumlah }}</p>
+            </div>
+
+            <div class="timeline">
+              <div 
+                v-for="(step, idx) in timelineSteps" 
+                :key="idx" 
+                class="timeline-item"
+                :class="{ 
+                  'complete': step.isComplete, 
+                  'current': step.isCurrent, 
+                  'rejected': step.isRejected 
+                }"
+              >
+                <div class="timeline-badge-wrap">
+                  <div class="timeline-badge">
+                    <Check v-if="step.isComplete && !step.isRejected" :size="12" />
+                    <X v-else-if="step.isRejected" :size="12" />
+                    <span v-else>{{ idx + 1 }}</span>
+                  </div>
+                </div>
+                <div class="timeline-content">
+                  <h5>{{ step.label }}</h5>
+                  <p>{{ step.desc }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
       </div>
     </div>
 
-    <!-- MODAL BULAN -->
     <div v-if="showModalBulan" class="modal-backdrop" @click.self="showModalBulan = false">
       <div class="modal-box">
         <h3 class="modal-judul">Pilih Bulan</h3>
@@ -540,26 +621,6 @@ const getBorderColor = (kategori) => {
 }
 
 /* --- HEADER UTAMA & NOTIFIKASI --- */
-@media (max-width: 640px) {
-  .header-utama {
-    align-items: center;
-  }
-  
-  .tombol-tambah {
-    padding: 0.5rem; /* Buat tombol menjadi kotak/bulat pas di ikon */
-    border-radius: 50%; /* Atau tetap 8px sesuai selera */
-  }
-
-  .tombol-tambah .text-tombol {
-    display: none; /* Teks "Tambah Reimbursement" disembunyikan */
-  }
-  
-  /* Geser dropdown notifikasi sedikit ke kanan agar pas di layar kecil */
-  .notif-menu {
-    right: -10px;
-    width: 320px;
-  }
-}
 .header-utama {
   display: flex;
   justify-content: space-between;
@@ -703,13 +764,10 @@ const getBorderColor = (kategori) => {
 /* Warna Latar & Teks Ikon Notifikasi */
 .bg-success-light { background-color: #dcfce7; }
 .text-success { color: #16a34a; }
-
 .bg-primary-light { background-color: #dbeafe; }
 .text-primary { color: #2563eb; }
-
 .bg-danger-light { background-color: #fee2e2; }
 .text-danger { color: #dc2626; }
-
 .bg-info-light { background-color: #f1f5f9; }
 .text-info { color: #64748b; }
 
@@ -718,21 +776,18 @@ const getBorderColor = (kategori) => {
   flex-direction: column;
   gap: 0.25rem;
 }
-
 .notif-content h5 {
   margin: 0;
   font-size: 0.9rem;
   font-weight: 600;
   color: #1e293b;
 }
-
 .notif-content p {
   margin: 0;
   font-size: 0.8125rem;
   color: #475569;
   line-height: 1.4;
 }
-
 .notif-time {
   font-size: 0.75rem;
   color: #94a3b8;
@@ -895,6 +950,136 @@ const getBorderColor = (kategori) => {
 .stat-label { font-size: 0.875rem; font-weight: 500; opacity: 0.9; margin-bottom: 0.2rem; }
 .stat-jumlah { font-size: 1.125rem; font-weight: 700; letter-spacing: -0.01em; }
 
+/* ─── STYLE POIN NUM 3: TRACKER TIMELINE ─── */
+.tracker-section {
+  display: flex;
+  flex-direction: column;
+}
+.judul-tracker {
+  margin-top: 1.75rem;
+}
+.tracker-card {
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+.tracker-header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px dashed #e2e8f0;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.tracker-judul-klaim {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1e293b;
+  max-width: 70%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tracker-harga-klaim {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #3b82f6;
+}
+
+/* Base Line Vertikal */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  position: relative;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background-color: #f1f5f9;
+  z-index: 1;
+}
+
+.timeline-item {
+  display: flex;
+  gap: 1rem;
+  position: relative;
+  z-index: 2;
+}
+.timeline-badge-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.timeline-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: white;
+  border: 2px solid #cbd5e1;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+.timeline-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.timeline-content h5 {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748b;
+}
+.timeline-content p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+/* Modifikasi State Timeline (Complete, Current, Rejected) */
+.timeline-item.complete .timeline-badge {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+.timeline-item.complete .timeline-content h5 {
+  color: #1e293b;
+}
+
+.timeline-item.current .timeline-badge {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  background-color: #eff6ff;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+}
+.timeline-item.current .timeline-content h5 {
+  color: #3b82f6;
+}
+
+.timeline-item.rejected .timeline-badge {
+  background-color: #ef4444;
+  border-color: #ef4444;
+  color: white;
+}
+.timeline-item.rejected .timeline-content h5 {
+  color: #ef4444;
+}
+
 /* --- MODAL BULAN --- */
 .modal-backdrop {
   position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; z-index: 999; backdrop-filter: blur(2px);
@@ -920,7 +1105,6 @@ const getBorderColor = (kategori) => {
   display: inline-block;
   height: 100%;
 }
-
 .dropdown-menu {
   position: absolute;
   top: calc(100% + 0.5rem);
@@ -936,7 +1120,6 @@ const getBorderColor = (kategori) => {
   overflow: hidden;
   padding: 0.5rem 0;
 }
-
 .dropdown-item {
   display: flex;
   align-items: center;
@@ -952,9 +1135,25 @@ const getBorderColor = (kategori) => {
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
-
 .dropdown-item:hover {
   background-color: #f1f5f9;
   color: #0f172a;
+}
+
+/* Responsivitas Mobile */
+@media (max-width: 640px) {
+  .header-utama {
+    align-items: center;
+  }
+  .tombol-tambah {
+    padding: 0.5rem;
+  }
+  .tombol-tambah .text-tombol {
+    display: none;
+  }
+  .notif-menu {
+    right: -10px;
+    width: 320px;
+  }
 }
 </style>
