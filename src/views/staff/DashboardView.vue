@@ -878,4 +878,46 @@ const getBorderColor = (kategori) => {
 .btn-batal:hover { color: #1e293b; }
 .btn-terapkan { background: #3b82f6; border: none; font-size: 0.875rem; font-weight: 500; color: white; cursor: pointer; padding: 0.5rem 1.25rem; border-radius: 8px; }
 .btn-terapkan:hover { background: #2563eb; }
+.dropdown-wrapper {
+  position: relative;
+  display: inline-block;
+  height: 100%;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: 180px;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0.5rem 0;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-size: 0.875rem;
+  color: #475569;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
 </style>
