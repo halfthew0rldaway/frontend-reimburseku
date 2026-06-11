@@ -7,7 +7,10 @@ export default {
     getProfile() {
         return apiClient.get('/user')
     },
-
+   getMyReimbursementsMessages(page = 1) {
+        // Meneruskan parameter page ke backend
+        return apiClient.get(`/reimbursement-message/my-messages?page=${page}`)
+    },
     // STAFF
     updateProfile(data) {
         return apiClient.post('/update-profile', data)

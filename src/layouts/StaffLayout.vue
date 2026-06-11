@@ -1,14 +1,20 @@
 <script setup>
 import { RouterView, useRouter } from 'vue-router'
-import { Edit2, LogOut } from 'lucide-vue-next' // Tambahkan import LogOut di sini
+import { 
+  Edit2, 
+  LogOut, 
+  LayoutDashboard, 
+  Printer, 
+  Wifi, 
+  Bluetooth 
+} from 'lucide-vue-next'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
 const router = useRouter()
 
-// Tambahkan fungsi logout dasar agar tidak error saat diklik
 const logout = () => {
-  authStore.clearAuth() // Pastikan ini membersihkan data auth dengan benar
+  authStore.clearAuth()
   router.push('/masuk')
 }
 </script>
@@ -36,6 +42,25 @@ const logout = () => {
           </router-link>
         </div>
       </div>
+
+      <nav class="sidebar-nav">
+        <router-link to="/staf/dasbor" class="nav-item" active-class="active">
+          <LayoutDashboard :size="20" class="nav-icon" />
+          <span>Dasbor</span>
+        </router-link>
+
+        <router-link to="/staf/cetak-struk" class="nav-item print-menu" active-class="active">
+          <Printer :size="20" class="nav-icon" />
+          <div class="nav-text-group">
+            <span class="nav-title">Cetak Struk PDF</span>
+            <div class="nav-badges">
+              <Wifi :size="10" />
+              <Bluetooth :size="10" />
+              <span>Koneksi Aktif</span>
+            </div>
+          </div>
+        </router-link>
+      </nav>
 
       <div class="sidebar-bottom">
         <div class="sidebar-footer">
@@ -75,25 +100,101 @@ const logout = () => {
 .sidebar {
   width: 250px;
   background-color: var(--color-primary, #1e293b);
-  /* Fallback color jika variabel kosong */
   color: white;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  /* Sekarang hanya membagi jarak antara Top dan Bottom */
   position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   z-index: 10;
 }
 
+.sidebar::-webkit-scrollbar {
+  width: 0px;
+}
+
 .sidebar-top {
-  padding: 2rem 1.5rem;
+  padding: 2rem 1.5rem 1rem 1.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+/* Navigasi Utama */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1.5rem 1rem;
+  flex: 1;
+}
+
+/* Nav Item Standar */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 1rem;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: white;
+}
+
+/* Nav Item Aktif menggunakan rgba(255,255,255,0.2) */
+.nav-item.active {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+}
+
+.nav-icon {
+  flex-shrink: 0;
+}
+
+/* Styling Khusus Menu Cetak Struk */
+.print-menu {
+  align-items: flex-start;
+}
+
+.nav-text-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nav-title {
+  line-height: 1;
+}
+
+.nav-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.65rem;
+  color: rgba(255, 255, 255, 0.6);
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  margin-top: 0.2rem;
+  transition: all 0.2s;
+}
+
+/* Badge saat menu sedang aktif */
+.nav-item.active .nav-badges {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Bagian Bawah Sidebar (Footer & Decor) */
@@ -101,13 +202,14 @@ const logout = () => {
   display: flex;
   flex-direction: column;
   width: 100%;
+  margin-top: auto;
 }
 
 .logo {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
   text-decoration: none;
   color: white;
 }
@@ -194,58 +296,27 @@ const logout = () => {
   transform: translateY(-1px);
 }
 
-/* Nav Item Standar */
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
-  color: rgba(255, 255, 255, 0.85);
-  text-decoration: none;
-  font-size: 0.875rem;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-
-.nav-item:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-}
-
-.nav-item.active {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
 /* Styling Khusus Tombol Logout */
 .sidebar-footer {
   padding: 0 1rem 1rem 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding-top: 1rem;
   position: relative;
   z-index: 2;
-  /* Memastikan tombol bisa diklik di atas dekorasi */
 }
 
 .logout-btn {
   width: 100%;
-  background: transparent;
+  background-color: transparent;
   border: none;
   cursor: pointer;
   font-family: inherit;
-  color: #ffffff;
-  transition: all 0.3s ease;
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .logout-btn:hover {
-  background: rgba(239, 68, 68, 0.15);
+  background-color: rgba(239, 68, 68, 0.1);
   color: #ef4444;
-}
-
-.logout-btn:active {
-  transform: scale(0.97);
 }
 
 .logout-icon {
@@ -260,9 +331,8 @@ const logout = () => {
 .sidebar-bg-decor {
   display: flex;
   align-items: flex-end;
-  height: 60px;
-  /* Diperkecil sedikit agar tidak menabrak tombol */
-  opacity: 0.15;
+  height: 50px;
+  opacity: 0.1;
   padding: 0 1rem;
   gap: 4px;
 }
@@ -273,25 +343,11 @@ const logout = () => {
   border-radius: 4px 4px 0 0;
 }
 
-.bar-1 {
-  height: 40%;
-}
-
-.bar-2 {
-  height: 70%;
-}
-
-.bar-3 {
-  height: 100%;
-}
-
-.bar-4 {
-  height: 60%;
-}
-
-.bar-5 {
-  height: 80%;
-}
+.bar-1 { height: 40%; }
+.bar-2 { height: 70%; }
+.bar-3 { height: 100%; }
+.bar-4 { height: 60%; }
+.bar-5 { height: 80%; }
 
 /* Main Content */
 .main-content {

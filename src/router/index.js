@@ -26,6 +26,11 @@ const router = createRouter({
           component: () => import('../views/staff/DashboardView.vue')
         },
         {
+            path:'cetak-struk',
+            name:'staf-cetak-struk',
+            component: () => import('../views/staff/CetakStrukView.vue')
+        },
+        {
           path: 'reimbursement',
           name: 'staf-reimbursement',
           component: () => import('../views/staff/ReimbursementView.vue')
