@@ -102,14 +102,26 @@ const exportToPDF = () => {
 
 // === STATE & FUNGSI MENU NOTIFIKASI ===
 const showNotifMenu = ref(false)
-const notifications = ref([]) // State untuk menyimpan data notifikasi dari API
+const notifications = ref([]) 
+const hasUnread = ref(false) // State untuk circle merah notifikasi
 
 const toggleNotifMenu = () => {
   showNotifMenu.value = !showNotifMenu.value
   if (showNotifMenu.value) showExportMenu.value = false
 }
 
-// Fungsi untuk menghitung waktu (contoh: "2 jam yang lalu")
+// Fungsi ketika tombol "Tandai dibaca" diklik
+const tandaiSemuaDibaca = () => {
+  hasUnread.value = false // Hilangkan circle merah di UI
+  
+  if (notifications.value.length > 0) {
+    // Ambil ID dari notifikasi paling atas/terbaru
+    const latestId = notifications.value[0].id
+    // Simpan ID tersebut ke localStorage browser
+    localStorage.setItem('last_read_notif_id', String(latestId))
+  }
+}
+
 const formatTimeAgo = (dateString) => {
   const date = new Date(dateString)
   const now = new Date()
@@ -124,7 +136,6 @@ const formatTimeAgo = (dateString) => {
   return `${days} hari yang lalu`
 }
 
-// Fungsi untuk mendeteksi tipe notifikasi berdasarkan teks agar warnanya sesuai
 const determineNotifType = (title, message) => {
   const text = `${title || ''} ${message || ''}`.toLowerCase()
   if (text.includes('transfer') || text.includes('dana') || text.includes('cair')) return 'dibayar'
@@ -133,16 +144,9 @@ const determineNotifType = (title, message) => {
   return 'info'
 }
 
-// Fetch Notifikasi (Implementasi integrasi JSON Message)
 const fetchNotifications = async (page = 1) => {
   try {
-    // Memanggil API asli menggunakan ApiService (Asumsi ApiService menggunakan Axios)
-    // Jika Anda belum membuat method khusus, Anda bisa memanggil get() langsung
-    // Sesuaikan prefix URL-nya jika ApiService sudah melakukan setting baseURL otomatis
     const res = await ApiService.getMyReimbursementsMessages(page)
-    
-    // Response Axios membungkus data di dalam res.data
-    // Dari format JSON Anda: res.data mengandung { success, message, data: [...] }
     const responseBody = res.data
 
     if (responseBody.success && responseBody.data) {
@@ -153,11 +157,27 @@ const fetchNotifications = async (page = 1) => {
         time: formatTimeAgo(item.created_at),
         type: determineNotifType(item.title, item.message_content)
       }))
+      
+      // LOGIKA TERBARU PERSISTENCE:
+      if (notifications.value.length > 0) {
+        const latestIdFromApi = notifications.value[0].id // ID terbaru dari server
+        const storedLatestId = localStorage.getItem('last_read_notif_id') // ID terakhir yang ditandai dibaca oleh user
+        
+        // Jika ID dari server tidak sama dengan ID yang pernah dibaca (artinya ada notif baru / belum pernah klik tandai dibaca)
+        if (String(latestIdFromApi) !== storedLatestId) {
+          hasUnread.value = true
+        } else {
+          hasUnread.value = false // Tetap hilang walaupun di-refresh karena sudah pernah dibaca
+        }
+      } else {
+        hasUnread.value = false
+      }
     }
   } catch (err) {
     console.error('Gagal mengambil data notifikasi:', err)
   }
 }
+
 const getNotifIcon = (type) => {
   if (type === 'dibayar') return Zap
   if (type === 'diterima') return CheckCircle2
@@ -169,7 +189,7 @@ const getNotifIconBgClass = (type) => {
   if (type === 'dibayar') return 'bg-success-light text-success'
   if (type === 'diterima') return 'bg-primary-light text-primary'
   if (type === 'ditolak') return 'bg-danger-light text-danger'
-  return 'bg-info-light text-info' // Default Info
+  return 'bg-info-light text-info' 
 }
 
 // Fetch Data API Reimbursement
@@ -203,7 +223,7 @@ const fetchReimbursements = async (page = 1) => {
 
 onMounted(() => {
   fetchReimbursements(halamanAktif.value)
-  fetchNotifications() // Panggil fetch notifikasi saat komponen dimuat
+  fetchNotifications() 
 })
 
 const dataFiltered = computed(() => {
@@ -211,7 +231,6 @@ const dataFiltered = computed(() => {
   return semuaData.value.filter(d => d.status === filterAktif.value)
 })
 
-// Ringkasan Finansial Bulan Ini
 const ringkasanBulanIni = computed(() => {
   let pengajuan = 0, disetujui = 0, ditolak = 0
   semuaData.value.forEach(item => {
@@ -242,7 +261,6 @@ const kategoriStats = computed(() => {
 
 function gantiHalaman(h) { if (h >= 1 && h <= totalHalaman.value) fetchReimbursements(h) }
 
-// Konfigurasi Bulan
 const namaBulanLengkap = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
 const labelBulanTampil = computed(() => {
   const [thn, bln] = filterBulan.value.split('-')
@@ -302,29 +320,28 @@ const getBorderColor = (kategori) => {
   <div class="dasbor-staf">
     
     <!-- HEADER UTAMA DENGAN NOTIFIKASI -->
-    <div class="header-utama">
+   <div class="header-utama">
       <h2 class="judul-halaman">Beranda</h2>
       <div class="header-actions">
-        <button class="btn btn-primary tombol-tambah" @click="router.push('/staf/reimbursement/tambah')">
-          <Plus :size="16" /> Tambah Reimbursement
-        </button>
         
-        <!-- WRAPPER NOTIFIKASI -->
+        <button class="btn btn-primary tombol-tambah" @click="router.push('/staf/reimbursement/tambah')">
+          <Plus :size="16" /> 
+          <span class="text-tombol">Tambah Reimbursement</span> </button>
+
         <div class="notif-wrapper">
           <button class="header-icon-btn" title="Notifikasi" @click="toggleNotifMenu">
             <Bell :size="20" />
-            <span v-if="notifications.length > 0" class="notification-dot"></span>
+            <span v-if="hasUnread" class="notification-dot"></span>
           </button>
 
-          <!-- MENU DROPDOWN NOTIFIKASI -->
           <div v-if="showNotifMenu" class="notif-menu">
             <div class="notif-header">
               <h4>Pemberitahuan</h4>
-              <button class="btn-clear" @click="showNotifMenu = false">Tandai dibaca</button>
+              <button class="btn-clear" @click="tandaiSemuaDibaca">Tandai dibaca</button>
             </div>
             
             <div class="notif-list">
-              <div v-if="notifications.length === 0" class="notif-item justify-center text-gray-500 text-sm py-6">
+              <div v-if="notifications.length === 0" class="notif-item justify-center text-gray-500 text-sm py-6" style="text-align: center;">
                 Belum ada pemberitahuan baru
               </div>
               <div v-for="notif in notifications" :key="notif.id" class="notif-item">
@@ -340,7 +357,7 @@ const getBorderColor = (kategori) => {
             </div>
 
             <div class="notif-footer">
-              <button @click="showNotifMenu = false">Tutup Laci Notifikasi</button>
+              <button @click="showNotifMenu = false">Tutup Notifikasi</button>
             </div>
           </div>
         </div>
@@ -387,7 +404,6 @@ const getBorderColor = (kategori) => {
             </button>
           </div>
           
-          <!-- KONTROL KALENDER & EKSPOR -->
           <div class="kontrol-aksi-row">
             <button class="btn-tanggal-full" @click="bukaModalBulan">
               <span>{{ labelBulanTampil }}</span>
@@ -524,6 +540,26 @@ const getBorderColor = (kategori) => {
 }
 
 /* --- HEADER UTAMA & NOTIFIKASI --- */
+@media (max-width: 640px) {
+  .header-utama {
+    align-items: center;
+  }
+  
+  .tombol-tambah {
+    padding: 0.5rem; /* Buat tombol menjadi kotak/bulat pas di ikon */
+    border-radius: 50%; /* Atau tetap 8px sesuai selera */
+  }
+
+  .tombol-tambah .text-tombol {
+    display: none; /* Teks "Tambah Reimbursement" disembunyikan */
+  }
+  
+  /* Geser dropdown notifikasi sedikit ke kanan agar pas di layar kecil */
+  .notif-menu {
+    right: -10px;
+    width: 320px;
+  }
+}
 .header-utama {
   display: flex;
   justify-content: space-between;
@@ -837,7 +873,7 @@ const getBorderColor = (kategori) => {
 .date { font-size: 0.75rem; color: #9CA3AF; white-space: nowrap; }
 
 .paginasi {
-  display: flex; justify-content: center; align-items: center; gap: 0.375rem; padding: 1rem; border-top: 1px solid #f1f5f9; margin-top: auto; background: white;
+  display: flex; justify-content: center; align-items: center; gap: 0.375rem; padding: 1rem; border-top: 1px solid #f1f5f9; margin-bottom: 0; background: white; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;
 }
 .btn-paging {
   width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
@@ -878,6 +914,7 @@ const getBorderColor = (kategori) => {
 .btn-batal:hover { color: #1e293b; }
 .btn-terapkan { background: #3b82f6; border: none; font-size: 0.875rem; font-weight: 500; color: white; cursor: pointer; padding: 0.5rem 1.25rem; border-radius: 8px; }
 .btn-terapkan:hover { background: #2563eb; }
+
 .dropdown-wrapper {
   position: relative;
   display: inline-block;

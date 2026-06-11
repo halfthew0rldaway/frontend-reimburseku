@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { 
   Printer, 
   Wifi, 
@@ -26,11 +26,33 @@ const uploadedFileName = ref('')
 const uploadedFileType = ref(null) // 'pdf' atau 'image'
 const fileInputRef = ref(null)
 
+// --- FITUR DETEKSI JARINGAN REAL-TIME ---
+const updateNetworkStatus = () => {
+  if (connectionType.value === 'wifi') {
+    isConnected.value = navigator.onLine
+  }
+}
+
+// Pasang event listener saat komponen dimuat
+onMounted(() => {
+  window.addEventListener('online', updateNetworkStatus)
+  window.addEventListener('offline', updateNetworkStatus)
+})
+
+// Bersihkan event listener saat komponen dihancurkan
+onUnmounted(() => {
+  window.removeEventListener('online', updateNetworkStatus)
+  window.removeEventListener('offline', updateNetworkStatus)
+})
+// ----------------------------------------
+
 // Fungsi Hubungkan Perangkat
 const toggleConnection = async () => {
   if (isConnected.value) {
     isConnected.value = false
-    btDeviceName.value = 'Belum ada perangkat'
+    if (connectionType.value === 'bluetooth') {
+      btDeviceName.value = 'Belum ada perangkat'
+    }
     return
   }
 
@@ -47,10 +69,11 @@ const toggleConnection = async () => {
       alert('Koneksi Bluetooth dibatalkan atau tidak didukung di browser ini.')
     }
   } else {
+    // Mode WiFi (Jaringan)
     if (navigator.onLine) {
       isConnected.value = true
     } else {
-      alert('Perangkat Anda sedang offline. Periksa koneksi WiFi.')
+      alert('Jaringan terputus. Pastikan WiFi Anda menyala dan terhubung ke jaringan.')
     }
   }
 }
@@ -104,7 +127,6 @@ const printDocument = () => {
   document.body.appendChild(printFrame)
 
   if (uploadedFileType.value === 'pdf') {
-    // Penanganan Cetak PDF
     printFrame.src = uploadedFileUrl.value
     printFrame.onload = () => {
       try {
@@ -117,7 +139,6 @@ const printDocument = () => {
       setTimeout(() => document.body.removeChild(printFrame), 2000)
     }
   } else if (uploadedFileType.value === 'image') {
-    // Penanganan Cetak Gambar dengan CSS injeksi agar pas di kertas Thermal
     const doc = printFrame.contentWindow.document
     doc.open()
     doc.write(`
@@ -146,12 +167,10 @@ const printDocument = () => {
     `)
     doc.close()
     
-    // Hapus iframe setelah pencetakan selesai dimuat
     setTimeout(() => document.body.removeChild(printFrame), 2000)
   }
 }
 </script>
-
 <template>
   <div class="print-page">
     <header class="page-header">
