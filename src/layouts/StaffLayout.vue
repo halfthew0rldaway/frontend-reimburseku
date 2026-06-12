@@ -368,15 +368,55 @@ const logout = () => {
 
 @media (max-width: 768px) {
   .sidebar {
-    width: 200px;
+    width: 70px;
   }
 
   .main-content {
-    margin-left: 200px;
+    margin-left: 70px;
   }
 
   .page-container {
-    padding: 1.5rem;
+    padding: 1rem 0.5rem;
+  }
+
+  .logo-text, 
+  .user-name, 
+  .user-role, 
+  .edit-profile-btn span, 
+  .nav-item span, 
+  .nav-text-group {
+    display: none;
+  }
+
+  .avatar-img {
+    width: 40px;
+    height: 40px;
+    border-width: 2px;
+  }
+
+  .status-indicator {
+    width: 12px;
+    height: 12px;
+    bottom: 0px;
+    right: 0px;
+  }
+
+  .edit-profile-btn {
+    padding: 0.5rem;
+    border-radius: 50%;
+  }
+
+  .sidebar-top {
+    padding: 1.5rem 0.5rem 1rem 0.5rem;
+  }
+
+  .nav-item {
+    padding: 0.875rem 0;
+    justify-content: center;
+  }
+
+  .logo {
+    margin-bottom: 1.5rem;
   }
 }
 </style>

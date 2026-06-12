@@ -363,8 +363,8 @@ async function sendNotif() {
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 360px;
-  gap: 1rem;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 1.25rem;
   align-items: start;
 }
 
@@ -548,8 +548,6 @@ async function sendNotif() {
 .approval-list {
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 220px);
-  overflow-y: auto;
 }
 
 .approval-item {
@@ -799,6 +797,12 @@ async function sendNotif() {
 
 @media (max-width: 1200px) {
   .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-row {
     grid-template-columns: 1fr;
   }
 }

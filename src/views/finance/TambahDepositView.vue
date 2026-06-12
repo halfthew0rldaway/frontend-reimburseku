@@ -43,7 +43,7 @@ async function submit() {
     const cleanTotal = form.value.amount.replace(/[^0-9]/g, '')
     formData.append('amount', cleanTotal)
     formData.append('transaction_date', form.value.date)
-    formData.append('source_fund_id', 1) // default for now, could be dynamic
+    formData.append('source_fund_id', 1) // nilai default sementara, bisa dibuat dinamis
     formData.append('notes', form.value.note)
     if (form.value.proof) {
       formData.append('transfer_receipt', form.value.proof)
@@ -162,7 +162,7 @@ async function submit() {
 .page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem; }
 
 .form-container { display: flex; justify-content: center; padding: 1rem 0; }
-.form-card { background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px rgba(0,0,0,0.03); width: 100%; max-width: 800px; overflow: hidden; }
+.form-card { background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px rgba(0,0,0,0.03); width: 100%; overflow: hidden; }
 
 .card-header { padding: 1.5rem 2rem; display: flex; align-items: center; gap: 1.5rem; border-bottom: 1px solid #f8fafc; }
 .btn-back { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; }
@@ -203,4 +203,9 @@ input:focus, textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 
 
 .form-actions { display: flex; justify-content: flex-end; margin-top: 2.5rem; }
 .btn-submit { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.75rem; font-weight: 700; border-radius: 10px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25); }
+@media (max-width: 768px) {
+  .form-grid, .form-grid.dual {
+    grid-template-columns: 1fr;
+  }
+}
 </style>

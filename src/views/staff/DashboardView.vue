@@ -901,7 +901,7 @@ const getBorderColor = (kategori) => {
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
 .reimbursement-cards {
-  display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem; max-height: 550px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem;
 }
 .reimbursement-cards::-webkit-scrollbar { width: 6px; }
 .reimbursement-cards::-webkit-scrollbar-track { background: transparent; }
@@ -1154,6 +1154,18 @@ const getBorderColor = (kategori) => {
   .notif-menu {
     right: -10px;
     width: 320px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .grid-dasbor {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .ringkasan-finansial, .grid-statistik, .grid-bulan {
+    grid-template-columns: 1fr;
   }
 }
 </style>

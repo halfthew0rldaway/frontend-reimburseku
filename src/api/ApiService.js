@@ -148,5 +148,50 @@ export default {
     },
     recoveryDeposit(id) {
         return apiClient.post(`/deposit/recovery/${id}`)
+    },
+    getDepositDetail(id) {
+        return apiClient.get(`/deposit/${id}`)
+    },
+    getLogCompanyDeposit(id) {
+        return apiClient.get(`/deposit/log/${id}`)
+    },
+
+    // ENDPOINT TAMBAHAN UNTUK SINKRONISASI
+    // Pesan Reimbursement
+    getReimbursementMessageDetail(id) {
+        return apiClient.get(`/reimbursement-message/${id}`)
+    },
+    updateReimbursementMessage(id, data) {
+        return apiClient.post(`/reimbursement-message/${id}`, data)
+    },
+    deleteReimbursementMessage(id) {
+        return apiClient.delete(`/reimbursement-message/delete/${id}`)
+    },
+
+    // Persetujuan Reimbursement
+    getApprovalReimbursementDetail(id) {
+        return apiClient.get(`/approval-reimbursement/${id}`)
+    },
+    deleteApprovalReimbursement(id) {
+        return apiClient.delete(`/approval-reimbursement/delete/${id}`)
+    },
+
+    // Reimburse
+    deleteReimbursement(id) {
+        return apiClient.delete(`/reimburse/delete/${id}`)
+    },
+
+    // Detail Data Master
+    getCategoryDetail(id) {
+        return apiClient.get(`/category/${id}`)
+    },
+    getProviderDetail(id) {
+        return apiClient.get(`/provider/${id}`)
+    },
+    getRoleDetail(id) {
+        return apiClient.get(`/role/${id}`)
+    },
+    getEmployeeDetail(id) {
+        return apiClient.get(`/employee/${id}`)
     }
 }

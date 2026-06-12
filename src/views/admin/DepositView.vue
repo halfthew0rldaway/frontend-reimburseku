@@ -19,7 +19,7 @@ const fetchDeposits = async () => {
     deposits.value = listData.map(d => ({
       id: d.id_deposit,
       source: 'Deposit Kas',
-      target: 'Reimbursement', // Based on mockup target
+      target: 'Reimbursement', // Berdasarkan target pada mockup
       amount: formatRupiah(d.amount),
       ref_bank: d.bank_ref_number || '-',
       date: new Date(d.transaction_date || d.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
@@ -28,7 +28,7 @@ const fetchDeposits = async () => {
       note: d.notes || '-'
     }))
   } catch (error) {
-    console.error('Failed to load deposits', error)
+    console.error('Gagal memuat deposit', error)
   }
 }
 
@@ -44,7 +44,7 @@ const goToArchive = () => router.push('/admin/deposit/arsip')
 const deleteDeposit = async (id) => {
   if (confirm('Yakin ingin menghapus deposit ini?')) {
     try {
-      await ApiService.deleteDeposit(id) // Assuming we add deleteDeposit to ApiService
+      await ApiService.deleteDeposit(id) // Memanggil endpoint deleteDeposit dari ApiService
       fetchDeposits()
     } catch (err) {
       alert('Gagal menghapus deposit')

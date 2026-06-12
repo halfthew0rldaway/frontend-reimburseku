@@ -8,7 +8,7 @@ const router = createRouter({
       redirect: '/masuk'
     },
     
-    // ─── Single Entry Point (Login) ────────────────────────────────
+    // ─── Titik Masuk Tunggal (Login) ───────────────────────────────
     {
       path: '/masuk',
       name: 'login',
@@ -134,7 +134,7 @@ const router = createRouter({
       ]
     },
 
-    // ─── Redirect lama (agar link lama tidak 404) ─────────────────
+    // ─── Pengalihan link lama (mencegah 404) ──────────────────────
     { path: '/staf/masuk',    redirect: '/masuk' },
     { path: '/admin/masuk',   redirect: '/masuk' },
     { path: '/finance/masuk', redirect: '/masuk' },
