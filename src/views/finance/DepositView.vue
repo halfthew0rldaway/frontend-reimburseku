@@ -14,10 +14,15 @@ const stats = ref([
 ])
 
 const transactions = ref([])
+const isLoading = ref(true)
 
-
+// State Sorting
+const searchQuery = ref('')
+const sortOption = ref('terbaru') // Pilihan: terbaru, terlama, tertinggi, terendah
+const isSortDropdownOpen = ref(false)
 
 onMounted(async () => {
+  isLoading.value = true
   try {
     const [statsRes, depositRes, reimbRes] = await Promise.all([
       ApiService.getBalanceStats(),
@@ -37,7 +42,6 @@ onMounted(async () => {
     stats.value[2].value = formatRupiah(menunggu)
     stats.value[2].progress = totalBudget > 0 ? (menunggu / totalBudget) * 100 : 0
 
-    // Combine and format transactions
     let allTx = []
     
     // 1. Deposits (Dana Masuk)
@@ -64,7 +68,7 @@ onMounted(async () => {
           type: 'Dana Keluar',
           source: `Reimburse: ${r.employee_name || 'Karyawan'}`,
           amount: `-${formatRupiah(r.amount)}`,
-          rawAmount: parseFloat(r.amount),
+          rawAmount: -parseFloat(r.amount), // Jadikan negatif untuk kalkulasi saldo
           rawDate: new Date(r.expense_date || r.created_at),
           date: new Date(r.expense_date || r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
           note: r.description || r.category_name || 'Pembayaran Reimbursement'
@@ -72,35 +76,59 @@ onMounted(async () => {
       }
     })
 
-    // Sort descending by date
-    allTx.sort((a, b) => b.rawDate - a.rawDate)
+    // Sort awal berdasarkan tanggal terlama untuk menghitung Saldo Berjalan (Running Balance)
+    allTx.sort((a, b) => a.rawDate - b.rawDate)
     
+    let currentBalance = 0;
+    allTx = allTx.map(tx => {
+      currentBalance += tx.rawAmount
+      return { ...tx, rawBalance: currentBalance, balance: formatRupiah(currentBalance) }
+    })
+
     transactions.value = allTx
   } catch (error) {
     console.error('Failed to load deposit data', error)
+  } finally {
+    isLoading.value = false
   }
 })
 
-const searchQuery = ref('')
-const selectedMonth = ref('Januari 2025')
-
-const filteredTransactions = computed(() => {
-  return transactions.value.filter(t => 
+// Fungsi Filter & Sort
+const filteredAndSortedTransactions = computed(() => {
+  // 1. Filter Pencarian
+  let result = transactions.value.filter(t => 
     t.source.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-    t.type.toLowerCase().includes(searchQuery.value.toLowerCase())
+    t.type.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+    t.note.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
+
+  // 2. Sorting
+  if (sortOption.value === 'terbaru') {
+    result.sort((a, b) => b.rawDate - a.rawDate)
+  } else if (sortOption.value === 'terlama') {
+    result.sort((a, b) => a.rawDate - b.rawDate)
+  } else if (sortOption.value === 'tertinggi') {
+    result.sort((a, b) => Math.abs(b.rawAmount) - Math.abs(a.rawAmount))
+  } else if (sortOption.value === 'terendah') {
+    result.sort((a, b) => Math.abs(a.rawAmount) - Math.abs(b.rawAmount))
+  }
+
+  return result
 })
+
+const selectSort = (option) => {
+  sortOption.value = option
+  isSortDropdownOpen.value = false
+}
 
 const goToTambah = () => router.push('/finance/deposit/tambah')
 </script>
-
 <template>
   <div class="finance-deposit">
     <div class="page-header">
       <h1 class="page-title">Deposit</h1>
     </div>
 
-    <!-- Deposit Tracker Section -->
     <div class="card tracker-card">
       <div class="card-head">
         <h3 class="card-title">Deposit Tracker</h3>
@@ -108,7 +136,16 @@ const goToTambah = () => router.push('/finance/deposit/tambah')
           <Plus :size="16" /> Tambah Saldo Kas
         </button>
       </div>
-      <div class="stats-row">
+
+      <div v-if="isLoading" class="stats-row">
+        <div v-for="i in 3" :key="i" class="tracker-stat">
+          <div class="skeleton skeleton-text" style="width: 50%;"></div>
+          <div class="skeleton skeleton-title"></div>
+          <div class="skeleton skeleton-text" style="width: 100%; height: 5px; margin-top: 10px;"></div>
+        </div>
+      </div>
+
+      <div v-else class="stats-row">
         <div v-for="s in stats" :key="s.label" class="tracker-stat">
           <div class="stat-meta">
             <p class="stat-label">{{ s.label }}</p>
@@ -124,17 +161,24 @@ const goToTambah = () => router.push('/finance/deposit/tambah')
       </div>
     </div>
 
-    <!-- Transaction List Section -->
     <div class="card table-card">
       <div class="table-header">
         <div class="search-box">
           <Search :size="14" class="search-icon" />
           <input v-model="searchQuery" type="text" placeholder="Cari Riwayat..." class="search-input" />
         </div>
-        <div class="sort-dropdown">
-          <button class="btn btn-outline btn-sort">
+        
+        <div class="sort-dropdown" style="position: relative;">
+          <button class="btn btn-outline btn-sort" @click="isSortDropdownOpen = !isSortDropdownOpen">
             Urutkan <ChevronDown :size="14" />
           </button>
+          
+          <div v-if="isSortDropdownOpen" class="dropdown-menu">
+            <button class="dropdown-item" :class="{ active: sortOption === 'terbaru' }" @click="selectSort('terbaru')">Terbaru</button>
+            <button class="dropdown-item" :class="{ active: sortOption === 'terlama' }" @click="selectSort('terlama')">Terlama</button>
+            <button class="dropdown-item" :class="{ active: sortOption === 'tertinggi' }" @click="selectSort('tertinggi')">Nominal Tertinggi</button>
+            <button class="dropdown-item" :class="{ active: sortOption === 'terendah' }" @click="selectSort('terendah')">Nominal Terendah</button>
+          </div>
         </div>
       </div>
 
@@ -150,15 +194,33 @@ const goToTambah = () => router.push('/finance/deposit/tambah')
               <th>KETERANGAN</th>
             </tr>
           </thead>
-          <tbody>
-            <tr v-for="t in filteredTransactions" :key="t.id">
+
+          <tbody v-if="isLoading">
+            <tr>
+              <td colspan="6" class="text-center loading-state">
+                <div class="loader-spinner"></div>
+                <p class="loading-text">Memuat transaksi...</p>
+              </td>
+            </tr>
+          </tbody>
+
+          <tbody v-else-if="filteredAndSortedTransactions.length === 0">
+            <tr>
+              <td colspan="6" class="text-center empty-state">
+                <p class="text-muted">Tidak ada data transaksi ditemukan.</p>
+              </td>
+            </tr>
+          </tbody>
+
+          <tbody v-else>
+            <tr v-for="t in filteredAndSortedTransactions" :key="t.id">
               <td>
                 <span class="type-badge" :class="t.type.replace(' ', '-').toLowerCase()">
                   {{ t.type }}
                 </span>
               </td>
               <td>
-                <p class="t-source" :class="{ 'text-blue': t.name }">{{ t.source }}</p>
+                <p class="t-source" :class="{ 'text-blue': t.type === 'Dana Keluar' }">{{ t.source }}</p>
               </td>
               <td class="font-bold" :class="t.type === 'Dana Masuk' ? 'text-green' : 'text-red'">
                 {{ t.amount }}
@@ -173,8 +235,61 @@ const goToTambah = () => router.push('/finance/deposit/tambah')
     </div>
   </div>
 </template>
-
 <style scoped>
+
+.sort-dropdown { position: relative; }
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  width: 160px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  padding: 0.25rem;
+}
+.dropdown-item {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #475569;
+  background: white;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.dropdown-item:hover { background: #f8fafc; color: #1e293b; }
+.dropdown-item.active { background: #eff6ff; color: #3b82f6; }
+
+/* Tambahan Style untuk Loading (Skeleton & Spinner) */
+.skeleton {
+  background: #f1f5f9;
+  background: linear-gradient(110deg, #f1f5f9 8%, #e2e8f0 18%, #f1f5f9 33%);
+  border-radius: 8px;
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+}
+@keyframes shimmer { to { background-position-x: -200%; } }
+.skeleton-title { height: 24px; width: 60%; margin-top: 0.25rem; border-radius: 6px; }
+.skeleton-text { height: 12px; border-radius: 4px; }
+
+.loading-state, .empty-state { padding: 3rem 1rem !important; }
+.loader-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid #f1f5f9;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+.loading-text { margin-top: 0.75rem; font-size: 0.7rem; color: #64748b; font-weight: 500; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .finance-deposit { display: flex; flex-direction: column; gap: 1rem; background: #f8fafc; height: 100%; overflow: hidden; }
 
 .page-header { margin-bottom: 0.25rem; }

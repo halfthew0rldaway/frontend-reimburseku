@@ -7,7 +7,7 @@ const router = createRouter({
       path: '/',
       redirect: '/masuk'
     },
-    
+
     // ─── Titik Masuk Tunggal (Login) ───────────────────────────────
     {
       path: '/masuk',
@@ -26,9 +26,9 @@ const router = createRouter({
           component: () => import('../views/staff/DashboardView.vue')
         },
         {
-            path:'cetak-struk',
-            name:'staf-cetak-struk',
-            component: () => import('../views/staff/CetakStrukView.vue')
+          path: 'cetak-struk',
+          name: 'staf-cetak-struk',
+          component: () => import('../views/staff/CetakStrukView.vue')
         },
         {
           path: 'reimbursement',
@@ -127,6 +127,11 @@ const router = createRouter({
           component: () => import('../views/finance/KaryawanView.vue')
         },
         {
+          path: '/karyawan/:id', // Menangkap ID karyawan di URL
+          name: 'finance-karyawan-detail',
+          component: () => import('../views/finance/KaryawanDetailView.vue')
+        },
+        {
           path: 'arsip',
           name: 'finance-arsip',
           component: () => import('../views/finance/ArsipView.vue')
@@ -135,14 +140,14 @@ const router = createRouter({
     },
 
     // ─── Pengalihan link lama (mencegah 404) ──────────────────────
-    { path: '/staf/masuk',    redirect: '/masuk' },
-    { path: '/admin/masuk',   redirect: '/masuk' },
+    { path: '/staf/masuk', redirect: '/masuk' },
+    { path: '/admin/masuk', redirect: '/masuk' },
     { path: '/finance/masuk', redirect: '/masuk' },
-    { path: '/staff/login',   redirect: '/masuk' },
-    { path: '/admin/login',   redirect: '/masuk' },
+    { path: '/staff/login', redirect: '/masuk' },
+    { path: '/admin/login', redirect: '/masuk' },
     { path: '/finance/login', redirect: '/masuk' },
-    { path: '/staff/dashboard',   redirect: '/staf/dasbor'   },
-    { path: '/admin/dashboard',   redirect: '/admin/dasbor'  },
+    { path: '/staff/dashboard', redirect: '/staf/dasbor' },
+    { path: '/admin/dashboard', redirect: '/admin/dasbor' },
     { path: '/finance/dashboard', redirect: '/finance/dasbor' },
   ]
 })

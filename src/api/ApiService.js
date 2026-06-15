@@ -46,9 +46,16 @@ export default {
     getBalanceStats() {
         return apiClient.get('/deposit/get/balance-stats')
     },
-    getReimbursements() {
-        return apiClient.get('/reimburse')
+    getReimbursements(page = 1) {
+        return apiClient.get(`/reimburse?page=${page}`)
     },
+    getChartWeekly(startDate, endDate) {
+        return apiClient.get(`/reimburse/weekly?start_date=${startDate}&end_date=${endDate}`)
+    },
+        getChartMonthly(month,year) {
+        return apiClient.get(`/reimburse/monthly?month=${month}&year=${year}`)
+    },
+
     // FINANCE / ADMIN
     getApprovalReimbursements() {
         return apiClient.get('/approval-reimbursement')

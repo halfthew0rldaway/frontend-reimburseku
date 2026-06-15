@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://backend-api-reimburseku.vercel.app/api',
+  baseURL:  'https://backend-api-reimburseku.vercel.app/api',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
