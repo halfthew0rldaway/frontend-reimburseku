@@ -1,145 +1,175 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Search, X, CheckCircle, XCircle, FileText, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw } from 'lucide-vue-next' // Tambahan icon zoom
+import { 
+  Search, X, CheckCircle, XCircle, FileText, 
+  ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw 
+} from 'lucide-vue-next'
 import ApiService from '@/api/ApiService'
 import Swal from 'sweetalert2'
 
+// ==========================================
+// 1. STATE MANAGEMENT
+// ==========================================
+
+// State: Main Data
 const reimbursements = ref([])
 const pendingCount = ref(0)
+const isLoading = ref(true)
+const searchQuery = ref('')
 
+// State: Pagination
 const currentPage = ref(1)
 const lastPage = ref(1)
 const totalItems = ref(0)
 const fromItem = ref(0)
-const isLoading = ref(true)
-const fetchReimbursements = async (page = 1) => {
-  isLoading.value = true
-  try {
-    const [reimbRes, empRes, catRes] = await Promise.all([
-      ApiService.getReimbursements(page), // Passing parameter page ke API
-      ApiService.getEmployees(),
-      ApiService.getCategories()
-    ])
 
-    const listData = reimbRes.data?.data || []
-
-    // Menangkap data pagination dari backend (objek 'meta')
-    const metaData = reimbRes.data?.meta || {}
-    currentPage.value = metaData.current_page || 1
-    lastPage.value = metaData.last_page || 1
-    totalItems.value = metaData.total || 0
-    fromItem.value = metaData.from || 0
-
-    const employees = empRes.data?.data?.data || empRes.data?.data || []
-    const categories = catRes.data?.data?.data || catRes.data?.data || []
-
-    const empMap = employees.reduce((acc, curr) => { acc[curr.id_employees] = curr; return acc }, {})
-    const catMap = categories.reduce((acc, curr) => { acc[curr.id_category] = curr; return acc }, {})
-
-    reimbursements.value = listData.map(item => {
-      const emp = empMap[item.employees_id] || {}
-      const cat = catMap[item.category_id] || {}
-
-      let approvalId = item.id_request;
-      let dateSubmitted = item.expense_date;
-      let dateApproved = null; // Tambahkan variabel untuk menampung date_approved
-      let rawBackendStatus = 'PENDING';
-      let receiptUrl = null;
-let rejectReasonText = '-';
-      if (item.latest_approval) {
-        approvalId = item.latest_approval.id_approval;
-        dateSubmitted = item.latest_approval.date_submitted || item.expense_date; // Menggunakan date_submitted
-        dateApproved = item.latest_approval.date_approved; // Mengambil date_approved
-        rawBackendStatus = item.latest_approval.status;
-        receiptUrl = item.latest_approval.transfer_receipt;
-        rejectReasonText = item.latest_approval.rejection_reason || 'Tidak ada alasan spesifik yang diberikan.';
-      }
-
-      const backendStatus = (rawBackendStatus || 'PENDING').toUpperCase();
-
-      let uiStatus = 'menunggu';
-      if (backendStatus === 'APPROVED') uiStatus = 'disetujui';
-      else if (backendStatus === 'PAID') uiStatus = 'dibayar';
-      else if (backendStatus === 'REJECTED') uiStatus = 'ditolak';
-
-      // 1. Format Tanggal Transaksi (Sekarang menggunakan date_approved)
-      let transactionDate = '-'; // Fallback jika date_approved masih null
-      if (dateApproved) {
-        let parseableApproved = dateApproved;
-        if (typeof parseableApproved === 'string' && parseableApproved.includes(' ') && !parseableApproved.includes('T')) {
-          parseableApproved = parseableApproved.replace(' ', 'T');
-        }
-        transactionDate = new Date(parseableApproved).toLocaleDateString('id-ID', {
-          day: '2-digit', month: 'short', year: 'numeric'
-        });
-      }
-
-      // 2. Format Tanggal Pengajuan (Sekarang menggunakan date_submitted)
-      let parseableDate = dateSubmitted;
-      if (typeof parseableDate === 'string' && parseableDate.includes(' ') && !parseableDate.includes('T')) {
-        parseableDate = parseableDate.replace(' ', 'T');
-      }
-      const submitTime = new Date(parseableDate);
-      const submitDateStr = submitTime.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
-      const submitTimeStr = submitTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-
-      return {
-        id: item.id_request,
-        approvalId: approvalId,
-        name: emp.name || 'Unknown',
-        date: transactionDate, // Ini akan terisi date_approved atau '-'
-        submitTime: `${submitDateStr} - ${submitTimeStr}`, // Ini akan terisi date_submitted
-        category: emp.position || 'Employee',
-        title: item.description || cat.category_name || 'Reimbursement',
-        amount: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(item.amount),
-        rawAmount: item.amount,
-        file: item.attachment_url ? 'Lihat File' : '-',
-        fileUrl: item.attachment_url,
-        receiptUrl: receiptUrl,
-        rejectionReason: rejectReasonText,
-        status: uiStatus,
-      }
-    })
-
-    pendingCount.value = reimbursements.value.filter(i => i.status === 'menunggu').length
-  } catch (error) {
-    console.error('Failed to fetch data', error)
-  } finally {
-    isLoading.value = false // Matikan loading saat selesai (baik sukses maupun error)
-  }
-}
-
-const changePage = (page) => {
-  if (page >= 1 && page <= lastPage.value && page !== currentPage.value) {
-    fetchReimbursements(page)
-  }
-}
-onMounted(() => {
-  fetchReimbursements(1)
-})
-const searchQuery = ref('')
+// State: Modals & Actions
 const showConfirmModal = ref(false)
 const showRejectModal = ref(false)
 const showSuccessModal = ref(false)
+const showReasonModal = ref(false)
+const showReceiptModal = ref(false)
+
+// State: Selected Data & Forms
 const selectedItem = ref(null)
 const proofFile = ref(null)
 const proofName = ref('')
 const isMandatory = ref(false)
 const rejectReason = ref('')
 const rejectError = ref(false)
-
-// State khusus untuk Bukti Transfer Viewer
-const showReceiptModal = ref(false)
+const uploadShake = ref(false)
 const selectedReceiptUrl = ref('')
 const zoomLevel = ref(1)
 
+
+// ==========================================
+// 2. HELPER FUNCTIONS
+// ==========================================
+
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('id-ID', { 
+    style: 'currency', currency: 'IDR', minimumFractionDigits: 0 
+  }).format(amount || 0)
+}
+
+const formatDate = (dateString, includeTime = false) => {
+  if (!dateString) return '-'
+  
+  // Normalisasi spasi menjadi 'T' agar bisa di-parse di semua browser (terutama Safari)
+  const normalized = (typeof dateString === 'string' && dateString.includes(' ') && !dateString.includes('T'))
+    ? dateString.replace(' ', 'T')
+    : dateString
+
+  const dateObj = new Date(normalized)
+  if (isNaN(dateObj)) return '-'
+
+  const datePart = dateObj.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+  
+  if (includeTime) {
+    const timePart = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+    return `${datePart} - ${timePart}`
+  }
+  
+  return datePart
+}
+
+
+// ==========================================
+// 3. FETCH & MAP DATA
+// ==========================================
+const fetchReimbursements = async (page = 1) => {
+  isLoading.value = true
+  try {
+    const [reimbRes, empRes, catRes] = await Promise.all([
+      ApiService.getReimbursements(page),
+      ApiService.getEmployees(),
+      ApiService.getCategories()
+    ])
+
+    // --- Setup Pagination ---
+    const metaData = reimbRes.data?.meta || {}
+    currentPage.value = metaData.current_page || 1
+    lastPage.value = metaData.last_page || 1
+    totalItems.value = metaData.total || 0
+    fromItem.value = metaData.from || 0
+
+    // --- Setup Lookup Maps (Karyawan & Kategori) ---
+    // Sesuaikan dengan respon JSON: list employee ada di dalam empRes.data.data
+    const employees = empRes.data?.data || [] 
+    const categories = catRes.data?.data?.data || catRes.data?.data || []
+    
+    // Perbaikan: Gunakan curr.id sesuai field di JSON Employee terbaru
+    const empMap = employees.reduce((acc, curr) => ({ ...acc, [curr.id_employees]: curr }), {})
+    const catMap = categories.reduce((acc, curr) => ({ ...acc, [curr.id_category]: curr }), {})
+
+    // --- Mapping Data Reimbursement ---
+    const listData = reimbRes.data?.data || []
+
+    reimbursements.value = listData.map(item => {
+      // Mencocokkan employees_id dari data reimbursement dengan id dari empMap
+      const emp = empMap[item.employees_id] || {}
+      const cat = catMap[item.category_id] || {}
+
+      const latestApp = item.latest_approval || {}
+      const rawBackendStatus = (latestApp.status || 'PENDING').toUpperCase()
+
+      const statusMap = {
+        'APPROVED': 'disetujui',
+        'PAID': 'dibayar',
+        'REJECTED': 'ditolak'
+      }
+
+      return {
+        id: item.id_request,
+        approvalId: latestApp.id_approval || item.id_request,
+        name: emp.name || 'Unknown',
+        date: formatDate(latestApp.date_approved),
+        submitTime: formatDate(latestApp.date_submitted || item.expense_date, true),
+        // Perbaikan: Ambil nama jabatan dari relasi role
+        category: emp.role?.role_name || 'Employee', 
+        title: item.description || cat.category_name || 'Reimbursement',
+        amount: formatCurrency(item.amount),
+        rawAmount: item.amount,
+        file: item.attachment_url ? 'Lihat File' : '-',
+        fileUrl: item.attachment_url,
+        receiptUrl: latestApp.transfer_receipt || null,
+        rejectionReason: latestApp.rejection_reason || 'Tidak ada alasan spesifik yang diberikan.',
+        status: statusMap[rawBackendStatus] || 'menunggu',
+      }
+    })
+
+    // Hitung jumlah pending
+    pendingCount.value = reimbursements.value.filter(i => i.status === 'menunggu').length
+
+  } catch (error) {
+    console.error('Failed to fetch data', error)
+  } finally {
+    isLoading.value = false 
+  }
+}
+// ==========================================
+// 4. COMPUTED & WATCHERS
+// ==========================================
+
 const filteredItems = computed(() => {
-  return reimbursements.value.filter(item => {
-    return !searchQuery.value ||
-      item.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      item.title.toLowerCase().includes(searchQuery.value.toLowerCase())
-  })
+  if (!searchQuery.value) return reimbursements.value
+  const query = searchQuery.value.toLowerCase()
+  return reimbursements.value.filter(item => 
+    item.name.toLowerCase().includes(query) || 
+    item.title.toLowerCase().includes(query)
+  )
 })
+
+
+// ==========================================
+// 5. MODAL & ACTION HANDLERS
+// ==========================================
+
+const changePage = (page) => {
+  if (page >= 1 && page <= lastPage.value && page !== currentPage.value) {
+    fetchReimbursements(page)
+  }
+}
 
 const openProses = (item) => {
   selectedItem.value = item
@@ -163,17 +193,33 @@ const openTolak = (item) => {
   rejectError.value = false
   showRejectModal.value = true
 }
-const showReasonModal = ref(false)
 
 const openReason = (item) => {
   selectedItem.value = item
   showReasonModal.value = true
 }
-// === Fungsi Bukti Transfer Viewer ===
+
+const closeSuccess = () => {
+  showSuccessModal.value = false
+  selectedItem.value = null
+}
+
+const handleFileUpload = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    proofFile.value = file
+    proofName.value = file.name
+  }
+}
+
+// ==========================================
+// 6. BUKTI TRANSFER VIEWER (ZOOM LOGIC)
+// ==========================================
+
 const openReceipt = (item) => {
   if (item.receiptUrl) {
     selectedReceiptUrl.value = item.receiptUrl
-    zoomLevel.value = 1 // Reset zoom saat buka baru
+    zoomLevel.value = 1 
     showReceiptModal.value = true
   } else {
     Swal.fire({
@@ -194,21 +240,16 @@ const closeReceipt = () => {
 const zoomIn = () => { if (zoomLevel.value < 3) zoomLevel.value += 0.25 }
 const zoomOut = () => { if (zoomLevel.value > 0.5) zoomLevel.value -= 0.25 }
 const resetZoom = () => { zoomLevel.value = 1 }
-// ===================================
 
-const handleFileUpload = (e) => {
-  const file = e.target.files[0]
-  if (file) {
-    proofFile.value = file
-    proofName.value = file.name
-  }
-}
 
-const uploadShake = ref(false)
+// ==========================================
+// 7. API SUBMIT HANDLERS
+// ==========================================
 
 const confirmAction = async () => {
   if (!selectedItem.value) return
 
+  // Validasi wajib upload bukti transfer
   if (isMandatory.value && !proofFile.value) {
     uploadShake.value = true
     setTimeout(() => uploadShake.value = false, 500)
@@ -222,44 +263,33 @@ const confirmAction = async () => {
   }
 
   try {
+    const formData = new FormData()
+    formData.append('status', 'APPROVED')
     if (proofFile.value) {
-      const formData = new FormData()
-      formData.append('status', 'APPROVED')
       formData.append('transfer_receipt', proofFile.value)
-
-      await ApiService.actionApproveOrReject(selectedItem.value.approvalId, formData)
-
-      selectedItem.value.status = 'dibayar'
-      showConfirmModal.value = false
-      Swal.fire({
-        icon: 'success',
-        title: 'Berhasil',
-        text: 'Reimbursement berhasil dibayar!',
-        showConfirmButton: false,
-        timer: 1500
-      })
-    } else {
-      const formData = new FormData()
-      formData.append('status', 'APPROVED')
-      await ApiService.actionApproveOrReject(selectedItem.value.approvalId, formData)
-
-      selectedItem.value.status = 'disetujui'
-      showConfirmModal.value = false
-      Swal.fire({
-        icon: 'success',
-        title: 'Disetujui',
-        text: 'Reimbursement berhasil disetujui.',
-        showConfirmButton: false,
-        timer: 1500
-      })
     }
-    fetchReimbursements()
+
+    await ApiService.actionApproveOrReject(selectedItem.value.approvalId, formData)
+
+    const isPaid = !!proofFile.value
+    selectedItem.value.status = isPaid ? 'dibayar' : 'disetujui'
+    showConfirmModal.value = false
+    
+    Swal.fire({
+      icon: 'success',
+      title: isPaid ? 'Berhasil' : 'Disetujui',
+      text: isPaid ? 'Reimbursement berhasil dibayar!' : 'Reimbursement berhasil disetujui.',
+      showConfirmButton: false,
+      timer: 1500
+    })
+
+    fetchReimbursements(currentPage.value)
   } catch (error) {
     console.error(error)
     Swal.fire({
       icon: 'error',
       title: 'Gagal',
-      text: error.response?.data?.message || 'Gagal memproses'
+      text: error.response?.data?.message || 'Gagal memproses pengajuan'
     })
   }
 }
@@ -267,6 +297,7 @@ const confirmAction = async () => {
 const confirmTolak = async () => {
   if (!selectedItem.value) return
 
+  // Validasi wajib isi alasan
   if (!rejectReason.value.trim()) {
     rejectError.value = true
     setTimeout(() => rejectError.value = false, 500)
@@ -282,6 +313,7 @@ const confirmTolak = async () => {
 
     selectedItem.value.status = 'ditolak'
     showRejectModal.value = false
+    
     Swal.fire({
       icon: 'success',
       title: 'Ditolak',
@@ -289,21 +321,24 @@ const confirmTolak = async () => {
       showConfirmButton: false,
       timer: 1500
     })
-    fetchReimbursements()
+    
+    fetchReimbursements(currentPage.value)
   } catch (error) {
     console.error(error)
     Swal.fire({
       icon: 'error',
       title: 'Gagal',
-      text: error.response?.data?.message || 'Gagal menolak'
+      text: error.response?.data?.message || 'Gagal menolak pengajuan'
     })
   }
 }
 
-const closeSuccess = () => {
-  showSuccessModal.value = false
-  selectedItem.value = null
-}
+// ==========================================
+// 8. LIFECYCLE HOOKS
+// ==========================================
+onMounted(() => {
+  fetchReimbursements(1)
+})
 </script>
 <template>
   <div class="finance-reimburse">

@@ -19,6 +19,8 @@ const fetchKaryawan = async (page = 1) => {
   try {
     const res = await ApiService.getEmployees(page)
 
+    // Pastikan path ke meta sesuai dengan response axios Anda. 
+    // Jika axios, biasanya res.data.meta. Jika sudah di-intercept, mungkin res.meta
     const metaData = res.data?.meta || {}
     currentPage.value = metaData.current_page || 1
     lastPage.value = metaData.last_page || 1
@@ -28,16 +30,18 @@ const fetchKaryawan = async (page = 1) => {
     const listData = res.data?.data || []
 
     karyawan.value = listData
-      .filter(emp => emp.role_id === 1)
+      // Mengubah cara filter agar mengecek id_role di dalam object role
+      .filter(emp => emp.role?.id_role === 1) 
       .map(emp => {
         const payout = emp.account_payout || {}
         const providerData = payout.provider || {}
+        const roleData = emp.role || {}
         
         return {
-          id: emp.id_employees,
+          id: emp.id, // Disesuaikan dengan "id" di JSON
           nama: emp.name || '-',
           email: emp.email || '-',
-          jabatan: emp.position || '-',
+          jabatan: roleData.role_name || '-', // Mengambil role_name dari object role
           totalPengajuan: emp.total_pengajuan || 0,
           totalAmount: new Intl.NumberFormat('id-ID', {
             style: 'currency',
@@ -77,7 +81,12 @@ const filtered = computed(() => {
 
 // Pindah ke halaman detail dengan membawa ID
 const goToDetail = (id) => {
-  router.push(`/karyawan/${id}`)
+  // Guard untuk mencegah navigasi jika id null
+  if (id) {
+    router.push(`/karyawan/${id}`)
+  } else {
+    console.warn('ID Karyawan tidak ditemukan')
+  }
 }
 </script>
 
