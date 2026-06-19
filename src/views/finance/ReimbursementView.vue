@@ -2,7 +2,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { 
   Search, X, CheckCircle, XCircle, FileText, 
-  ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw 
+  ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw,
+  Filter
 } from 'lucide-vue-next'
 import ApiService from '@/api/ApiService'
 import Swal from 'sweetalert2'
@@ -11,26 +12,57 @@ import Swal from 'sweetalert2'
 // 1. STATE MANAGEMENT
 // ==========================================
 
-// State: Main Data
 const reimbursements = ref([])
 const pendingCount = ref(0)
 const isLoading = ref(true)
 const searchQuery = ref('')
 
-// State: Pagination
 const currentPage = ref(1)
 const lastPage = ref(1)
 const totalItems = ref(0)
 const fromItem = ref(0)
 
-// State: Modals & Actions
 const showConfirmModal = ref(false)
 const showRejectModal = ref(false)
 const showSuccessModal = ref(false)
 const showReasonModal = ref(false)
 const showReceiptModal = ref(false)
 
-// State: Selected Data & Forms
+// --- STATE FILTER ---
+const showFilterModal = ref(false)
+const filterMode = ref('month') 
+const filterInputMonth = ref('')
+const filterInputStart = ref('')
+const filterInputEnd = ref('')
+
+// State untuk melacak filter yang dikirim ke API
+const activeFilterType = ref('all') 
+const activePeriod = ref('')
+const activeStartDate = ref('')
+const activeEndDate = ref('')
+const activeFilterLabel = ref('Semua Waktu')
+
+// --- STATE CUSTOM MONTH PICKER ---
+const filterTempYear = ref(new Date().getFullYear())
+
+const monthList = [
+  { val: 1, label: 'Jan' }, { val: 2, label: 'Feb' }, { val: 3, label: 'Mar' }, { val: 4, label: 'Apr' },
+  { val: 5, label: 'Mei' }, { val: 6, label: 'Jun' }, { val: 7, label: 'Jul' }, { val: 8, label: 'Agt' },
+  { val: 9, label: 'Sep' }, { val: 10, label: 'Okt' }, { val: 11, label: 'Nov' }, { val: 12, label: 'Des' }
+]
+
+const setFilterMonth = (val) => {
+  // Format menjadi YYYY-MM
+  filterInputMonth.value = `${filterTempYear.value}-${String(val).padStart(2, '0')}`
+}
+
+const isMonthActive = (val) => {
+  if (!filterInputMonth.value) return false
+  const [y, m] = filterInputMonth.value.split('-')
+  return parseInt(y) === filterTempYear.value && parseInt(m) === val
+}
+// ---------------------------------
+
 const selectedItem = ref(null)
 const proofFile = ref(null)
 const proofName = ref('')
@@ -55,7 +87,6 @@ const formatCurrency = (amount) => {
 const formatDate = (dateString, includeTime = false) => {
   if (!dateString) return '-'
   
-  // Normalisasi spasi menjadi 'T' agar bisa di-parse di semua browser (terutama Safari)
   const normalized = (typeof dateString === 'string' && dateString.includes(' ') && !dateString.includes('T'))
     ? dateString.replace(' ', 'T')
     : dateString
@@ -80,33 +111,36 @@ const formatDate = (dateString, includeTime = false) => {
 const fetchReimbursements = async (page = 1) => {
   isLoading.value = true
   try {
+    let reimbursePromise
+    if (activeFilterType.value === 'month') {
+      reimbursePromise = ApiService.getReimbursementsByMonth(page, activePeriod.value)
+    } else if (activeFilterType.value === 'range') {
+      reimbursePromise = ApiService.getReimbursementsByDateRange(page, activeStartDate.value, activeEndDate.value)
+    } else {
+      reimbursePromise = ApiService.getReimbursements(page) 
+    }
+
     const [reimbRes, empRes, catRes] = await Promise.all([
-      ApiService.getReimbursements(page),
+      reimbursePromise,
       ApiService.getEmployees(),
       ApiService.getCategories()
     ])
 
-    // --- Setup Pagination ---
     const metaData = reimbRes.data?.meta || {}
     currentPage.value = metaData.current_page || 1
     lastPage.value = metaData.last_page || 1
     totalItems.value = metaData.total || 0
     fromItem.value = metaData.from || 0
 
-    // --- Setup Lookup Maps (Karyawan & Kategori) ---
-    // Sesuaikan dengan respon JSON: list employee ada di dalam empRes.data.data
     const employees = empRes.data?.data || [] 
     const categories = catRes.data?.data?.data || catRes.data?.data || []
     
-    // Perbaikan: Gunakan curr.id sesuai field di JSON Employee terbaru
     const empMap = employees.reduce((acc, curr) => ({ ...acc, [curr.id_employees]: curr }), {})
     const catMap = categories.reduce((acc, curr) => ({ ...acc, [curr.id_category]: curr }), {})
 
-    // --- Mapping Data Reimbursement ---
     const listData = reimbRes.data?.data || []
 
     reimbursements.value = listData.map(item => {
-      // Mencocokkan employees_id dari data reimbursement dengan id dari empMap
       const emp = empMap[item.employees_id] || {}
       const cat = catMap[item.category_id] || {}
 
@@ -125,7 +159,6 @@ const fetchReimbursements = async (page = 1) => {
         name: emp.name || 'Unknown',
         date: formatDate(latestApp.date_approved),
         submitTime: formatDate(latestApp.date_submitted || item.expense_date, true),
-        // Perbaikan: Ambil nama jabatan dari relasi role
         category: emp.role?.role_name || 'Employee', 
         title: item.description || cat.category_name || 'Reimbursement',
         amount: formatCurrency(item.amount),
@@ -138,7 +171,6 @@ const fetchReimbursements = async (page = 1) => {
       }
     })
 
-    // Hitung jumlah pending
     pendingCount.value = reimbursements.value.filter(i => i.status === 'menunggu').length
 
   } catch (error) {
@@ -147,8 +179,51 @@ const fetchReimbursements = async (page = 1) => {
     isLoading.value = false 
   }
 }
+
 // ==========================================
-// 4. COMPUTED & WATCHERS
+// 4. FILTER DATE LOGIC
+// ==========================================
+const applyFilter = () => {
+  if (filterMode.value === 'month') {
+    if (!filterInputMonth.value) {
+      return Swal.fire({ icon: 'warning', title: 'Oops', text: 'Harap klik salah satu bulan terlebih dahulu!', confirmButtonColor: '#3b82f6' })
+    }
+    activeFilterType.value = 'month'
+    activePeriod.value = filterInputMonth.value
+    activeFilterLabel.value = `Bulan: ${filterInputMonth.value}`
+  } else {
+    if (!filterInputStart.value || !filterInputEnd.value) {
+      return Swal.fire({ icon: 'warning', title: 'Oops', text: 'Harap isi rentang tanggal dengan lengkap!', confirmButtonColor: '#3b82f6' })
+    }
+    activeFilterType.value = 'range'
+    activeStartDate.value = filterInputStart.value
+    activeEndDate.value = filterInputEnd.value
+    activeFilterLabel.value = `${filterInputStart.value} s/d ${filterInputEnd.value}`
+  }
+  
+  showFilterModal.value = false
+  fetchReimbursements(1)
+}
+
+const resetFilter = () => {
+  activeFilterType.value = 'all'
+  activePeriod.value = ''
+  activeStartDate.value = ''
+  activeEndDate.value = ''
+  activeFilterLabel.value = 'Semua Waktu'
+  
+  filterInputMonth.value = ''
+  filterInputStart.value = ''
+  filterInputEnd.value = ''
+  filterTempYear.value = new Date().getFullYear() // Reset tahun
+  
+  showFilterModal.value = false
+  fetchReimbursements(1)
+}
+
+
+// ==========================================
+// 5. COMPUTED & WATCHERS
 // ==========================================
 
 const filteredItems = computed(() => {
@@ -162,7 +237,7 @@ const filteredItems = computed(() => {
 
 
 // ==========================================
-// 5. MODAL & ACTION HANDLERS
+// 6. MODAL & ACTION HANDLERS
 // ==========================================
 
 const changePage = (page) => {
@@ -212,10 +287,6 @@ const handleFileUpload = (e) => {
   }
 }
 
-// ==========================================
-// 6. BUKTI TRANSFER VIEWER (ZOOM LOGIC)
-// ==========================================
-
 const openReceipt = (item) => {
   if (item.receiptUrl) {
     selectedReceiptUrl.value = item.receiptUrl
@@ -241,7 +312,6 @@ const zoomIn = () => { if (zoomLevel.value < 3) zoomLevel.value += 0.25 }
 const zoomOut = () => { if (zoomLevel.value > 0.5) zoomLevel.value -= 0.25 }
 const resetZoom = () => { zoomLevel.value = 1 }
 
-
 // ==========================================
 // 7. API SUBMIT HANDLERS
 // ==========================================
@@ -249,7 +319,6 @@ const resetZoom = () => { zoomLevel.value = 1 }
 const confirmAction = async () => {
   if (!selectedItem.value) return
 
-  // Validasi wajib upload bukti transfer
   if (isMandatory.value && !proofFile.value) {
     uploadShake.value = true
     setTimeout(() => uploadShake.value = false, 500)
@@ -297,7 +366,6 @@ const confirmAction = async () => {
 const confirmTolak = async () => {
   if (!selectedItem.value) return
 
-  // Validasi wajib isi alasan
   if (!rejectReason.value.trim()) {
     rejectError.value = true
     setTimeout(() => rejectError.value = false, 500)
@@ -340,6 +408,7 @@ onMounted(() => {
   fetchReimbursements(1)
 })
 </script>
+
 <template>
   <div class="finance-reimburse">
     <div class="page-header">
@@ -349,7 +418,10 @@ onMounted(() => {
     <div class="card main-card">
       <div class="card-header">
         <div class="header-left">
-          <h2 class="card-header-title">Daftar Reimburse</h2>
+          <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <h2 class="card-header-title">Daftar Reimburse</h2>
+            <span v-if="activeFilterLabel !== 'Semua Waktu'" class="filter-badge">{{ activeFilterLabel }}</span>
+          </div>
           <p class="card-header-sub">Periksa dan setujui pengajuan karyawan</p>
         </div>
         <div class="header-actions">
@@ -357,6 +429,11 @@ onMounted(() => {
             <Search :size="14" class="search-icon" />
             <input v-model="searchQuery" type="text" placeholder="Cari nama / keterangan..." class="search-input" />
           </div>
+          
+          <button class="btn-filter-icon" @click="showFilterModal = true" title="Filter Data">
+            <Filter :size="16" />
+          </button>
+          
           <div class="count-badge">{{ pendingCount }} Menunggu</div>
         </div>
       </div>
@@ -387,7 +464,7 @@ onMounted(() => {
           <tbody v-else-if="filteredItems.length === 0">
             <tr>
               <td colspan="8" class="text-center empty-state">
-                <p class="text-muted">Tidak ada data reimburse yang ditemukan.</p>
+                <p class="text-muted">Tidak ada data reimburse yang ditemukan pada filter ini.</p>
               </td>
             </tr>
           </tbody>
@@ -430,9 +507,9 @@ onMounted(() => {
                   <template v-else-if="item.status === 'dibayar'">
                     <button class="btn-action bukti-ghost" @click="openReceipt(item)">Bukti Transfer</button>
                   </template>
-           <template v-else-if="item.status === 'ditolak'">
-    <button class="btn-action tolak-ghost" @click="openReason(item)">Lihat Alasan</button>
-  </template>
+                  <template v-else-if="item.status === 'ditolak'">
+                    <button class="btn-action tolak-ghost" @click="openReason(item)">Lihat Alasan</button>
+                  </template>
                 </div>
               </td>
             </tr>
@@ -462,7 +539,69 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Modal Konfirmasi -->
+    <div v-if="showFilterModal" class="modal-overlay" @click.self="showFilterModal = false">
+      <div class="modal filter-modal">
+        <div class="modal-header">
+          <h3 class="modal-title">Filter Data Reimbursement</h3>
+          <button class="close-btn" @click="showFilterModal = false"><X :size="20" /></button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Metode Filter Tanggal</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" v-model="filterMode" value="month" />
+                <span>Bulan Tertentu</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" v-model="filterMode" value="range" />
+                <span>Rentang Tanggal</span>
+              </label>
+            </div>
+          </div>
+
+          <div v-if="filterMode === 'month'" class="form-group">
+            <label class="form-label">Pilih Bulan</label>
+            <div class="custom-month-picker">
+              <div class="year-selector">
+                <button class="year-btn" @click="filterTempYear--"><ChevronLeft :size="16"/></button>
+                <span class="year-display">{{ filterTempYear }}</span>
+                <button class="year-btn" @click="filterTempYear++"><ChevronRight :size="16"/></button>
+              </div>
+              <div class="month-grid">
+                <button 
+                  v-for="m in monthList" 
+                  :key="m.val"
+                  class="month-btn"
+                  :class="{ 'active': isMonthActive(m.val) }"
+                  @click="setFilterMonth(m.val)"
+                >
+                  {{ m.label }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="filterMode === 'range'" class="form-row">
+            <div class="form-group flex-1">
+              <label class="form-label">Dari Tanggal</label>
+              <input type="date" v-model="filterInputStart" class="form-input" />
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Sampai Tanggal</label>
+              <input type="date" v-model="filterInputEnd" class="form-input" />
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer footer-spaced">
+          <button class="btn-cancel" @click="resetFilter">Hapus Filter</button>
+          <button class="btn-primary-modal" @click="applyFilter">Terapkan Filter</button>
+        </div>
+      </div>
+    </div>
+
     <div v-if="showConfirmModal" class="modal-overlay" @click.self="showConfirmModal = false">
       <div class="modal confirm-modal">
         <div class="modal-header">
@@ -501,6 +640,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
     <div v-if="showReceiptModal" class="modal-overlay" @click.self="closeReceipt">
       <div class="modal receipt-modal">
         <div class="modal-header">
@@ -533,6 +673,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
     <div v-if="showRejectModal" class="modal-overlay" @click.self="showRejectModal = false">
       <div class="modal confirm-modal">
         <div class="modal-header">
@@ -551,7 +692,6 @@ onMounted(() => {
             <label class="upload-label">
               Alasan Penolakan <span class="text-red">*</span>
             </label>
-            <!-- Text area untuk alasan tolak -->
             <textarea v-model="rejectReason" class="reject-textarea" :class="{ 'shake error-border': rejectError }"
               placeholder="Contoh: Nota tidak jelas / nominal tidak sesuai..." rows="3"></textarea>
             <span v-if="rejectError" class="error-text">Alasan penolakan wajib diisi!</span>
@@ -563,6 +703,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
+
     <div v-if="showReasonModal" class="modal-overlay" @click.self="showReasonModal = false">
       <div class="modal confirm-modal">
         <div class="modal-header">
@@ -590,7 +731,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
-    <!-- Modal Berhasil -->
+
     <div v-if="showSuccessModal" class="modal-overlay" @click.self="closeSuccess">
       <div class="modal success-modal">
         <div class="modal-body success-body">
@@ -615,629 +756,149 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.page-header {
-  margin-bottom: 0.25rem;
-}
-
-.page-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.card {
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #f1f5f9;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.card-header {
-  padding: 1rem 1.25rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #f8fafc;
-}
-
-.card-header-title {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.card-header-sub {
-  font-size: 0.65rem;
-  color: #94a3b8;
-  margin-top: 0.125rem;
-  font-weight: 500;
-}
-
-.header-actions {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.search-box {
-  position: relative;
-}
-
-.search-icon {
-  position: absolute;
-  left: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #94a3b8;
-}
-
-.search-input {
-  padding: 0.4rem 0.75rem 0.4rem 2.125rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  outline: none;
-  width: 220px;
-}
-
-.count-badge {
-  background: #fffbeb;
-  color: #f59e0b;
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 0.4rem 0.875rem;
-  border-radius: 8px;
-  border: 1px solid #fef3c7;
-}
-
-.table-responsive {
-  overflow-x: auto;
-  max-height: calc(100vh - 220px);
-}
-
-.modern-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.modern-table th {
-  text-align: left;
-  padding: 0.75rem 1.25rem;
-  font-size: 0.6rem;
-  font-weight: 600;
-  color: #94a3b8;
-  background: #fcfdfe;
-  border-bottom: 1px solid #f1f5f9;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.modern-table td {
-  padding: 0.75rem 1.25rem;
-  font-size: 0.75rem;
-  color: #64748b;
-  border-bottom: 1px solid #f8fafc;
-  vertical-align: middle;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-}
-
-.avatar-sm {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #f1f5f9;
-  color: #94a3b8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
-  font-weight: 700;
-  border: 1px solid #e2e8f0;
-}
-
-.user-name {
-  font-weight: 700;
-  color: #1e293b;
-  font-size: 0.75rem;
-}
-
-.user-email {
-  font-size: 0.65rem;
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-.text-dark {
-  color: #1e293b;
-  font-weight: 500;
-}
-
-.text-muted {
-  color: #94a3b8;
-}
-
-.btn-file {
-  background: #eff6ff;
-  color: #3b82f6;
-  border: 1px solid #dbeafe;
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  cursor: pointer;
-}
-
-.status-pill {
-  font-size: 0.6rem;
-  font-weight: 700;
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
-  display: inline-block;
-}
-
-.status-pill.menunggu {
-  background: #fffbeb;
-  color: #f59e0b;
-}
-
-.status-pill.dibayar {
-  background: #f0fdf4;
-  color: #22c55e;
-}
-
-.status-pill.disetujui {
-  background: white;
-  color: #3b82f6;
-  border: 1px solid #3b82f6;
-}
-
-.status-pill.ditolak {
-  background: #fef2f2;
-  color: #ef4444;
-}
-
-.action-row {
-  display: flex;
-  justify-content: center;
-  gap: 0.375rem;
-}
-
-.btn-action {
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  padding: 0.375rem 0.75rem;
-  cursor: pointer;
-  border: none;
-  min-width: 64px;
-  transition: all 0.2s;
-}
-
-.btn-action.tolak {
-  background: #ef4444;
-  color: white;
-}
-.btn-action.tolak-ghost {
-  background: #fef2f2;
-  color: #ef4444;
-  font-weight: 600;
-  border: 1px solid #fecaca;
-}
-.btn-action.tolak-ghost:hover {
-  background: #fee2e2;
-}
-.btn-action.proses {
-  background: #3b82f6;
-  color: white;
-}
-
-.btn-action.bayar-green {
-  background: #22c55e;
-  color: white;
-}
-
-.btn-action.bukti-ghost {
-  background: #f1f5f9;
-  color: #64748b;
-  font-weight: 600;
-  border: 1px solid #e2e8f0;
-}
-
-.table-footer {
-  padding: 0.75rem 1.25rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #fcfdfe;
-}
-
-.pagination {
-  display: flex;
-  gap: 0.25rem;
-}
-
-.page-btn {
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
-  border: 1px solid #e2e8f0;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #64748b;
-  cursor: pointer;
-}
-
-.page-btn.active {
-  background: #3b82f6;
-  border-color: #3b82f6;
-  color: white;
-}
-
-.text-xs {
-  font-size: 0.65rem;
-}
-
-/* Modal Styles stay consistent */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal {
-  background: white;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 380px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-}
-
-.modal-header {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid #f1f5f9;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-title {
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.close-btn {
-  color: #94a3b8;
-  background: none;
-  border: none;
-  cursor: pointer;
-}
-
-.modal-body {
-  padding: 1.25rem;
-}
-
-.confirm-msg {
-  font-size: 0.75rem;
-  color: #475569;
-  line-height: 1.5;
-  margin-bottom: 1rem;
-}
-
-.upload-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.upload-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.upload-field {
-  display: flex;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  overflow: hidden;
-  height: 36px;
-  transition: all 0.2s;
-}
-
-.upload-field.shake {
-  animation: shake 0.5s;
-  border-color: #ef4444 !important;
-}
-
-@keyframes shake {
-
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-
-  25% {
-    transform: translateX(-5px);
-  }
-
-  50% {
-    transform: translateX(5px);
-  }
-
-  75% {
-    transform: translateX(-5px);
-  }
-}
-
-.upload-input-mock {
-  flex: 1;
-  border: none;
-  padding: 0 0.875rem;
-  font-size: 0.75rem;
-  color: #94a3b8;
-  background: #fcfdfe;
-}
-
-.upload-btn-inner {
-  background: #f1f5f9;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  cursor: pointer;
-  position: relative;
-}
-
-.hidden-input {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.modal-footer {
-  padding: 0.875rem 1.25rem;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.625rem;
-  border-top: 1px solid #f1f5f9;
-}
-
-.btn-modal {
-  padding: 0.5rem 1.25rem;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  cursor: pointer;
-  border: none;
-}
-
-.btn-modal.batal {
-  background: #ef4444;
-  color: white;
-}
-
-.btn-modal.main-btn {
-  background: #3b82f6;
-  color: white;
-}
-
-.success-modal {
-  text-align: center;
-  max-width: 300px;
-}
-
-.success-body {
-  padding: 2rem 1.25rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.success-title {
-  font-size: 1.25rem;
-  font-weight: 800;
-  color: #22c55e;
-}
-
-.btn-back-success {
-  background: #3b82f6;
-  color: white;
-  border: none;
-  padding: 0.4rem 1rem;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.text-red {
-  color: #ef4444;
-}
-
-.font-bold {
-  font-weight: 700;
-}
-
-.reject-textarea {
-  width: 100%;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 0.75rem;
-  font-size: 0.75rem;
-  color: #475569;
-  outline: none;
-  resize: none;
-  font-family: inherit;
-  transition: all 0.2s;
-  box-sizing: border-box;
-}
-
-.reject-textarea:focus {
-  border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-}
-
-.error-border {
-  border-color: #ef4444 !important;
-}
-
-.error-text {
-  font-size: 0.65rem;
-  color: #ef4444;
-  font-weight: 500;
-}
-
-.btn-modal.batal-outline {
-  background: white;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
-}
-
-.btn-modal.tolak-btn {
-  background: #ef4444;
-  color: white;
-}
-
-.text-red {
-  color: #ef4444;
-}
-
-.shake {
-  animation: shake 0.5s;
-}
-
-.receipt-modal {
-  max-width: 850px;
-  /* Sebelumnya 600px. Semakin besar angkanya, semakin lebar */
-  width: 95%;
-  /* Lebar relatif agar tetap aman di layar kecil */
-  display: flex;
-  flex-direction: column;
-}
-
-.zoom-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  background: #f8fafc;
-  padding: 0.25rem 0.5rem;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-}
-
-.zoom-btn {
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: #64748b;
-  transition: all 0.2s;
-}
-
-.zoom-btn:hover {
-  background: #f1f5f9;
-  color: #1e293b;
-}
-
-.zoom-level {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: #475569;
-  min-width: 32px;
-  text-align: center;
-}
-
-.divider-vertical {
-  width: 1px;
-  height: 16px;
-  background: #cbd5e1;
-  margin: 0 0.25rem;
-}
-
-.image-viewer-body {
-  padding: 0;
-  background: #cbd5e1;
-  height: 80vh;
-  /* Sebelumnya 60vh. vh = viewport height (persentase tinggi layar ponsel/monitor) */
-  overflow: hidden;
-  display: flex;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-.image-container {
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  /* Memunculkan scroll otomatis jika gambar melewati wadah setelah di-zoom */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 1rem;
-}
-
-.zoomable-image {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  transition: transform 0.2s ease-in-out;
-  transform-origin: center center;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  border-radius: 4px;
-}
-
-.loading-state,
-.empty-state {
-  padding: 3rem 1rem !important;
-}
-
-.loader-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid #f1f5f9;
-  border-top-color: #3b82f6;
-  /* Warna biru primary */
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto;
-}
-
-.loading-text {
-  margin-top: 0.75rem;
-  font-size: 0.75rem;
-  color: #64748b;
-  font-weight: 500;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
+.page-header { margin-bottom: 0.25rem; }
+.page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; }
+
+.card { background: white; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); }
+
+.card-header { padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f8fafc; }
+.card-header-title { font-size: 0.875rem; font-weight: 700; color: #1e293b; }
+.card-header-sub { font-size: 0.65rem; color: #94a3b8; margin-top: 0.125rem; font-weight: 500; }
+
+.header-actions { display: flex; gap: 0.75rem; align-items: center; }
+
+.search-box { position: relative; }
+.search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+.search-input { padding: 0.4rem 0.75rem 0.4rem 2.125rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.75rem; outline: none; width: 220px; }
+
+/* --- TOMBOL & BADGE FILTER --- */
+.btn-filter-icon {
+  display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
+  border-radius: 8px; border: 1px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; transition: all 0.2s;
+}
+.btn-filter-icon:hover { background: #f1f5f9; color: #3b82f6; border-color: #cbd5e1; }
+
+.filter-badge {
+  font-size: 0.65rem; background: #eff6ff; color: #3b82f6; padding: 0.2rem 0.5rem;
+  border-radius: 4px; font-weight: 600; border: 1px solid #dbeafe;
+}
+
+.count-badge { background: #fffbeb; color: #f59e0b; font-size: 0.65rem; font-weight: 700; padding: 0.4rem 0.875rem; border-radius: 8px; border: 1px solid #fef3c7; }
+
+.table-responsive { overflow-x: auto; max-height: calc(100vh - 220px); }
+
+.modern-table { width: 100%; border-collapse: collapse; }
+.modern-table th { text-align: left; padding: 0.75rem 1.25rem; font-size: 0.6rem; font-weight: 600; color: #94a3b8; background: #fcfdfe; border-bottom: 1px solid #f1f5f9; text-transform: uppercase; letter-spacing: 0.05em; }
+.modern-table td { padding: 0.75rem 1.25rem; font-size: 0.75rem; color: #64748b; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+
+.user-info { display: flex; align-items: center; gap: 0.625rem; }
+.avatar-sm { width: 28px; height: 28px; border-radius: 50%; background: #f1f5f9; color: #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; border: 1px solid #e2e8f0; }
+.user-name { font-weight: 700; color: #1e293b; font-size: 0.75rem; }
+.user-email { font-size: 0.65rem; color: #94a3b8; font-weight: 500; }
+
+.text-dark { color: #1e293b; font-weight: 500; }
+.text-muted { color: #94a3b8; }
+.font-bold { font-weight: 700; }
+
+.btn-file { background: #eff6ff; color: #3b82f6; border: 1px solid #dbeafe; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.65rem; font-weight: 700; display: flex; align-items: center; gap: 0.25rem; cursor: pointer; text-decoration: none;}
+
+.status-pill { font-size: 0.6rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 6px; display: inline-block; }
+.status-pill.menunggu { background: #fffbeb; color: #f59e0b; }
+.status-pill.dibayar { background: #f0fdf4; color: #22c55e; }
+.status-pill.disetujui { background: white; color: #3b82f6; border: 1px solid #3b82f6; }
+.status-pill.ditolak { background: #fef2f2; color: #ef4444; }
+
+.action-row { display: flex; justify-content: center; gap: 0.375rem; }
+.btn-action { border-radius: 6px; font-size: 0.7rem; font-weight: 700; padding: 0.375rem 0.75rem; cursor: pointer; border: none; min-width: 64px; transition: all 0.2s; }
+.btn-action.tolak { background: #ef4444; color: white; }
+.btn-action.tolak-ghost { background: #fef2f2; color: #ef4444; font-weight: 600; border: 1px solid #fecaca; }
+.btn-action.tolak-ghost:hover { background: #fee2e2; }
+.btn-action.proses { background: #3b82f6; color: white; }
+.btn-action.bayar-green { background: #22c55e; color: white; }
+.btn-action.bukti-ghost { background: #f1f5f9; color: #64748b; font-weight: 600; border: 1px solid #e2e8f0; }
+
+.table-footer { padding: 0.75rem 1.25rem; display: flex; justify-content: space-between; align-items: center; background: #fcfdfe; }
+
+.pagination { display: flex; gap: 0.25rem; }
+.page-btn { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: #64748b; cursor: pointer; }
+.page-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
+.text-xs { font-size: 0.65rem; }
+
+/* MODALS */
+.modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(2px); }
+.modal { background: white; border-radius: 12px; width: 90%; max-width: 380px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); }
+.filter-modal { max-width: 440px; }
+.modal-header { padding: 1rem 1.25rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-radius: 12px 12px 0 0; }
+.modal-title { font-size: 0.875rem; font-weight: 700; color: #1e293b; margin: 0; }
+.close-btn { color: #64748b; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
+.close-btn:hover { color: #ef4444; }
+.modal-body { padding: 1.25rem; }
+.confirm-msg { font-size: 0.75rem; color: #475569; line-height: 1.5; margin-bottom: 1rem; }
+.upload-section { display: flex; flex-direction: column; gap: 0.5rem; }
+.upload-label { font-size: 0.7rem; font-weight: 700; color: #1e293b; }
+.upload-field { display: flex; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; height: 36px; transition: all 0.2s; }
+.upload-field.shake { animation: shake 0.5s; border-color: #ef4444 !important; }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } }
+.upload-input-mock { flex: 1; border: none; padding: 0 0.875rem; font-size: 0.75rem; color: #94a3b8; background: #fcfdfe; }
+.upload-btn-inner { background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; width: 36px; cursor: pointer; position: relative; }
+.hidden-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.modal-footer { padding: 0.875rem 1.25rem; display: flex; justify-content: flex-end; gap: 0.625rem; border-top: 1px solid #f1f5f9; background: #f8fafc; border-radius: 0 0 12px 12px; }
+.footer-spaced { justify-content: space-between; }
+.btn-modal { padding: 0.5rem 1.25rem; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; }
+.btn-modal.batal { background: #ef4444; color: white; }
+.btn-modal.main-btn { background: #3b82f6; color: white; }
+
+/* Filter Modal Inputs CSS */
+.form-group { margin-bottom: 1.25rem; }
+.form-label { display: block; font-size: 0.8125rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem; }
+.radio-group { display: flex; gap: 1.5rem; }
+.radio-label { display: flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; color: #1e293b; cursor: pointer; }
+.radio-label input[type="radio"] { accent-color: #3b82f6; width: 16px; height: 16px; cursor: pointer; }
+.form-input { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.875rem; color: #1e293b; outline: none; transition: border-color 0.2s; font-family: inherit; }
+.form-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+.form-row { display: flex; gap: 1rem; }
+.flex-1 { flex: 1; }
+.btn-cancel { background: transparent; border: 1px solid transparent; color: #ef4444; font-weight: 600; font-size: 0.875rem; cursor: pointer; padding: 0.5rem 0; }
+.btn-cancel:hover { color: #b91c1c; text-decoration: underline; }
+.btn-primary-modal { background: #3b82f6; color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.btn-primary-modal:hover { background: #2563eb; }
+
+/* Custom Month Picker CSS */
+.custom-month-picker { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; }
+.year-selector { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; background: white; border-radius: 6px; padding: 0.25rem; border: 1px solid #e2e8f0; }
+.year-btn { background: transparent; border: none; color: #64748b; cursor: pointer; padding: 0.25rem; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
+.year-btn:hover { color: #3b82f6; }
+.year-display { font-weight: 700; font-size: 0.875rem; color: #1e293b; }
+.month-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+.month-btn { background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.5rem 0; font-size: 0.75rem; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s; }
+.month-btn:hover { border-color: #3b82f6; color: #3b82f6; }
+.month-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+
+/* Other Modals */
+.success-modal { text-align: center; max-width: 300px; }
+.success-body { padding: 2rem 1.25rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+.success-title { font-size: 1.25rem; font-weight: 800; color: #22c55e; }
+.btn-back-success { background: #3b82f6; color: white; border: none; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
+.text-red { color: #ef4444; }
+.reject-textarea { width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.75rem; color: #475569; outline: none; resize: none; font-family: inherit; transition: all 0.2s; box-sizing: border-box; }
+.reject-textarea:focus { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1); }
+.error-border { border-color: #ef4444 !important; }
+.error-text { font-size: 0.65rem; color: #ef4444; font-weight: 500; }
+.btn-modal.batal-outline { background: white; color: #64748b; border: 1px solid #e2e8f0; }
+.btn-modal.tolak-btn { background: #ef4444; color: white; }
+
+.receipt-modal { max-width: 850px; width: 95%; display: flex; flex-direction: column; }
+.zoom-controls { display: flex; align-items: center; gap: 0.375rem; background: #f8fafc; padding: 0.25rem 0.5rem; border-radius: 8px; border: 1px solid #e2e8f0; }
+.zoom-btn { background: white; border: 1px solid #e2e8f0; border-radius: 6px; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; transition: all 0.2s; }
+.zoom-btn:hover { background: #f1f5f9; color: #1e293b; }
+.zoom-level { font-size: 0.65rem; font-weight: 700; color: #475569; min-width: 32px; text-align: center; }
+.divider-vertical { width: 1px; height: 16px; background: #cbd5e1; margin: 0 0.25rem; }
+.image-viewer-body { padding: 0; background: #cbd5e1; height: 80vh; overflow: hidden; display: flex; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
+.image-container { width: 100%; height: 100%; overflow: auto; display: flex; justify-content: center; align-items: center; padding: 1rem; }
+.zoomable-image { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.2s ease-in-out; transform-origin: center center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-radius: 4px; }
+
+.loading-state, .empty-state { padding: 3rem 1rem !important; }
+.loader-spinner { width: 32px; height: 32px; border: 3px solid #f1f5f9; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+.loading-text { margin-top: 0.75rem; font-size: 0.75rem; color: #64748b; font-weight: 500; }
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>

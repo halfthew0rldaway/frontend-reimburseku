@@ -55,6 +55,22 @@ export default {
         getChartMonthly(month,year) {
         return apiClient.get(`/reimburse/monthly?month=${month}&year=${year}`)
     },
+    getReimbursementsByMonth(page = 1, period) {
+        return apiClient.get(`/reimburse/filter/month`, {
+            params: { page: page, period: period }
+        })
+    },
+
+    // Untuk memanggil data filter rentang tanggal
+    getReimbursementsByDateRange(page = 1, startDate, endDate) {
+        return apiClient.get(`/reimburse/filter/range`, {
+            params: {
+                page: page,
+                start_date: startDate,
+                end_date: endDate
+            }
+        })
+    },
 
     // FINANCE / ADMIN
     getApprovalReimbursements() {
