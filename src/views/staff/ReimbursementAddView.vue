@@ -395,8 +395,7 @@ const preventLetters = (event) => {
 
 
 .detail-card {
-  padding: 2rem;
-  width: 100%;
+  /* previously had padding and max-width, now handled by form-card */
 }
 
 .section-title-wrap {

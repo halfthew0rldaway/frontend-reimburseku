@@ -745,14 +745,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.finance-reimburse {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  background: #f8fafc;
-  height: 100%;
-  overflow: hidden;
-}
+.finance-reimburse { display: flex; flex-direction: column; gap: 1.5rem; flex: 1; height: 100%; overflow: hidden; }
 
 .page-header { margin-bottom: 0; }
 .page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; }

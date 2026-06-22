@@ -359,7 +359,7 @@ async function sendNotif() {
   gap: 1rem;
   flex: 1;
   height: 100%;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .page-header {

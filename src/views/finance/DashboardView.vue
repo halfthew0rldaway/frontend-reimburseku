@@ -829,7 +829,7 @@ const exportByDateRange = async (formatType) => {
 </template>
 
 <style scoped>
-.finance-dasbor { display: flex; flex-direction: column; gap: 1.25rem; background: #f8fafc; height: calc(100vh - 64px - 3rem); overflow: hidden; padding-bottom: 0.5rem; }
+.finance-dasbor { display: flex; flex-direction: column; gap: 1.5rem; flex: 1; height: 100%; overflow: hidden; }
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; flex-wrap: wrap; gap: 1rem; }
 .page-title { font-size: 1.35rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; margin: 0; }
 .quick-actions { display: flex; gap: 0.75rem; align-items: center; }
@@ -853,8 +853,12 @@ const exportByDateRange = async (formatType) => {
 .stat-card:not(.card-blue) .stat-value { color: #0f172a; }
 
 /* --- GRID LAYOUT --- */
-.dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.2fr); gap: 1.5rem; flex: 1; min-height: 0; }
-@media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; overflow-y: auto; } }
+.dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.2fr); gap: 1rem; flex: 1; min-height: 0; overflow: hidden; }
+@media (max-width: 1024px) { 
+  .dashboard-grid { grid-template-columns: 1fr; overflow-y: auto; }
+  .chart-card { min-height: 400px; }
+  .list-card { min-height: 500px; }
+}
 
 .left-column { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
 .card { background: white; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); border: 1px solid #f1f5f9; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }

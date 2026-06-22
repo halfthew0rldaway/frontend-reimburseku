@@ -161,7 +161,7 @@ async function submit() {
 .page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem; }
 
 .form-container { display: flex; justify-content: center; padding: 1rem 0; }
-.form-card { background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px rgba(0,0,0,0.03); width: 100%; overflow: hidden; }
+.form-card { background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -2px rgba(0,0,0,0.02); display: flex; flex-direction: column; height: 100%; overflow: hidden; }
 
 .card-header { padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1.5rem; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
 .btn-back { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; flex-shrink: 0; }

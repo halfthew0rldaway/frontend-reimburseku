@@ -288,7 +288,7 @@ const goToTambah = () => router.push('/finance/deposit/tambah')
 }
 .loading-text { margin-top: 0.75rem; font-size: 0.7rem; color: #64748b; font-weight: 500; }
 @keyframes spin { to { transform: rotate(360deg); } }
-.finance-deposit { display: flex; flex-direction: column; gap: 1rem; background: #f8fafc; height: 100%; overflow: hidden; }
+.finance-deposit { display: flex; flex-direction: column; gap: 1rem; flex: 1; height: 100%; overflow: hidden; }
 
 .page-header { margin-bottom: 0; }
 .page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; }
