@@ -362,40 +362,116 @@ const getBorderColor = (kategori) => {
 }
 </script>
 
+
 <template>
   <div class="dasbor-staf">
     
     <div class="header-utama">
-      <h2 class="judul-halaman">Dashboard Staff</h2>
-      <button class="btn btn-primary tombol-tambah" @click="router.push('/staf/reimbursement/tambah')">
-        <Plus :size="16" /> Tambah Reimbursement
-      </button>
+      <div class="greetings">
+        <h2 class="teks-sapaan">Halo, {{ authStore.user?.name || 'Staf' }}! 👋</h2>
+        <p class="teks-sapaan-sub">Selamat datang di dashboard Reimburseku.</p>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-primary tombol-tambah" @click="router.push('/staf/reimbursement/tambah')">
+          <Plus :size="16" /> 
+          <span class="text-tombol">Tambah Reimbursement</span> 
+        </button>
+
+        <div class="notif-wrapper">
+          <button class="header-icon-btn" title="Notifikasi" @click="toggleNotifMenu">
+            <Bell :size="20" />
+            <span v-if="hasUnread" class="notification-dot"></span>
+          </button>
+
+          <div v-if="showNotifMenu" class="notif-menu">
+            <div class="notif-header">
+              <h4>Pemberitahuan</h4>
+              <button class="btn-clear" @click="tandaiSemuaDibaca">Tandai dibaca</button>
+            </div>
+            
+            <div class="notif-list">
+              <div v-if="notifications.length === 0" class="notif-item justify-center text-gray-500 text-sm py-6" style="text-align: center;">
+                Belum ada pemberitahuan baru
+              </div>
+              <div v-for="notif in notifications" :key="notif.id" class="notif-item">
+                <div class="notif-icon-box" :class="getNotifIconBgClass(notif.type)">
+                  <component :is="getNotifIcon(notif.type)" :size="18" />
+                </div>
+                <div class="notif-content">
+                  <h5>{{ notif.title }}</h5>
+                  <p>{{ notif.message }}</p>
+                  <span class="notif-time">{{ notif.time }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="notif-footer">
+              <button @click="showNotifMenu = false">Tutup Notifikasi</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ringkasan-finansial">
+      <div class="rf-card primary-card">
+        <div class="rf-icon-wrapper"><Wallet :size="20" /></div>
+        <p class="rf-label">Total Pengajuan Bulan Ini</p>
+        <h3 class="rf-value">{{ ringkasanBulanIni.pengajuan }}</h3>
+      </div>
+      <div class="rf-card">
+        <div class="rf-icon-wrapper success"><CheckCircle2 :size="20" /></div>
+        <p class="rf-label">Disetujui / Dibayar</p>
+        <h3 class="rf-value text-success">{{ ringkasanBulanIni.disetujui }}</h3>
+      </div>
+      <div class="rf-card">
+        <div class="rf-icon-wrapper danger"><XCircle :size="20" /></div>
+        <p class="rf-label">Total Ditolak</p>
+        <h3 class="rf-value text-danger">{{ ringkasanBulanIni.ditolak }}</h3>
+      </div>
     </div>
 
     <div class="grid-dasbor">
       <div class="kolom-kiri">
         <div class="section-title-row title-with-filters">
           <h3 class="judul-seksi">Riwayat Reimbursement</h3>
-        </div>
-
-        <div class="filter-kiri-wrap">
-          <div class="filter-chip-row">
-            <button
-              v-for="f in filterList"
-              :key="f.key"
-              class="filter-chip"
-              :class="{ 'filter-chip-aktif': filterAktif === f.key }"
-              @click="filterAktif = f.key"
-            >
-              <span v-if="f.warna" class="titik-warna" :style="{ background: f.warna }"></span>
-              {{ f.label }}
+          
+          <div class="kontrol-aksi-row">
+            <div class="header-filters">
+              <div class="select-wrapper">
+                <select v-model="filterAktif" class="header-select">
+                  <option v-for="f in filterList" :key="f.key" :value="f.key">
+                    {{ f.label }}
+                  </option>
+                </select>
+                <ChevronDown :size="14" class="select-icon" />
+              </div>
+            </div>
+            
+            <button class="btn-tanggal-full" @click="bukaModalBulan">
+              <span>{{ labelBulanTampil }}</span>
+              <Calendar :size="18" class="ikon-kalender" />
             </button>
-          </div>
+            
+            <div class="dropdown-wrapper">
+              <button class="btn-ekspor" @click="toggleExportMenu">
+                <Download :size="18" class="ikon-ekspor" />
+                <span>Ekspor</span>
+              </button>
 
-          <button class="btn-tanggal-full" @click="bukaModalBulan">
-            <span>{{ labelBulanTampil }}</span>
-            <Calendar :size="18" class="ikon-kalender" />
-          </button>
+              <div v-if="showExportMenu" class="dropdown-menu">
+                <button class="dropdown-item" @click="exportToPDF">
+                  <FileText :size="16" class="text-danger" />
+                  <span>Unduh PDF</span>
+                </button>
+                <button class="dropdown-item" @click="exportToExcel">
+                  <Table :size="16" class="text-success" />
+                  <span>Unduh Excel</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="daftar-container">
@@ -458,9 +534,91 @@ const getBorderColor = (kategori) => {
       </div>
 
       <div class="kolom-kanan">
+        <h2 class="judul-seksi">Statistik Kategori</h2>
+        <div class="grid-statistik">
+          <div v-for="s in kategoriStats" :key="s.label" class="kartu-stat" :style="{ background: s.bg }">
+            <div class="stat-ikon">
+              <component :is="s.ikon" :size="28" />
+            </div>
+            <div class="stat-info">
+              <p class="stat-label">{{ s.label }}</p>
+              <p class="stat-jumlah">{{ s.jumlah }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="pengajuanTerakhir" class="tracker-section">
+          <h2 class="judul-seksi judul-tracker">Pelacakan Pengajuan Terakhir</h2>
+          <div class="tracker-card">
+            <div class="tracker-header-info">
+              <h4 class="tracker-judul-klaim">{{ pengajuanTerakhir.judul }}</h4>
+              <p class="tracker-harga-klaim">{{ pengajuanTerakhir.jumlah }}</p>
+            </div>
+
+            <div class="timeline">
+              <div 
+                v-for="(step, idx) in timelineSteps" 
+                :key="idx" 
+                class="timeline-item"
+                :class="{ 
+                  'complete': step.isComplete, 
+                  'current': step.isCurrent, 
+                  'rejected': step.isRejected 
+                }"
+              >
+                <div class="timeline-badge-wrap">
+                  <div class="timeline-badge">
+                    <Check v-if="step.isComplete && !step.isRejected" :size="12" />
+                    <X v-else-if="step.isRejected" :size="12" />
+                    <span v-else>{{ idx + 1 }}</span>
+                  </div>
+                </div>
+                <div class="timeline-content">
+                  <h5>{{ step.label }}</h5>
+                  <p>{{ step.desc }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showModalBulan" class="modal-backdrop" @click.self="showModalBulan = false">
+      <div class="modal-box">
+        <h3 class="modal-judul">Pilih Bulan</h3>
+        <div class="modal-tahun-kontrol">
+          <button class="btn-kontrol-tahun" @click="tempTahun--"><ChevronLeft :size="18"/></button>
+          <span class="label-tahun">{{ tempTahun }}</span>
+          <button class="btn-kontrol-tahun" @click="tempTahun++"><ChevronRight :size="18"/></button>
+        </div>
+        <div class="grid-bulan">
+          <button
+            v-for="b in bulanModalList"
+            :key="b.val"
+            class="btn-bulan-item"
+            :class="{ 'aktif': tempBulan === b.val }"
+            @click="tempBulan = b.val"
+          >
+            {{ b.label }}
+          </button>
+        </div>
+        <div class="modal-aksi">
+          <button class="btn-batal" @click="showModalBulan = false">Batal</button>
+          <button class="btn-terapkan" @click="terapkanFilterBulan">Terapkan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+        </div>
+      </div>
+
+      <div class="kolom-kanan">
         <h2 class="judul-seksi">Statistik dan Laporan</h2>
      <div class="grid-statistik">
-  <div v-for="s in kategoriStats" :key="s.label" class="kartu-stat" :style="{ backgroundColor: s.bg }">
+  <div v-for="s in kategoriStats" :key="s.label" class="kartu-stat" :style="{ background: s.bg }">
     <div class="stat-ikon">
       <component :is="s.ikon" :size="28" />
     </div>
@@ -502,6 +660,40 @@ const getBorderColor = (kategori) => {
 </template>
 
 <style scoped>
+.dasbor-staf {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.header-utama {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.greetings {
+  display: flex;
+  flex-direction: column;
+}
+
+.teks-sapaan {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+  margin: 0 0 0.15rem 0;
+}
+
+.teks-sapaan-sub {
+  font-size: 0.9375rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
 /* Struktur Baru Filter Kiri */
 .filter-kiri-wrap {
   display: flex;
@@ -739,6 +931,9 @@ const getBorderColor = (kategori) => {
   display: flex;
   flex-direction: column;
   gap: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* Filter chip */
@@ -818,9 +1013,11 @@ const getBorderColor = (kategori) => {
   overflow: hidden;
   box-shadow: var(--shadow-sm);
   position: relative; 
-  min-height: 300px; /* Menjaga tinggi kotak agar tidak menyusut saat loading */
+  min-height: 300px;
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 .judul-tracker {
   margin-top: 1.75rem;
@@ -868,6 +1065,14 @@ const getBorderColor = (kategori) => {
 }
 
 /* Custom Scrollbar */
+.reimbursement-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  flex: 1;
+  overflow-y: auto;
+}
 .reimbursement-cards::-webkit-scrollbar {
   width: 6px;
 }
