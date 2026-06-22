@@ -48,14 +48,14 @@ onMounted(async () => {
     const deposits = depositRes.data?.data?.data || depositRes.data?.data || []
     deposits.forEach(d => {
       allTx.push({
-        id: `DEP-${d.id_deposit}`,
+        id: `DEP-${d.id_company_deposit || d.id_deposit}`,
         type: 'Dana Masuk',
         source: d.bank_ref_number || 'Deposit Kas',
         amount: `+${formatRupiah(d.amount)}`,
         rawAmount: parseFloat(d.amount),
-        rawDate: new Date(d.transaction_date || d.created_at),
-        date: new Date(d.transaction_date || d.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
-        note: d.notes || 'Penambahan Saldo Kas'
+        rawDate: new Date(d.date_deposit || d.transaction_date || d.created_at),
+        date: new Date(d.date_deposit || d.transaction_date || d.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+        note: d.description || d.notes || 'Penambahan Saldo Kas'
       })
     })
 
@@ -66,9 +66,13 @@ onMounted(async () => {
         allTx.push({
           id: `RMB-${r.id_request}`,
           type: 'Dana Keluar',
-          source: `Reimburse: ${r.employee_name || 'Karyawan'}`,
+          source: `Reimburse: ${r.employees_name || r.employee_name || 'Karyawan'}`,
           amount: `-${formatRupiah(r.amount)}`,
+<<<<<<< HEAD
           rawAmount: -parseFloat(r.amount), // Jadikan negatif untuk kalkulasi saldo
+=======
+          rawAmount: -parseFloat(r.amount),
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
           rawDate: new Date(r.expense_date || r.created_at),
           date: new Date(r.expense_date || r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
           note: r.description || r.category_name || 'Pembayaran Reimbursement'
@@ -76,8 +80,22 @@ onMounted(async () => {
       }
     })
 
+<<<<<<< HEAD
     // Sort awal berdasarkan tanggal terlama untuk menghitung Saldo Berjalan (Running Balance)
     allTx.sort((a, b) => a.rawDate - b.rawDate)
+=======
+    // Sort ascending to calculate running balance
+    allTx.sort((a, b) => a.rawDate - b.rawDate)
+    
+    let currentBalance = 0
+    allTx.forEach(t => {
+      currentBalance += t.rawAmount
+      t.balance = formatRupiah(currentBalance)
+    })
+
+    // Sort descending for display
+    allTx.sort((a, b) => b.rawDate - a.rawDate)
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
     
     let currentBalance = 0;
     allTx = allTx.map(tx => {
@@ -125,9 +143,7 @@ const goToTambah = () => router.push('/finance/deposit/tambah')
 </script>
 <template>
   <div class="finance-deposit">
-    <div class="page-header">
-      <h1 class="page-title">Deposit</h1>
-    </div>
+    
 
     <div class="card tracker-card">
       <div class="card-head">
@@ -236,6 +252,7 @@ const goToTambah = () => router.push('/finance/deposit/tambah')
   </div>
 </template>
 <style scoped>
+<<<<<<< HEAD
 
 .sort-dropdown { position: relative; }
 .dropdown-menu {
@@ -291,11 +308,16 @@ const goToTambah = () => router.push('/finance/deposit/tambah')
 .loading-text { margin-top: 0.75rem; font-size: 0.7rem; color: #64748b; font-weight: 500; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .finance-deposit { display: flex; flex-direction: column; gap: 1rem; background: #f8fafc; height: 100%; overflow: hidden; }
+=======
+.finance-deposit { display: flex; flex-direction: column; gap: 1rem; flex: 1; height: 100%; overflow: hidden; }
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 
-.page-header { margin-bottom: 0.25rem; }
+.page-header { margin-bottom: 0; }
 .page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; }
 
-.card { background: white; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
+.card { background: white; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+.table-card { flex: 1; }
+.tracker-card { flex-shrink: 0; }
 .card-head { padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; }
 .card-title { font-size: 0.8125rem; font-weight: 700; color: #1e293b; }
 
@@ -321,10 +343,10 @@ const goToTambah = () => router.push('/finance/deposit/tambah')
 
 .btn-sort { font-size: 0.7rem; font-weight: 700; color: #64748b; padding: 0.4rem 0.875rem; border-radius: 8px; display: flex; align-items: center; gap: 0.375rem; }
 
-.table-responsive { overflow-x: auto; max-height: calc(100vh - 400px); }
+.table-responsive { overflow-x: auto; overflow-y: auto; flex: 1; }
 .modern-table { width: 100%; border-collapse: collapse; }
-.modern-table th { text-align: left; padding: 0.75rem 1.25rem; font-size: 0.6rem; font-weight: 600; color: #64748b; background: #f8fafc; border-bottom: 1px solid #f1f5f9; text-transform: uppercase; letter-spacing: 0.05em; }
-.modern-table td { padding: 0.75rem 1.25rem; font-size: 0.7rem; color: #475569; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+.modern-table th { text-align: left; padding: 0.75rem 1.25rem; font-size: 0.6rem; font-weight: 600; color: #64748b; background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.05em; }
+.modern-table td { padding: 0.75rem 1.25rem; font-size: 0.7rem; color: #475569; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
 
 .type-badge { font-size: 0.55rem; font-weight: 700; padding: 0.125rem 0.375rem; border-radius: 4px; }
 .type-badge.dana-masuk { background: #f0fdf4; color: #16a34a; }

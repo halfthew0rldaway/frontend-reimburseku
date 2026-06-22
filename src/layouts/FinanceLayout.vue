@@ -5,10 +5,13 @@ import {
 } from 'lucide-vue-next'
 
 import { useAuthStore } from '@/stores/auth'
+import { computed } from 'vue'
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
+
+const pageTitle = computed(() => route.meta.title || 'ReimburseKu')
 
 const menuItems = [
   { to: '/finance/dasbor', label: 'Beranda', icon: LayoutDashboard },
@@ -62,7 +65,7 @@ function logout() {
     <div class="main-wrapper">
       <header class="top-bar">
         <div class="top-left">
-          <!-- Tombol toggle dihapus sesuai permintaan -->
+          <h1 class="page-title">{{ pageTitle }}</h1>
         </div>
         <div class="top-right">
           <div class="user-profile">
@@ -80,19 +83,19 @@ function logout() {
 </template>
 
 <style scoped>
-.layout-container { display: flex; min-height: 100vh; background: #f8fafc; }
+.layout-container { display: flex; min-height: 100vh; background: var(--color-background); }
 
 /* Sidebar Styles */
 .sidebar {
-  width: 260px; background: #3b82f6; color: white; display: flex; flex-direction: column;
+  width: 250px; background: var(--color-primary); color: white; display: flex; flex-direction: column;
   position: fixed; top: 0; left: 0; bottom: 0; z-index: 50; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebar-top { padding: 1.5rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
 .logo-area { display: flex; align-items: center; gap: 0.875rem; text-decoration: none; color: white; }
 .logo-icon {
-  width: 40px; height: 40px; background: white; color: #3b82f6; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.9rem; flex-shrink: 0;
+  width: 36px; height: 36px; background: white; color: var(--color-primary); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0;
 }
 .logo-text { display: flex; flex-direction: column; }
 .brand { font-size: 1.125rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
@@ -107,14 +110,18 @@ function logout() {
 .nav-item.active { background: rgba(255,255,255,0.2); color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 
 .sidebar-footer { padding: 1rem 0.75rem; border-top: 1px solid rgba(255,255,255,0.1); }
-.logout-btn:hover { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+.logout-btn { background-color: transparent; color: rgba(255,255,255,0.7); border: none; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: flex-start; text-align: left; }
+.logout-btn:hover { background-color: #dc2626 !important; color: white !important; }
 
 /* Main Content Styles */
-.main-wrapper { flex: 1; margin-left: 260px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; }
+.main-wrapper { flex: 1; margin-left: 250px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
 .top-bar {
   height: 64px; background: white; border-bottom: 1px solid #f1f5f9; padding: 0 1.5rem;
   display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40;
+}
+.page-title {
+  font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0;
 }
 
 .top-right { display: flex; align-items: center; gap: 1.5rem; }
@@ -129,11 +136,15 @@ function logout() {
 }
 .user-name { font-size: 0.8125rem; font-weight: 600; color: #475569; }
 
-.page-content { padding: 1.5rem 2rem; flex: 1; }
+.page-content { padding: 1.5rem 2rem; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
 @media (max-width: 1024px) {
   .sidebar { width: 80px; }
   .sidebar .logo-text, .sidebar span { display: none; }
   .main-wrapper { margin-left: 80px; }
+}
+
+@media (max-width: 768px) {
+  .page-content { padding: 1rem; }
 }
 </style>

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowLeft, UploadCloud } from 'lucide-vue-next'
+import { ArrowLeft, UploadCloud, User, FileText, Plus } from 'lucide-vue-next'
 import apiClient from '@/api/apiClient'
 import { useAuthStore } from '@/stores/auth'
 import apiService from '@/api/ApiService'
@@ -178,19 +178,25 @@ const preventLetters = (event) => {
 </script>
 <template>
   <div class="add-page">
- <div class="page-header">
-      <button class="back-btn" @click="router.push('/staf/dasbor')">
-        <ArrowLeft :size="20" />
-      </button>
-      
-      <div class="header-info">
-        <h1 class="page-title">Tambah Reimbursement</h1>
-        <p class="text-muted">Buat pengajuan reimburse baru anda</p>
-      </div>
-    </div>
+    <div class="form-container">
+      <div class="card detail-card form-card">
+        <div class="card-header">
+          <button class="back-btn" @click="router.push('/staf/dasbor')">
+            <ArrowLeft :size="20" />
+          </button>
+          <div class="header-info">
+            <div class="icon-wrap">
+              <Plus :size="18" />
+            </div>
+            <div class="text-wrap">
+              <h2 class="form-title">Buat Pengajuan</h2>
+              <p class="form-sub">Formulir Reimbursement</p>
+            </div>
+          </div>
+        </div>
 
-    <div class="card detail-card">
-      <div class="form-section">
+        <div class="form-content">
+          <div class="form-section">
         <div class="section-title-wrap">
           <div class="section-icon">
             <User :size="16" />
@@ -198,12 +204,7 @@ const preventLetters = (event) => {
           <h3 class="section-title">Informasi Karyawan</h3>
         </div>
 
-<div class="grid-2-cols">
-          <div class="form-group col-span-2">
-            <label class="form-label">{{authStore.accountPayout?.provider_type ==='e-wallet' ? 'Nomor E-wallet' : 'Nomor Rekening'}}</label>
-            <input type="text" class="form-control" disabled :value="authStore.accountPayout?.account_number ? authStore.accountPayout?.provider_name + ' ' + authStore.accountPayout?.account_number + ' A/N ' + authStore.accountPayout?.account_holder_name : 'N/A'" />
-          </div>
-          
+        <div class="grid-2-cols">
           <div class="form-group">
             <label class="form-label">Nama</label>
             <input type="text" class="form-control" disabled :value="authStore.user?.name || 'User'" />
@@ -211,6 +212,10 @@ const preventLetters = (event) => {
           <div class="form-group">
             <label class="form-label">Posisi</label>
             <input type="text" class="form-control" disabled :value="authStore.user?.position || 'N/A'" />
+          </div>
+          <div class="form-group col-span-2">
+            <label class="form-label">{{authStore.accountPayout?.provider_type ==='e-wallet' ? 'Nomor E-wallet' : 'Nomor Rekening'}}</label>
+            <input type="text" class="form-control" disabled :value="authStore.accountPayout?.account_number ? authStore.accountPayout?.provider_name + ' ' + authStore.accountPayout?.account_number + ' A/N ' + authStore.accountPayout?.account_holder_name : 'N/A'" />
           </div>
         </div>
       </div>
@@ -226,56 +231,57 @@ const preventLetters = (event) => {
         <div class="grid-2-cols-uneven">
           <!-- Left fields -->
           <div class="left-fields">
-      <div class="form-group">
-              <label class="form-label">Kategori *</label>
-              <select class="form-control" v-model="data.kategori" :disabled="isLoadingCategories">
-                <option value="" disabled>
-                  {{ isLoadingCategories ? 'Memuat Kategori...' : 'Pilih Kategori' }}
-                </option>
-                <option v-for="kat in listKategori" :key="kat.id_category" :value="kat.id_category">
-                  {{ kat.name || kat.category_name }}
-                </option>
-              </select>
+            <div class="grid-2-cols">
+              <div class="form-group">
+                <label class="form-label">Kategori *</label>
+                <select class="form-control" v-model="data.kategori" :disabled="isLoadingCategories">
+                  <option value="" disabled>
+                    {{ isLoadingCategories ? 'Memuat Kategori...' : 'Pilih Kategori' }}
+                  </option>
+                  <option v-for="kat in listKategori" :key="kat.id_category" :value="kat.id_category">
+                    {{ kat.name || kat.category_name }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Tanggal Tagihan *</label>
+                <input type="date" class="form-control" v-model="data.tanggal" />
+              </div>
             </div>
 
             <div class="form-group" v-if="data.kategori === 0">
               <input type="text" class="form-control" placeholder="Sebutkan kategori..." v-model="data.kategori_manual" />
             </div>
 
-            <div class="form-group">
-              <label class="form-label">Tanggal Tagihan *</label>
-              <input type="date" class="form-control" v-model="data.tanggal" />
-            </div>
-
-            <div class="form-group">
+            <div class="form-group mt-2">
               <label class="form-label">Total Tagihan *</label>
               <input type="text" class="form-control" placeholder="Rp 0" v-model="displayTotal" @keypress="preventLetters" />
+            </div>
+
+            <div class="form-group mt-2">
+              <label class="form-label">Keterangan / Catatan</label>
+              <textarea class="form-control" rows="2" placeholder="Tuliskan keterangan..." v-model="data.catatan"></textarea>
             </div>
           </div>
 
           <!-- Right fields -->
-          <div class="right-fields">
-            <div class="form-group">
+          <div class="right-fields" style="height: 100%;">
+            <div class="form-group" style="height: 100%; display: flex; flex-direction: column;">
               <label class="form-label">Upload Bukti / Struk *</label>
 
-              <input type="file" ref="fileInput" @change="handleFileUpload" accept=".pdf,.jpg,.jpeg,.png"
-                style="display: none;" />
+              <input type="file" ref="fileInput" @change="handleFileUpload" accept=".pdf,.jpg,.jpeg,.png" style="display: none;" />
 
-              <div class="upload-box" @click="triggerUpload">
-                <UploadCloud :size="32" class="text-primary mb-2" />
+              <div class="upload-box" @click="triggerUpload" style="flex: 1; min-height: 150px;">
+                <UploadCloud :size="48" class="text-primary mb-2" />
 
-                <p class="font-medium text-primary" v-if="selectedFile">
+                <p class="font-medium text-primary mt-2" v-if="selectedFile">
                   {{ selectedFile.name }}
                 </p>
-                <p class="font-medium" v-else>Pilih file untuk di upload</p>
+                <p class="font-medium mt-2" v-else>Pilih file untuk di upload</p>
 
-                <p class="text-xs text-muted mt-1">PDF, JPG, PNG (Maks. 5MB)</p>
+                <p class="text-xs text-muted mt-2">PDF, JPG, PNG (Maks. 5MB)</p>
               </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Keterangan / Catatan</label>
-              <textarea class="form-control" rows="4" placeholder="Tuliskan keterangan..."
-                v-model="data.catatan"></textarea>
             </div>
           </div>
         </div>
@@ -287,42 +293,87 @@ const preventLetters = (event) => {
           {{ isLoading ? 'Mengirim...' : 'Buat Pengajuan' }}
         </button>
       </div>
+      </div>
+        </div>
+      </div>
     </div>
-  </div>
 </template>
 
 <style scoped>
-.page-header {
-  display: flex;
-  flex-direction: row;
-  align-items: center; /* Sejajar tengah antara tombol dan teks */
-  justify-content: flex-start !important; /* KUNCI: Memaksa semua item rapat ke KIRI */
-  gap: 1.25rem; /* Memberikan jarak yang pas antara tombol dan teks */
-  margin-bottom: 2rem;
-  width: 100%;
-}
-
-/* Pastikan div pembungkus teks (jika diberi class .header-info) rata kiri */
-.header-info {
+.add-page {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
+  height: 100%;
+  overflow: hidden;
 }
 
-.page-title {
-  font-size: 1.25rem;
+.form-container {
+  display: flex;
+  justify-content: center;
+  height: 100%;
+  overflow: hidden;
+}
+
+.form-card {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+.card-header {
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+
+.header-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #3b82f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.text-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-title {
+  font-size: 1rem;
   font-weight: 700;
   color: var(--color-text-main);
-  margin: 0; 
-  line-height: 1.2;
+  margin: 0;
 }
 
-.text-muted {
-  font-size: 0.875rem;
-  color: #64748b;
+.form-sub {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
   margin: 0;
-  margin-top: 0.25rem; 
+  margin-top: 0.25rem;
+}
+
+.form-content {
+  padding: 1rem 1.5rem;
+  overflow-y: auto;
+  flex: 1;
 }
 .back-btn {
   width: 36px;
@@ -344,15 +395,19 @@ const preventLetters = (event) => {
 
 
 .detail-card {
+<<<<<<< HEAD
   padding: 2rem;
   width: 100%;
+=======
+  /* previously had padding and max-width, now handled by form-card */
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 }
 
 .section-title-wrap {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .section-icon {
@@ -370,25 +425,25 @@ const preventLetters = (event) => {
 .grid-3-cols {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .grid-2-cols-uneven {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .left-fields {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 0.875rem;
 }
 
 .right-fields {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 0.875rem;
 }
 
 .form-control:disabled {
@@ -397,7 +452,7 @@ const preventLetters = (event) => {
 }
 
 .upload-box {
-  padding: 2rem 1rem;
+  padding: 1rem;
   background-color: #f8fafc;
   border: 2px dashed var(--color-border);
   border-radius: 8px;
@@ -416,7 +471,11 @@ const preventLetters = (event) => {
 }
 
 .mt-6 {
-  margin-top: 2rem;
+  margin-top: 0.75rem;
+}
+
+.mt-2 {
+  margin-top: 0.25rem;
 }
 
 .mb-2 {
@@ -443,7 +502,7 @@ const preventLetters = (event) => {
 .grid-2-cols {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 /* Memaksa elemen mengambil lebar penuh (2 kolom) */

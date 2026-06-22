@@ -40,6 +40,7 @@ const fetchKaryawan = async (page = 1) => {
     const listData = res.data?.data || []
 
     karyawan.value = listData
+<<<<<<< HEAD
       .filter(emp => emp.role?.id_role === 1) 
       .map(emp => {
         const payout = emp.account_payout || {}
@@ -62,6 +63,18 @@ const fetchKaryawan = async (page = 1) => {
           provider: providerData.provider_name || '-'
         }
       })
+=======
+      .filter(emp => emp.roles_id === 3) // Hanya tampilkan data Staff
+      .map(emp => ({
+      id: emp.id_employees,
+      nama: emp.name || '-',
+      email: emp.email || '-',
+      jabatan: emp.position || '-',
+      departemen: emp.position || '-', // fallback since backend might not have separate department field
+      totalPengajuan: emp.reimbursement_requests_count || 0,
+      totalAmount: new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(emp.reimbursement_requests_sum_amount || 0)
+    }))
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
   } catch (error) {
     console.error('Failed to load employees', error)
   } finally {
@@ -88,6 +101,7 @@ const filtered = computed(() => {
   )
 })
 
+<<<<<<< HEAD
 const goToDetail = (id) => {
   if (id) {
     router.push(`/karyawan/${id}`)
@@ -206,11 +220,25 @@ const processExport = async (formatType) => {
   } finally {
     isExporting.value = false
   }
+=======
+const showDetailModal = ref(false)
+const selectedEmp = ref(null)
+
+function openDetail(k) {
+  selectedEmp.value = k
+  showDetailModal.value = true
+}
+
+function closeDetail() {
+  showDetailModal.value = false
+  selectedEmp.value = null
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 }
 </script>
 
 <template>
   <div class="finance-karyawan">
+<<<<<<< HEAD
     <div class="page-header">
       <h1 class="page-title">Karyawan</h1>
       
@@ -222,6 +250,9 @@ const processExport = async (formatType) => {
         </button>
       </div>
     </div>
+=======
+    
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 
     <div class="card main-card">
       <div class="card-header">
@@ -284,9 +315,13 @@ const processExport = async (formatType) => {
               <td class="text-center font-semibold">{{ k.totalPengajuan }}</td>
               <td class="font-bold text-success">{{ k.totalAmount }}</td>
               <td class="text-center">
+<<<<<<< HEAD
                 <button class="btn-icon detail" title="Lihat Detail" @click="goToDetail(k.id)">
                   <Eye :size="12" />
                 </button>
+=======
+                <button class="btn-icon detail" title="Lihat Detail" @click="openDetail(k)"><Eye :size="12" /></button>
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
               </td>
             </tr>
           </tbody>
@@ -294,6 +329,7 @@ const processExport = async (formatType) => {
       </div>
 
       <div class="table-footer">
+<<<<<<< HEAD
         <p class="text-muted text-xs">
           menampilkan {{ fromItem }} dari {{ totalItems }} data
         </p>
@@ -341,6 +377,53 @@ const processExport = async (formatType) => {
               <span>{{ isExporting ? 'Memproses...' : 'Ekspor Excel' }}</span>
             </button>
           </div>
+=======
+        <p class="text-muted text-xs">Menampilkan {{ filtered.length }} data</p>
+        <div class="pagination" v-if="Math.ceil(filtered.length / 10) > 1">
+          <button class="page-btn"><ChevronLeft :size="12" /></button>
+          <button class="page-btn active">1</button>
+          <button class="page-btn" v-for="p in Math.ceil(filtered.length / 10) - 1" :key="p">{{ p + 1 }}</button>
+          <button class="page-btn"><ChevronRight :size="12" /></button>
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Detail Karyawan -->
+    <div v-if="showDetailModal" class="modal-overlay" @click.self="closeDetail">
+      <div class="modal-panel">
+        <div class="modal-panel-header">
+          <h3>Detail Karyawan</h3>
+          <button class="btn-close" @click="closeDetail">&times;</button>
+        </div>
+        <div class="modal-body" v-if="selectedEmp">
+          <div class="detail-row">
+            <span class="detail-label">Nama:</span>
+            <span class="detail-value font-bold">{{ selectedEmp.nama }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Email:</span>
+            <span class="detail-value">{{ selectedEmp.email }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Jabatan:</span>
+            <span class="detail-value">{{ selectedEmp.jabatan }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Departemen:</span>
+            <span class="detail-value dept-badge">{{ selectedEmp.departemen }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Total Pengajuan:</span>
+            <span class="detail-value font-semibold">{{ selectedEmp.totalPengajuan }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Total Nilai Reimburse:</span>
+            <span class="detail-value text-success font-bold">{{ selectedEmp.totalAmount }}</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" @click="closeDetail">Tutup</button>
         </div>
       </div>
     </div>
@@ -348,8 +431,9 @@ const processExport = async (formatType) => {
 </template>
 
 <style scoped>
-.finance-karyawan { display: flex; flex-direction: column; gap: 1rem; background: #f8fafc; height: 100%; overflow: hidden; }
+.finance-karyawan { display: flex; flex-direction: column; gap: 1rem; flex: 1; height: 100%; overflow: hidden; }
 
+<<<<<<< HEAD
 /* HEADER & QUICK ACTIONS */
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; flex-wrap: wrap; gap: 1rem; }
 .page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0; }
@@ -360,15 +444,32 @@ const processExport = async (formatType) => {
 
 .card { background: white; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); overflow: hidden; }
 .card-header { padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f8fafc; }
+=======
+.page-header { margin-bottom: 0; }
+.page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; }
+
+.card { background: white; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 1px 2px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.card-header { padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 .card-header-title { font-size: 0.875rem; font-weight: 700; color: #1e293b; }
 .header-actions { display: flex; gap: 0.625rem; align-items: center; }
 .search-box { position: relative; }
 .search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #94a3b8; }
 .search-input { padding: 0.4rem 0.75rem 0.4rem 2.125rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.75rem; outline: none; width: 220px; }
+<<<<<<< HEAD
 .table-responsive { overflow-x: auto; max-height: calc(100vh - 220px); }
 .modern-table { width: 100%; border-collapse: collapse; }
 .modern-table th { text-align: left; padding: 0.75rem 1.25rem; font-size: 0.6rem; font-weight: 600; color: #64748b; background: #f8fafc; border-bottom: 1px solid #f1f5f9; text-transform: uppercase; letter-spacing: 0.05em; }
 .modern-table td { padding: 0.75rem 1.25rem; font-size: 0.75rem; color: #475569; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
+=======
+.btn-sort { display: flex; align-items: center; gap: 0.375rem; padding: 0.4rem 0.875rem; font-size: 0.75rem; color: #64748b; border: 1px solid #e2e8f0; border-radius: 8px; background: white; cursor: pointer; }
+
+.table-responsive { overflow-x: auto; overflow-y: auto; flex: 1; }
+.modern-table { width: 100%; border-collapse: collapse; }
+.modern-table th { text-align: left; padding: 0.75rem 1.25rem; font-size: 0.6rem; font-weight: 600; color: #64748b; background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.05em; }
+.modern-table td { padding: 0.75rem 1.25rem; font-size: 0.75rem; color: #475569; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 .user-info { display: flex; align-items: center; gap: 0.625rem; }
 .avatar-sm { width: 28px; height: 28px; border-radius: 50%; background: #f1f5f9; color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; border: 1px solid #e2e8f0; }
 .user-meta { display: flex; flex-direction: column; }
@@ -385,6 +486,7 @@ const processExport = async (formatType) => {
 .py-8 { padding-top: 2rem !important; padding-bottom: 2rem !important; }
 .btn-icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: all 0.2s; }
 .btn-icon.detail { background: #f1f5f9; color: #64748b; }
+<<<<<<< HEAD
 .btn-icon.detail:hover { background: #e2e8f0; color: #1e293b; }
 .table-footer { padding: 0.75rem 1.25rem; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
 .pagination { display: flex; gap: 0.25rem; }
@@ -414,3 +516,21 @@ const processExport = async (formatType) => {
 .btn-excel:hover:not(:disabled) { background: #059669; transform: translateY(-2px); box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25); }
 .btn-download:disabled { opacity: 0.6; cursor: not-allowed; }
 </style>
+=======
+
+.table-footer { padding: 0.75rem 1.25rem; display: flex; justify-content: center; background: #f8fafc; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
+.pagination { display: flex; gap: 0.25rem; }
+.page-btn { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: #64748b; cursor: pointer; }
+.page-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
+
+/* Modal */
+.btn-close { background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer; line-height: 1; margin-top: -4px; }
+.modal-body { padding: 1.5rem 1.25rem; display: flex; flex-direction: column; gap: 0.875rem; }
+.detail-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #e2e8f0; padding-bottom: 0.5rem; }
+.detail-row:last-child { border-bottom: none; padding-bottom: 0; }
+.detail-label { font-size: 0.75rem; color: #64748b; font-weight: 600; }
+.detail-value { font-size: 0.8125rem; color: #1e293b; text-align: right; }
+.modal-footer { padding: 1rem 1.25rem; background: #f8fafc; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; }
+.btn-primary { background: #3b82f6; color: white; border: none; padding: 0.4rem 1rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem; cursor: pointer; }
+</style>
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)

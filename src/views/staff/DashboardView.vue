@@ -1,18 +1,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { 
-  Plus, Car, UtensilsCrossed, ParkingMeter, MoreHorizontal, 
-  ChevronLeft, ChevronRight, Calendar, Check, X, Clock, 
-  CheckCircle2, Zap, Bell, Download, Wallet, XCircle, FileText, Table
-} from 'lucide-vue-next'
+import { Plus, Car, UtensilsCrossed, ParkingMeter, MoreHorizontal, ChevronLeft, ChevronRight, Calendar, Check, X, Clock, CheckCircle2, Zap } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { formatRupiah, mapStatusToFrontend } from '@/utils/format'
 import ApiService from '@/api/ApiService'
-import * as XLSX from 'xlsx'
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
 
 const router = useRouter()
+const authStore = useAuthStore()
 
 // 1. Set Default Filter ke Bulan & Tahun Saat Ini
 const dateNow = new Date()
@@ -191,6 +185,7 @@ const fetchReimbursements = async (page = 1) => {
   isLoading.value = true
   try {
     const res = await ApiService.getMyReimbursementsByMonth(page, filterBulan.value)
+    
     const responseData = res.data?.data || [] 
     const metaData = res.data?.meta || {}
 
@@ -291,10 +286,10 @@ const ringkasanBulanIni = computed(() => {
 
 const kategoriStats = computed(() => {
   const stats = {
-    'Transportasi': { label: 'Transportasi', total: 0, ikon: Car, bg: '#22c55e' },
-    'Makanan': { label: 'Makanan', total: 0, ikon: UtensilsCrossed, bg: '#ec4899' },
-    'Parkir': { label: 'Parkir', total: 0, ikon: ParkingMeter, bg: '#a855f7' },
-    'Lain-lain': { label: 'Dan lain-lain', total: 0, ikon: MoreHorizontal, bg: '#3b82f6' }
+    'Transportasi': { label: 'Transportasi', total: 0, ikon: Car, bg: 'linear-gradient(135deg, #4ade80 0%, #16a34a 100%)' },
+    'Makanan': { label: 'Makanan', total: 0, ikon: UtensilsCrossed, bg: 'linear-gradient(135deg, #f472b6 0%, #db2777 100%)' },
+    'Parkir': { label: 'Parkir', total: 0, ikon: ParkingMeter, bg: 'linear-gradient(135deg, #c084fc 0%, #9333ea 100%)' },
+    'Lain-lain': { label: 'Dan lain-lain', total: 0, ikon: MoreHorizontal, bg: 'linear-gradient(135deg, #60a5fa 0%, #2563eb 100%)' }
   }
   dataFiltered.value.forEach(item => {
     const namaKategori = item.kategori.toLowerCase()
@@ -367,72 +362,15 @@ const getBorderColor = (kategori) => {
   <div class="dasbor-staf">
     
     <div class="header-utama">
-      <h2 class="judul-halaman">Beranda</h2>
-      <div class="header-actions">
-        
-        <button class="btn btn-primary tombol-tambah" @click="router.push('/staf/reimbursement/tambah')">
-          <Plus :size="16" /> 
-          <span class="text-tombol">Tambah Reimbursement</span> 
-        </button>
-
-        <div class="notif-wrapper">
-          <button class="header-icon-btn" title="Notifikasi" @click="toggleNotifMenu">
-            <Bell :size="20" />
-            <span v-if="hasUnread" class="notification-dot"></span>
-          </button>
-
-          <div v-if="showNotifMenu" class="notif-menu">
-            <div class="notif-header">
-              <h4>Pemberitahuan</h4>
-              <button class="btn-clear" @click="tandaiSemuaDibaca">Tandai dibaca</button>
-            </div>
-            
-            <div class="notif-list">
-              <div v-if="notifications.length === 0" class="notif-item justify-center text-gray-500 text-sm py-6" style="text-align: center;">
-                Belum ada pemberitahuan baru
-              </div>
-              <div v-for="notif in notifications" :key="notif.id" class="notif-item">
-                <div class="notif-icon-box" :class="getNotifIconBgClass(notif.type)">
-                  <component :is="getNotifIcon(notif.type)" :size="18" />
-                </div>
-                <div class="notif-content">
-                  <h5>{{ notif.title }}</h5>
-                  <p>{{ notif.message }}</p>
-                  <span class="notif-time">{{ notif.time }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="notif-footer">
-              <button @click="showNotifMenu = false">Tutup Notifikasi</button>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <div class="ringkasan-finansial">
-      <div class="rf-card primary-card">
-        <div class="rf-icon-wrapper"><Wallet :size="20" /></div>
-        <p class="rf-label">Total Pengajuan Bulan Ini</p>
-        <h3 class="rf-value">{{ ringkasanBulanIni.pengajuan }}</h3>
-      </div>
-      <div class="rf-card">
-        <div class="rf-icon-wrapper success"><CheckCircle2 :size="20" /></div>
-        <p class="rf-label">Disetujui / Dibayar</p>
-        <h3 class="rf-value text-success">{{ ringkasanBulanIni.disetujui }}</h3>
-      </div>
-      <div class="rf-card">
-        <div class="rf-icon-wrapper danger"><XCircle :size="20" /></div>
-        <p class="rf-label">Total Ditolak</p>
-        <h3 class="rf-value text-danger">{{ ringkasanBulanIni.ditolak }}</h3>
-      </div>
+      <h2 class="judul-halaman">Dashboard Staff</h2>
+      <button class="btn btn-primary tombol-tambah" @click="router.push('/staf/reimbursement/tambah')">
+        <Plus :size="16" /> Tambah Reimbursement
+      </button>
     </div>
 
     <div class="grid-dasbor">
       <div class="kolom-kiri">
-        <div class="section-title-row">
+        <div class="section-title-row title-with-filters">
           <h3 class="judul-seksi">Riwayat Reimbursement</h3>
         </div>
 
@@ -449,37 +387,19 @@ const getBorderColor = (kategori) => {
               {{ f.label }}
             </button>
           </div>
-          
-          <div class="kontrol-aksi-row">
-            <button class="btn-tanggal-full" @click="bukaModalBulan">
-              <span>{{ labelBulanTampil }}</span>
-              <Calendar :size="18" class="ikon-kalender" />
-            </button>
-            
-            <div class="dropdown-wrapper">
-              <button class="btn-ekspor" @click="toggleExportMenu">
-                <Download :size="18" class="ikon-ekspor" />
-                <span>Ekspor</span>
-              </button>
 
-              <div v-if="showExportMenu" class="dropdown-menu">
-                <button class="dropdown-item" @click="exportToPDF">
-                  <FileText :size="16" class="text-danger" />
-                  <span>Unduh PDF</span>
-                </button>
-                <button class="dropdown-item" @click="exportToExcel">
-                  <Table :size="16" class="text-success" />
-                  <span>Unduh Excel</span>
-                </button>
-              </div>
-            </div>
-          </div>
+          <button class="btn-tanggal-full" @click="bukaModalBulan">
+            <span>{{ labelBulanTampil }}</span>
+            <Calendar :size="18" class="ikon-kalender" />
+          </button>
         </div>
 
         <div class="daftar-container">
           <div v-if="isLoading" class="loading-overlay">
-            <div class="spinner"></div>
-            <p class="loading-teks">Memuat riwayat...</p>
+            <div class="loading-container">
+            <div class="global-spinner"></div>
+            <p>Memuat riwayat...</p>
+          </div>
           </div>
 
           <div v-else-if="dataFiltered.length === 0" class="kosong-teks">
@@ -534,54 +454,18 @@ const getBorderColor = (kategori) => {
       </div>
 
       <div class="kolom-kanan">
-        <h2 class="judul-seksi">Statistik Kategori</h2>
-        <div class="grid-statistik">
-          <div v-for="s in kategoriStats" :key="s.label" class="kartu-stat" :style="{ backgroundColor: s.bg }">
-            <div class="stat-ikon">
-              <component :is="s.ikon" :size="28" />
-            </div>
-            <div class="stat-info">
-              <p class="stat-label">{{ s.label }}</p>
-              <p class="stat-jumlah">{{ s.jumlah }}</p>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="pengajuanTerakhir" class="tracker-section">
-          <h2 class="judul-seksi judul-tracker">Pelacakan Pengajuan Terakhir</h2>
-          <div class="tracker-card">
-            <div class="tracker-header-info">
-              <h4 class="tracker-judul-klaim">{{ pengajuanTerakhir.judul }}</h4>
-              <p class="tracker-harga-klaim">{{ pengajuanTerakhir.jumlah }}</p>
-            </div>
-
-            <div class="timeline">
-              <div 
-                v-for="(step, idx) in timelineSteps" 
-                :key="idx" 
-                class="timeline-item"
-                :class="{ 
-                  'complete': step.isComplete, 
-                  'current': step.isCurrent, 
-                  'rejected': step.isRejected 
-                }"
-              >
-                <div class="timeline-badge-wrap">
-                  <div class="timeline-badge">
-                    <Check v-if="step.isComplete && !step.isRejected" :size="12" />
-                    <X v-else-if="step.isRejected" :size="12" />
-                    <span v-else>{{ idx + 1 }}</span>
-                  </div>
-                </div>
-                <div class="timeline-content">
-                  <h5>{{ step.label }}</h5>
-                  <p>{{ step.desc }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        
+        <h2 class="judul-seksi">Statistik dan Laporan</h2>
+     <div class="grid-statistik">
+  <div v-for="s in kategoriStats" :key="s.label" class="kartu-stat" :style="{ backgroundColor: s.bg }">
+    <div class="stat-ikon">
+      <component :is="s.ikon" :size="28" />
+    </div>
+    <div class="stat-info">
+      <p class="stat-label">{{ s.label }}</p>
+      <p class="stat-jumlah">{{ s.jumlah }}</p>
+    </div>
+  </div>
+</div>
       </div>
     </div>
 
@@ -614,80 +498,61 @@ const getBorderColor = (kategori) => {
 </template>
 
 <style scoped>
-.dasbor-staf {
+/* Struktur Baru Filter Kiri */
+.filter-kiri-wrap {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-}
-
-/* --- HEADER UTAMA & NOTIFIKASI --- */
-.header-utama {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-.judul-halaman {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #111827;
-}
-.header-actions {
-  display: flex;
-  align-items: center;
   gap: 1rem;
-}
-.tombol-tambah {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  background-color: #3b82f6;
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-.tombol-tambah:hover {
-  opacity: 0.9;
+  margin-bottom: 1.25rem;
 }
 
-/* Desain Icon Notifikasi */
-.header-icon-btn {
-  position: relative;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1px solid #e2e8f0;
+/* Tombol Tanggal Sesuai UI Foto */
+.btn-tanggal-full {
+  width: 100%;
+  display: flex;
+  align-items: center;
   background-color: white;
-  color: #64748b;
+  border: 1.5px solid #60a5fa; /* Biru terang sesuai foto */
+  color: #3b82f6;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-tanggal-full:hover {
+  background-color: #eff6ff;
+  border-color: #3b82f6;
+}
+
+.ikon-kalender {
+  color: #60a5fa;
+}
+
+/* --- MODAL BULAN --- */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   transition: all 0.2s;
 }
-.header-icon-btn:hover {
-  background-color: #f8fafc;
-  color: #3b82f6;
-  border-color: #cbd5e1;
-}
-.notification-dot {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  width: 8px;
-  height: 8px;
-  background-color: #ef4444;
-  border-radius: 50%;
-  border: 1.5px solid white;
-}
 
-/* --- DROPDOWN NOTIFIKASI --- */
-.notif-wrapper {
-  position: relative;
+.modal-box {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 340px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
 .notif-menu {
@@ -825,7 +690,7 @@ const getBorderColor = (kategori) => {
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 1.25rem;
 }
 .primary-card { background-color: #3b82f6; color: white; border-color: #3b82f6; }
 .rf-icon-wrapper { margin-bottom: 0.75rem; opacity: 0.8; }
@@ -839,77 +704,84 @@ const getBorderColor = (kategori) => {
 .grid-dasbor {
   display: grid;
   grid-template-columns: 1.8fr 1fr;
-  gap: 2rem;
-  align-items: start;
+  gap: 1rem;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
 }
+
+.header-utama {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.judul-halaman {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-text-main);
+}
+
 .judul-seksi {
   font-size: 1.0625rem;
   font-weight: 700;
-  color: var(--color-text-main, #1e293b);
+  color: var(--color-text-main);
   margin-bottom: 1rem;
 }
 
 /* ─── Kolom kiri ─── */
-.kolom-kiri { display: flex; flex-direction: column; gap: 0; }
-.filter-kiri-wrap { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.25rem; }
-.filter-chip-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.kolom-kiri {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* Filter chip */
+.filter-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.875rem;
+}
+
 .filter-chip {
-  display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.3rem 0.875rem;
-  border-radius: 999px; border: 1px solid var(--color-border, #e2e8f0); background: white;
-  font-size: 0.8125rem; font-weight: 500; color: var(--color-text-muted, #64748b);
-  cursor: pointer; transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.3rem 0.875rem;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: white;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
 }
-.filter-chip:hover { border-color: #3b82f6; color: #3b82f6; }
-.filter-chip-aktif { background: #3b82f6; border-color: #3b82f6; color: white; }
-.titik-warna { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 
-/* --- KONTROL AKSI (Kalender & Ekspor) --- */
-.kontrol-aksi-row { display: flex; gap: 0.75rem; }
-.btn-tanggal-full {
-  flex: 1; display: flex; justify-content: space-between; align-items: center;
-  background-color: white; border: 1.5px solid #60a5fa; color: #3b82f6; padding: 0.75rem 1rem;
-  border-radius: 8px; font-size: 0.9375rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease;
+.filter-chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
-.btn-tanggal-full:hover { background-color: #eff6ff; }
-.ikon-kalender { color: #60a5fa; }
 
-.btn-ekspor {
-  display: flex; align-items: center; gap: 0.5rem; background-color: white; border: 1px solid #cbd5e1;
-  color: #475569; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9375rem; font-weight: 500;
-  cursor: pointer; transition: all 0.2s ease; height: 100%;
+.filter-chip-aktif {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
 }
-.btn-ekspor:hover { background-color: #f1f5f9; color: #0f172a; }
-.ikon-ekspor { color: #64748b; }
 
-/* --- DAFTAR REIMBURSEMENT --- */
-.daftar-container {
-  background: white; border: 1px solid var(--color-border, #e2e8f0); border-radius: 12px;
-  overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.05); position: relative; min-height: 300px;
-  display: flex; flex-direction: column;
+.titik-warna {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
 }
-.daftar-list { flex: 1; display: flex; flex-direction: column; }
-.loading-overlay {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(2px); display: flex; flex-direction: column; justify-content: center;
-  align-items: center; z-index: 10;
-}
-.spinner {
-  width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top: 4px solid #3b82f6;
-  border-radius: 50%; animation: spin 1s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite; margin-bottom: 1rem;
-}
-.loading-teks { font-size: 0.875rem; font-weight: 500; color: #64748b; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-.reimbursement-cards {
-  display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem;
-}
-.reimbursement-cards::-webkit-scrollbar { width: 6px; }
-.reimbursement-cards::-webkit-scrollbar-track { background: transparent; }
-.reimbursement-cards::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-
-.reimbursement-card {
-  display: flex; background-color: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f3f4f6; border-right-width: 6px; border-right-style: solid; cursor: pointer; transition: all 0.2s ease;
+/* Input bulan */
+.pilih-bulan {
+  margin-bottom: 0;
 }
 .reimbursement-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
 .card-content { padding: 1.25rem 1.5rem; flex: 1; display: flex; justify-content: space-between; align-items: flex-end; }
@@ -934,24 +806,15 @@ const getBorderColor = (kategori) => {
   width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
   font-size: 0.8125rem; font-weight: 500; background: white; border: 1px solid #e2e8f0; color: #64748b; cursor: pointer; transition: all 0.15s;
 }
-.btn-paging:hover:not(:disabled):not(.paging-aktif) { background: #f1f5f9; }
-.btn-paging:disabled { opacity: 0.4; cursor: not-allowed; }
-.paging-aktif { background: #3b82f6; border-color: #3b82f6; color: white; }
-.kosong-teks { padding: 2.5rem; text-align: center; color: #64748b; font-size: 0.875rem; margin: auto; }
 
-/* ─── Kolom kanan: Statistik ─── */
-.kolom-kanan { display: flex; flex-direction: column; }
-.grid-statistik { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.kartu-stat {
-  border-radius: 14px; padding: 1rem; color: white; display: flex; flex-direction: column; justify-content: space-between; min-height: 100px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); transition: all 0.25s ease; position: relative;
-}
-.kartu-stat:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
-.stat-ikon { width: 44px; height: 44px; background: rgba(255,255,255,0.22); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-.stat-label { font-size: 0.875rem; font-weight: 500; opacity: 0.9; margin-bottom: 0.2rem; }
-.stat-jumlah { font-size: 1.125rem; font-weight: 700; letter-spacing: -0.01em; }
-
-/* ─── STYLE POIN NUM 3: TRACKER TIMELINE ─── */
-.tracker-section {
+.daftar-container {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  position: relative; 
+  min-height: 300px; /* Menjaga tinggi kotak agar tidak menyusut saat loading */
   display: flex;
   flex-direction: column;
 }
@@ -994,8 +857,15 @@ const getBorderColor = (kategori) => {
 .timeline {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
-  position: relative;
+  gap: 1rem;
+  padding: 1.25rem;
+  max-height: 550px;
+  overflow-y: auto;
+}
+
+/* Custom Scrollbar */
+.reimbursement-cards::-webkit-scrollbar {
+  width: 6px;
 }
 .timeline::before {
   content: '';
@@ -1071,34 +941,51 @@ const getBorderColor = (kategori) => {
   color: #3b82f6;
 }
 
-.timeline-item.rejected .timeline-badge {
-  background-color: #ef4444;
-  border-color: #ef4444;
-  color: white;
-}
-.timeline-item.rejected .timeline-content h5 {
-  color: #ef4444;
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  border: 1px solid transparent;
 }
 
-/* --- MODAL BULAN --- */
-.modal-backdrop {
-  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); display: flex; justify-content: center; align-items: center; z-index: 999; backdrop-filter: blur(2px);
+.pill-success {
+  background-color: #ECFDF5;
+  color: #10B981;
+  border-color: #A7F3D0;
 }
-.modal-box { background: white; padding: 1.5rem; border-radius: 12px; width: 90%; max-width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-.modal-judul { font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem; text-align: center; color: #1e293b; }
-.modal-tahun-kontrol { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.5rem; background: #f8fafc; border-radius: 8px; }
-.btn-kontrol-tahun { background: none; border: none; cursor: pointer; padding: 0.25rem; color: #64748b; display: flex; align-items: center; justify-content: center; }
-.btn-kontrol-tahun:hover { color: #3b82f6; }
-.label-tahun { font-weight: 700; font-size: 1.0625rem; color: #1e293b; }
-.grid-bulan { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1.5rem; }
-.btn-bulan-item { background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.5rem; font-size: 0.875rem; color: #475569; font-weight: 500; cursor: pointer; transition: all 0.2s; }
-.btn-bulan-item:hover { background: #f1f5f9; color: #0f172a; }
-.btn-bulan-item.aktif { background: #3b82f6; color: white; border-color: #3b82f6; }
-.modal-aksi { display: flex; justify-content: flex-end; gap: 0.75rem; }
-.btn-batal { background: none; border: none; font-size: 0.875rem; font-weight: 500; color: #64748b; cursor: pointer; padding: 0.5rem 1rem; }
-.btn-batal:hover { color: #1e293b; }
-.btn-terapkan { background: #3b82f6; border: none; font-size: 0.875rem; font-weight: 500; color: white; cursor: pointer; padding: 0.5rem 1.25rem; border-radius: 8px; }
-.btn-terapkan:hover { background: #2563eb; }
+
+.pill-danger {
+  background-color: #FEF2F2;
+  color: #EF4444;
+  border-color: #FECACA;
+}
+
+.pill-warning {
+  background-color: #FFFBEB;
+  color: #F59E0B;
+  border-color: #FDE68A;
+}
+
+.pill-info {
+  background-color: #EFF6FF;
+  color: #3B82F6;
+  border-color: #BFDBFE;
+}
+
+.status-reason {
+  font-size: 0.8rem;
+  color: #9CA3AF;
+}
+
+.amount {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+}
 
 .dropdown-wrapper {
   position: relative;
@@ -1140,32 +1027,73 @@ const getBorderColor = (kategori) => {
   color: #0f172a;
 }
 
-/* Responsivitas Mobile */
-@media (max-width: 640px) {
-  .header-utama {
-    align-items: center;
-  }
-  .tombol-tambah {
-    padding: 0.5rem;
-  }
-  .tombol-tambah .text-tombol {
-    display: none;
-  }
-  .notif-menu {
-    right: -10px;
-    width: 320px;
-  }
+/* ─── Kolom kanan: Statistik ─── */
+.kolom-kanan {
+  display: flex;
+  flex-direction: column;
 }
 
-@media (max-width: 1200px) {
+.grid-statistik {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.kartu-stat {
+  border-radius: 14px;
+  padding: 1rem;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+  transition: all 0.25s ease;
+  position: relative;
+}
+
+.kartu-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+
+.stat-ikon {
+  width: 44px;
+  height: 44px;
+  background: rgba(255,255,255,0.22);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  opacity: 0.9;
+  margin-bottom: 0.2rem;
+}
+
+.stat-jumlah {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
   .grid-dasbor {
     grid-template-columns: 1fr;
+  }
+  .grid-statistik {
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 
 @media (max-width: 768px) {
-  .ringkasan-finansial, .grid-statistik, .grid-bulan {
-    grid-template-columns: 1fr;
+  .grid-statistik {
+    grid-template-columns: 1fr 1fr;
   }
+
 }
 </style>

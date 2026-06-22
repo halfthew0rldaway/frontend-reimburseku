@@ -127,7 +127,7 @@ const zoomOut = () => {
           <ArrowLeft :size="20" />
         </button>
         <div class="header-info">
-          <h1 class="page-title">Detail Reimbursement</h1>
+          
           <p class="text-muted">Informasi lengkap reimburse anda</p>
         </div>
       </div>
@@ -356,13 +356,21 @@ const zoomOut = () => {
   --color-bg-disabled: #f1f5f9;
   
   padding: 1.5rem;
-  background-color: #f8fafc;
-  min-height: 100vh;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 
 .page-container {
   max-width: 1200px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+  width: 100%;
 }
 
 .page-header {
@@ -425,6 +433,22 @@ const zoomOut = () => {
   grid-template-columns: 1fr 380px; /* Kolom kiri fleksibel, Kolom kanan fix 380px */
   gap: 1.5rem;
   align-items: start;
+  flex: 1;
+  overflow: hidden;
+}
+
+.left-column {
+  height: 100%;
+  overflow-y: auto;
+  padding-bottom: 2rem;
+  padding-right: 0.5rem;
+}
+
+.right-column {
+  height: 100%;
+  overflow-y: auto;
+  padding-bottom: 2rem;
+  padding-right: 0.5rem;
 }
 
 /* --- CARD & SECTIONS --- */

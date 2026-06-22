@@ -1,7 +1,12 @@
 import axios from 'axios'
 import { useAuthStore } from '@/stores/auth'
 const apiClient = axios.create({
+<<<<<<< HEAD
   baseURL:  'https://backend-api-reimburseku.vercel.app/api',
+=======
+// baseURL: 'https://backend-api-reimburseku.vercel.app/api',
+  baseURL: 'http://localhost:8000/api', // Kembalikan ke /api setelah app.php diperbaiki
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'

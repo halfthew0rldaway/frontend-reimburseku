@@ -73,9 +73,7 @@ async function submit() {
 
 <template>
   <div class="tambah-deposit-page">
-    <div class="page-header">
-      <h1 class="page-title">Tambah Deposit</h1>
-    </div>
+    
 
     <div class="form-container">
       <div class="form-card">
@@ -131,17 +129,18 @@ async function submit() {
                   <span class="prefix">Rp</span>
                   <input v-model="form.amount" type="text" placeholder="0" required />
                 </div>
-                
-                <label class="mt-4">Upload Bukti Transfer <span class="req">*</span></label>
+              </div>
+              <div class="form-group">
+                <label>Upload Bukti Transfer <span class="req">*</span></label>
                 <div class="upload-area">
                   <Upload :size="24" class="upload-icon" />
                   <p class="upload-hint">{{ form.proof ? form.proof.name : 'Pilih file (JPG/PDF)' }}</p>
                   <input type="file" class="file-input" @change="handleFileUpload" />
                 </div>
               </div>
-              <div class="form-group">
+              <div class="form-group" style="grid-column: span 2;">
                 <label>Catatan Tambahan</label>
-                <textarea v-model="form.note" placeholder="Keterangan..." rows="6"></textarea>
+                <textarea v-model="form.note" placeholder="Keterangan..." rows="3"></textarea>
               </div>
             </div>
           </div>
@@ -158,23 +157,28 @@ async function submit() {
 </template>
 
 <style scoped>
-.tambah-deposit-page { display: flex; flex-direction: column; gap: 1.25rem; background: #f8fafc; }
+.tambah-deposit-page { display: flex; flex-direction: column; gap: 1.25rem; height: 100%; overflow: hidden; }
 .page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem; }
 
+<<<<<<< HEAD
 .form-container { display: flex; justify-content: center; padding: 1rem 0; }
 .form-card { background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px rgba(0,0,0,0.03); width: 100%; overflow: hidden; }
+=======
+.form-container { display: flex; justify-content: center; height: 100%; overflow: hidden; }
+.form-card { background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px rgba(0,0,0,0.03); width: 100%; max-width: none; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 
-.card-header { padding: 1.5rem 2rem; display: flex; align-items: center; gap: 1.5rem; border-bottom: 1px solid #f8fafc; }
-.btn-back { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; }
+.card-header { padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1.5rem; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
+.btn-back { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; flex-shrink: 0; }
 .header-info { display: flex; align-items: center; gap: 1rem; }
 .icon-wrap { width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #3b82f6; display: flex; align-items: center; justify-content: center; }
 .form-title { font-size: 1rem; font-weight: 700; color: #1e293b; }
 .form-sub { font-size: 0.75rem; color: #94a3b8; font-weight: 500; }
 
-.form-content { padding: 2rem; }
-.section-title { font-size: 0.75rem; font-weight: 700; color: #3b82f6; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; letter-spacing: 0.05em; }
+.form-content { padding: 1rem 1.5rem; overflow-y: auto; flex: 1; }
+.section-title { font-size: 0.75rem; font-weight: 700; color: #3b82f6; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; letter-spacing: 0.05em; }
 
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .form-grid.dual { grid-template-columns: 1fr 1fr; }
 
 .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -192,14 +196,14 @@ input:focus, textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 
 .prefix { position: absolute; left: 1rem; font-weight: 700; color: #1e293b; font-size: 0.875rem; }
 .input-with-prefix input { padding-left: 2.75rem; width: 100%; font-weight: 700; }
 
-.upload-area { border: 2px dashed #e2e8f0; border-radius: 12px; padding: 1.5rem; text-align: center; background: #fcfdfe; position: relative; cursor: pointer; transition: all 0.2s; }
+.upload-area { border: 2px dashed #e2e8f0; border-radius: 12px; padding: 1rem; text-align: center; background: #fcfdfe; position: relative; cursor: pointer; transition: all 0.2s; }
 .upload-area:hover { border-color: #3b82f6; background: #eff6ff; }
 .upload-icon { color: #94a3b8; margin-bottom: 0.5rem; }
 .upload-hint { font-size: 0.75rem; color: #3b82f6; font-weight: 600; }
 .file-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 
-.mt-6 { margin-top: 2rem; }
-.mt-4 { margin-top: 1rem; }
+.mt-6 { margin-top: 0.75rem; }
+.mt-4 { margin-top: 0.5rem; }
 
 .form-actions { display: flex; justify-content: flex-end; margin-top: 2.5rem; }
 .btn-submit { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.75rem; font-weight: 700; border-radius: 10px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25); }

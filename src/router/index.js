@@ -23,6 +23,7 @@ const router = createRouter({
         {
           path: 'dasbor',
           name: 'staf-dasbor',
+          meta: { title: 'Beranda' },
           component: () => import('../views/staff/DashboardView.vue')
         },
         {
@@ -33,21 +34,25 @@ const router = createRouter({
         {
           path: 'reimbursement',
           name: 'staf-reimbursement',
+          meta: { title: 'Reimbursement' },
           component: () => import('../views/staff/ReimbursementView.vue')
         },
         {
           path: 'reimbursement/tambah',
           name: 'staf-reimbursement-tambah',
+          meta: { title: 'Tambah Reimbursement' },
           component: () => import('../views/staff/ReimbursementAddView.vue')
         },
         {
           path: 'reimbursement/:id',
           name: 'staf-reimbursement-detail',
+          meta: { title: 'Detail Reimbursement' },
           component: () => import('../views/staff/ReimbursementDetailView.vue')
         },
         {
           path: 'profil',
           name: 'staf-profil',
+          meta: { title: 'Profil' },
           component: () => import('../views/staff/ProfileView.vue')
         }
       ]
@@ -61,36 +66,43 @@ const router = createRouter({
         {
           path: 'dasbor',
           name: 'admin-dasbor',
+          meta: { title: 'Beranda' },
           component: () => import('../views/admin/DashboardView.vue')
         },
         {
           path: 'karyawan',
           name: 'admin-karyawan',
+          meta: { title: 'Karyawan' },
           component: () => import('../views/admin/KaryawanView.vue')
         },
         {
           path: 'kategori',
           name: 'admin-kategori',
+          meta: { title: 'Kategori' },
           component: () => import('../views/admin/KategoriView.vue')
         },
         {
           path: 'metode-bayar',
           name: 'admin-metode-bayar',
+          meta: { title: 'Kelola Metode Bayar' },
           component: () => import('../views/admin/MetodeBayarView.vue')
         },
         {
           path: 'hak-akses',
           name: 'admin-hak-akses',
+          meta: { title: 'Hak Akses' },
           component: () => import('../views/admin/HakAksesView.vue')
         },
         {
           path: 'deposit',
           name: 'admin-deposit',
+          meta: { title: 'Deposit' },
           component: () => import('../views/admin/DepositView.vue')
         },
         {
           path: 'arsip-deposit',
           name: 'admin-arsip-deposit',
+          meta: { title: 'Arsip Deposit' },
           component: () => import('../views/admin/ArsipDepositView.vue')
         }
       ]
@@ -104,26 +116,31 @@ const router = createRouter({
         {
           path: 'dasbor',
           name: 'finance-dasbor',
+          meta: { title: 'Beranda' },
           component: () => import('../views/finance/DashboardView.vue')
         },
         {
           path: 'reimbursement',
           name: 'finance-reimbursement',
+          meta: { title: 'Reimbursement' },
           component: () => import('../views/finance/ReimbursementView.vue')
         },
         {
           path: 'deposit',
           name: 'finance-deposit',
+          meta: { title: 'Deposit' },
           component: () => import('../views/finance/DepositView.vue')
         },
         {
           path: 'deposit/tambah',
           name: 'finance-deposit-tambah',
+          meta: { title: 'Tambah Deposit' },
           component: () => import('../views/finance/TambahDepositView.vue')
         },
         {
           path: 'karyawan',
           name: 'finance-karyawan',
+          meta: { title: 'Karyawan' },
           component: () => import('../views/finance/KaryawanView.vue')
         },
         {
@@ -134,6 +151,7 @@ const router = createRouter({
         {
           path: 'arsip',
           name: 'finance-arsip',
+          meta: { title: 'Arsip' },
           component: () => import('../views/finance/ArsipView.vue')
         }
       ]

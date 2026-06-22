@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import ApiService from '@/api/ApiService'
 import { useAuthStore } from '@/stores/auth'
 import { ArrowLeft } from 'lucide-vue-next'
+import Swal from 'sweetalert2'
 
 const isLoadingProviders = ref(true)
 const authStore = useAuthStore()
@@ -124,7 +125,11 @@ const saveProfile = async () => {
   }
 
   if (errorMessages.length > 0) {
-    alert("Mohon perbaiki data berikut:\n\n- " + errorMessages.join('\n- '))
+    Swal.fire({
+      icon: 'warning',
+      title: 'Perhatian',
+      html: `Mohon perbaiki data berikut:<br><br>- ` + errorMessages.join('<br>- ')
+    })
     return // Hentikan fungsi di sini, jangan lanjut ke API
   }
 
@@ -161,9 +166,12 @@ const saveProfile = async () => {
       })
     }
 
-    alert('Profil berhasil diperbarui')
+    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Profil berhasil diperbarui', showConfirmButton: false, timer: 1500 })
+    setTimeout(() => {
+      window.location.reload()
+    }, 1500)
   } catch (error) {
-    alert(error.response?.data?.message || 'Gagal memperbarui profil')
+    Swal.fire({ icon: 'error', title: 'Gagal', text: error.response?.data?.message || 'Gagal memperbarui profil' })
     console.error(error)
   } finally {
     isSaving.value = false
@@ -179,7 +187,7 @@ const saveProfile = async () => {
         <ArrowLeft :size="20" />
       </button>
       <div class="profile-title-wrapper">
-        <h1 class="page-title">Akun Profil</h1>
+        
         <p class="text-muted">Manage profile accounts</p>
       </div>
     </div>
@@ -233,7 +241,7 @@ const saveProfile = async () => {
 
           <div class="form-group col-span-2">
             <label class="form-label">Alamat Tinggal</label>
-            <textarea v-model="user.alamat" class="form-control" rows="3"
+            <textarea v-model="user.alamat" class="form-control" rows="2"
               placeholder="Tuliskan alamat lengkap tinggal Anda..."></textarea>
           </div>
         </div>
@@ -355,6 +363,12 @@ const saveProfile = async () => {
 </template>
 
 <style scoped>
+.profile-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
 .profile-header-wrapper {
   display: flex;
   align-items: center;
@@ -406,15 +420,19 @@ const saveProfile = async () => {
 .profile-layout {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 2rem;
+  gap: 1.5rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 1.5rem;
 }
 
 .form-card {
-  padding: 2rem;
+  padding: 1.5rem;
 }
 
 .preview-card {
-  padding: 2rem;
+  padding: 1.5rem;
   height: fit-content;
 }
 
@@ -422,7 +440,7 @@ const saveProfile = async () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .section-icon {
@@ -438,7 +456,7 @@ const saveProfile = async () => {
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 /* Kunci utama agar Textarea Alamat melebar penuh ke kanan */
@@ -449,7 +467,7 @@ const saveProfile = async () => {
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
 
 /* Preview Card */

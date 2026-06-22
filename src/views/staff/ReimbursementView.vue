@@ -69,7 +69,7 @@ const getBorderColor = (category) => {
   <div class="reimbursement-list">
     <div class="page-header">
       <div>
-        <h1 class="page-title">Daftar Reimbursement</h1>
+        
         <p class="text-muted mt-1">Kelola semua pengajuan reimbursement Anda</p>
       </div>
       <router-link to="/staf/reimbursement/tambah" class="btn btn-primary">
@@ -144,6 +144,13 @@ const getBorderColor = (category) => {
 </template>
 
 <style scoped>
+.reimbursement-list {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
 .toolbar {
   padding: 0 0 1.5rem 0;
   display: flex;
@@ -190,6 +197,10 @@ const getBorderColor = (category) => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  overflow-y: auto;
+  flex: 1;
+  padding: 0.25rem;
+  margin: -0.25rem;
 }
 
 .reimbursement-card {
@@ -237,16 +248,6 @@ const getBorderColor = (category) => {
   gap: 0.75rem;
 }
 
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.2rem 0.6rem;
-  border-radius: 9999px;
-  font-size: 0.7rem;
-  font-weight: 500;
-  border: 1px solid transparent;
-}
 
 .pill-success {
   background-color: #ECFDF5;
@@ -291,7 +292,8 @@ const getBorderColor = (category) => {
 
 /* Pagination */
 .pagination-wrapper {
-  margin-top: 2rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
   display: flex;
   justify-content: center;
 }

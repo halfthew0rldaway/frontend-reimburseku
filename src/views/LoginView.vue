@@ -125,11 +125,11 @@ async function handleLogin() {
 .login-container {
   display: flex;
   min-height: 100vh;
-  background-color: var(--color-background);
+  background-color: white;
 }
 
 .login-left {
-  flex: 1;
+  flex: 1.2;
   background: linear-gradient(135deg, var(--color-primary) 0%, #1e3a8a 100%);
   color: white;
   padding: 3rem;
@@ -228,6 +228,7 @@ async function handleLogin() {
   align-items: center;
   justify-content: center;
   padding: 2rem;
+  background-color: white;
 }
 
 .login-card {
@@ -236,7 +237,7 @@ async function handleLogin() {
   background: white;
   padding: 3rem;
   border-radius: 1.5rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  /* Dihapus shadow agar menyatu dengan background putih */
 }
 
 .login-header {

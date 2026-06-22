@@ -2,6 +2,7 @@
 import { ref, onMounted, defineAsyncComponent } from 'vue'
 import { User, FileText, Bell, ChevronLeft, ChevronRight, X, Send } from 'lucide-vue-next'
 import ApiService from '@/api/ApiService'
+import Swal from 'sweetalert2'
 import { formatRupiah } from '@/utils/format'
 
 const stats = ref([
@@ -88,10 +89,10 @@ const populateDonutData = (reimbursements) => {
 
 onMounted(async () => {
   try {
-    const [empRes, reimbRes, msgRes] = await Promise.allSettled([
+    const [empRes, reimbRes, logRes] = await Promise.allSettled([
       ApiService.getEmployees(),
       ApiService.getReimbursements(),
-      ApiService.getReimbursementMessages()
+      ApiService.getSystemLogs()
     ])
 
     const employees = empRes.status === 'fulfilled' && empRes.value.data?.data ? (empRes.value.data.data.data || empRes.value.data.data) : []
@@ -99,8 +100,8 @@ onMounted(async () => {
 
     // 1. Ekstrak data dan metadata pagination dari JSON baru
     const reimbPayload = reimbRes.status === 'fulfilled' ? reimbRes.value.data : null
-    const reimbursements = reimbPayload?.data || [] // Mengambil array dari "data"
-    const meta = reimbPayload?.meta || {}
+    const reimbursements = reimbPayload?.data?.data || reimbPayload?.data || [] // Mengambil array dari "data"
+    const meta = reimbPayload?.data?.meta || reimbPayload?.meta || {}
 
     // Set data pagination
     pagination.value = {
@@ -109,10 +110,10 @@ onMounted(async () => {
       total: meta.total || 0
     }
 
-    // 2. Filter Status (Fallback ke 'menunggu' karena JSON tidak punya field status)
+    // 2. Filter Status
     const pending = reimbursements.filter(r => {
-      const status = r.last_status || r.status || 'menunggu'
-      return status.toLowerCase() === 'menunggu'
+      const status = r.last_status || r.status || 'PENDING'
+      return status.toLowerCase() === 'pending' || status.toLowerCase() === 'menunggu'
     })
 
     stats.value[1].value = pending.length.toString()
@@ -134,25 +135,26 @@ onMounted(async () => {
 
       return {
         id: item.id_request,
-        name: emp.name || `Karyawan ID: ${item.employees_id}`, // Fallback jika API employee gagal
+        employees_id: item.employees_id,
+        name: emp.name || `Karyawan ID: ${item.employees_id}`,
         category: categoryMap[item.category_id] || `Kategori ${item.category_id}`,
         date: new Date(parseableDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
         amount: `-${formatRupiah(item.amount)}`
       }
     })
 
-    const messages = msgRes.status === 'fulfilled' && msgRes.value.data?.data ? (msgRes.value.data.data.data || msgRes.value.data.data) : []
-    logs.value = messages.slice(0, 5).map((m, i) => {
-      let parseableDate = m.created_at;
+    const logsData = logRes.status === 'fulfilled' && logRes.value.data?.data ? logRes.value.data.data : []
+    logs.value = logsData.slice(0, 5).map((l, i) => {
+      let parseableDate = l.created_at || l.time;
       if (typeof parseableDate === 'string' && parseableDate.includes(' ') && !parseableDate.includes('T')) {
         parseableDate = parseableDate.replace(' ', 'T') + 'Z';
       }
       return {
-        id: m.id_message || i,
+        id: l.id_log || l.id || i,
         time: new Date(parseableDate).toLocaleString('id-ID'),
-        text: m.message || 'Notifikasi',
-        target: m.user_id ? 'Pesan Sistem' : '',
-        color: '#3b82f6'
+        text: l.comments || l.text || l.action,
+        target: l.source || '',
+        color: l.source === 'Deposit' ? '#10b981' : '#3b82f6'
       }
     })
 
@@ -166,40 +168,45 @@ onMounted(async () => {
 // Modal State & Functions (Tidak ada perubahan)
 const showNotifModal = ref(false)
 const selectedUser = ref('')
+const selectedReceiverId = ref(null)
 const message = ref('')
+const messageTitle = ref('Pesan Sistem')
 
-function openNotif(name) {
-  selectedUser.value = name
-  message.value = `Halo tim Finance, mohon segera proses pengajuan reimbursement dari ${name}. Terima kasih.`
+function openNotif(item) {
+  selectedUser.value = item.name
+  selectedReceiverId.value = item.employees_id || 1
+  message.value = `Pemberitahuan: Mohon segera proses pengajuan reimbursement dari ${item.name}. Terima kasih.`
   showNotifModal.value = true
 }
 
 async function sendNotif() {
   try {
-    await ApiService.saveReimbursementMessage({ message: message.value })
-    alert('Notifikasi berhasil dikirim')
+    await ApiService.saveReimbursementMessage({ 
+      receiver_id: selectedReceiverId.value,
+      message_content: message.value,
+      title: messageTitle.value
+    })
+    Swal.fire({ icon: 'success', title: 'Berhasil', text: 'Notifikasi berhasil dikirim', showConfirmButton: false, timer: 1500 })
     showNotifModal.value = false
 
-    const msgRes = await ApiService.getReimbursementMessages()
-    const messages = msgRes.data?.data?.data || msgRes.data?.data || []
-    logs.value = messages.slice(0, 3).map((m, i) => ({
-      id: m.id_message || i,
-      time: new Date(m.created_at).toLocaleString('id-ID'),
-      text: m.message || 'Notifikasi',
-      target: m.user_id ? 'Pesan Sistem' : '',
-      color: '#3b82f6'
+    const logRes = await ApiService.getSystemLogs()
+    const logsData = logRes.data?.data || []
+    logs.value = logsData.slice(0, 3).map((l, i) => ({
+      id: l.id_log || l.id || i,
+      time: new Date(l.created_at || l.time).toLocaleString('id-ID'),
+      text: l.comments || l.text || l.action,
+      target: l.source || '',
+      color: l.source === 'Deposit' ? '#10b981' : '#3b82f6'
     }))
   } catch (err) {
-    alert('Gagal mengirim notifikasi')
+    Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal mengirim notifikasi' })
     console.error(err)
   }
 }
 </script>
 <template>
   <div class="admin-dashboard">
-    <div class="page-header">
-      <h1 class="page-title">Beranda</h1>
-    </div>
+    
 
     <div class="dashboard-grid">
       <!-- Left Column -->
@@ -256,7 +263,7 @@ async function sendNotif() {
         <div class="card list-card">
           <div class="card-header">
             <span>Menunggu Persetujuan</span>
-            <span class="header-badge">18</span>
+            <span class="header-badge">{{ stats[1].value }}</span>
           </div>
           <div class="approval-list">
             <div v-if="isLoading"
@@ -285,7 +292,7 @@ async function sendNotif() {
                 </div>
                 <div class="item-right">
                   <div class="amount-text">{{ item.amount }}</div>
-                  <button class="btn-notif" @click="openNotif(item.name)">
+                  <button class="btn-notif" @click="openNotif(item)">
                     <Bell :size="12" /> Kirim Notif
                   </button>
                 </div>
@@ -310,8 +317,8 @@ async function sendNotif() {
 
     <!-- Modal Notifikasi -->
     <div v-if="showNotifModal" class="modal-overlay" @click.self="showNotifModal = false">
-      <div class="modal notif-modal">
-        <div class="modal-header-notif">
+      <div class="modal-panel">
+        <div class="modal-panel-header">
           <div class="notif-icon-box">
             <Bell :size="18" />
           </div>
@@ -323,14 +330,18 @@ async function sendNotif() {
             <X :size="18" />
           </button>
         </div>
-        <div class="modal-body-notif">
-          <div class="notif-target">Penerima: <strong>Tim Finance</strong></div>
+        <div class="modal-panel-body">
+          <div class="notif-target">Penerima ID: <strong>{{ selectedReceiverId }}</strong></div>
+          <div class="form-group-notif">
+            <label>Judul Pesan</label>
+            <input type="text" v-model="messageTitle" class="form-control" style="margin-bottom: 10px; width: 100%; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.5rem;" />
+          </div>
           <div class="form-group-notif">
             <label>Pesan Notifikasi</label>
             <textarea v-model="message" rows="3" placeholder="Tulis pesan..."></textarea>
           </div>
         </div>
-        <div class="modal-footer-notif">
+        <div class="modal-panel-footer">
           <button @click="showNotifModal = false" class="btn-cancel">Batal</button>
           <button @click="sendNotif" class="btn-send">
             <Send :size="12" /> Kirim Notif
@@ -346,13 +357,13 @@ async function sendNotif() {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  background-color: #f8fafc;
+  flex: 1;
   height: 100%;
   overflow: hidden;
 }
 
 .page-header {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0;
 }
 
 .page-title {
@@ -366,12 +377,18 @@ async function sendNotif() {
   grid-template-columns: 1.8fr 1fr;
   gap: 1.25rem;
   align-items: start;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .left-column {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* Stats */
@@ -423,6 +440,9 @@ async function sendNotif() {
   border-radius: 12px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   border: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .card-header {
@@ -433,7 +453,7 @@ async function sendNotif() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 /* Chart */
@@ -486,6 +506,8 @@ async function sendNotif() {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .log-item {
@@ -534,6 +556,10 @@ async function sendNotif() {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   border: 1px solid #f1f5f9;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
 }
 
 .header-badge {
@@ -548,6 +574,11 @@ async function sendNotif() {
 .approval-list {
   display: flex;
   flex-direction: column;
+<<<<<<< HEAD
+=======
+  flex: 1;
+  overflow-y: auto;
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 }
 
 .approval-item {
@@ -555,7 +586,7 @@ async function sendNotif() {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .item-left {
@@ -668,33 +699,8 @@ async function sendNotif() {
 }
 
 /* Modal */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
 
-.notif-modal {
-  background: white;
-  width: 100%;
-  max-width: 360px;
-  border-radius: 16px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-}
 
-.modal-header-notif {
-  padding: 1.25rem;
-  border-bottom: 1px solid #f1f5f9;
-  display: flex;
-  align-items: flex-start;
-  gap: 0.875rem;
-  position: relative;
-}
 
 .notif-icon-box {
   width: 36px;
@@ -730,9 +736,6 @@ async function sendNotif() {
   cursor: pointer;
 }
 
-.modal-body-notif {
-  padding: 1.25rem;
-}
 
 .notif-target {
   font-size: 0.75rem;
@@ -761,14 +764,6 @@ async function sendNotif() {
   box-sizing: border-box;
 }
 
-.modal-footer-notif {
-  padding: 1rem 1.25rem;
-  background: #f8fafc;
-  border-top: 1px solid #f1f5f9;
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.625rem;
-}
 
 .btn-cancel {
   padding: 0.5rem 1rem;

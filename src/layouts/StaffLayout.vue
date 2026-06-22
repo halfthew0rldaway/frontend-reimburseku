@@ -1,4 +1,5 @@
 <script setup>
+<<<<<<< HEAD
 import { RouterView, useRouter } from 'vue-router'
 import { 
   Edit2, 
@@ -8,10 +9,18 @@ import {
   Wifi, 
   Bluetooth 
 } from 'lucide-vue-next'
+=======
+import { RouterView, useRouter, useRoute } from 'vue-router'
+import { Edit2, LogOut } from 'lucide-vue-next' // Tambahkan import LogOut di sini
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 import { useAuthStore } from '@/stores/auth'
+import { computed } from 'vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const route = useRoute()
+
+const pageTitle = computed(() => route.meta.title || 'ReimburseKu')
 
 const logout = () => {
   authStore.clearAuth()
@@ -81,6 +90,11 @@ const logout = () => {
     </aside>
 
     <main class="main-content">
+      <header class="top-bar">
+        <div class="top-left">
+          <h1 class="page-title">{{ pageTitle }}</h1>
+        </div>
+      </header>
       <div class="page-container">
         <router-view />
       </div>
@@ -92,9 +106,10 @@ const logout = () => {
 /* Struktur Layout */
 .layout-container {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   width: 100%;
-  background-color: #f4f6f9;
+  overflow: hidden;
+  background-color: var(--color-background);
 }
 
 .sidebar {
@@ -311,12 +326,22 @@ const logout = () => {
   border: none;
   cursor: pointer;
   font-family: inherit;
+<<<<<<< HEAD
   color: rgba(255, 255, 255, 0.75);
 }
 
 .logout-btn:hover {
   background-color: rgba(239, 68, 68, 0.1);
   color: #ef4444;
+=======
+  color: rgba(255,255,255,0.7);
+  transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+>>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 }
 
 .logout-icon {
@@ -353,17 +378,27 @@ const logout = () => {
 .main-content {
   flex: 1;
   margin-left: 250px;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
 .page-container {
-  padding: 2.5rem 4%;
+  padding: 1.5rem 2rem;
   flex: 1;
-  max-width: 1600px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
   width: 100%;
+  overflow: hidden;
+}
+
+.top-bar {
+  height: 64px; background: white; border-bottom: 1px solid #f1f5f9; padding: 0 2rem;
+  display: flex; align-items: center; position: sticky; top: 0; z-index: 40; flex-shrink: 0;
+}
+.page-title {
+  font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0;
 }
 
 @media (max-width: 768px) {
