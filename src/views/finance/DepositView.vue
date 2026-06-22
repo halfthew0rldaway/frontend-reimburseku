@@ -68,11 +68,7 @@ onMounted(async () => {
           type: 'Dana Keluar',
           source: `Reimburse: ${r.employees_name || r.employee_name || 'Karyawan'}`,
           amount: `-${formatRupiah(r.amount)}`,
-<<<<<<< HEAD
           rawAmount: -parseFloat(r.amount), // Jadikan negatif untuk kalkulasi saldo
-=======
-          rawAmount: -parseFloat(r.amount),
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
           rawDate: new Date(r.expense_date || r.created_at),
           date: new Date(r.expense_date || r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
           note: r.description || r.category_name || 'Pembayaran Reimbursement'
@@ -80,22 +76,8 @@ onMounted(async () => {
       }
     })
 
-<<<<<<< HEAD
     // Sort awal berdasarkan tanggal terlama untuk menghitung Saldo Berjalan (Running Balance)
     allTx.sort((a, b) => a.rawDate - b.rawDate)
-=======
-    // Sort ascending to calculate running balance
-    allTx.sort((a, b) => a.rawDate - b.rawDate)
-    
-    let currentBalance = 0
-    allTx.forEach(t => {
-      currentBalance += t.rawAmount
-      t.balance = formatRupiah(currentBalance)
-    })
-
-    // Sort descending for display
-    allTx.sort((a, b) => b.rawDate - a.rawDate)
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
     
     let currentBalance = 0;
     allTx = allTx.map(tx => {
@@ -252,7 +234,6 @@ const goToTambah = () => router.push('/finance/deposit/tambah')
   </div>
 </template>
 <style scoped>
-<<<<<<< HEAD
 
 .sort-dropdown { position: relative; }
 .dropdown-menu {
@@ -308,9 +289,6 @@ const goToTambah = () => router.push('/finance/deposit/tambah')
 .loading-text { margin-top: 0.75rem; font-size: 0.7rem; color: #64748b; font-weight: 500; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .finance-deposit { display: flex; flex-direction: column; gap: 1rem; background: #f8fafc; height: 100%; overflow: hidden; }
-=======
-.finance-deposit { display: flex; flex-direction: column; gap: 1rem; flex: 1; height: 100%; overflow: hidden; }
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 
 .page-header { margin-bottom: 0; }
 .page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; }

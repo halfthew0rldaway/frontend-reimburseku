@@ -395,12 +395,8 @@ const preventLetters = (event) => {
 
 
 .detail-card {
-<<<<<<< HEAD
   padding: 2rem;
   width: 100%;
-=======
-  /* previously had padding and max-width, now handled by form-card */
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 }
 
 .section-title-wrap {

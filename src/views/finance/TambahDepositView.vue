@@ -160,13 +160,8 @@ async function submit() {
 .tambah-deposit-page { display: flex; flex-direction: column; gap: 1.25rem; height: 100%; overflow: hidden; }
 .page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem; }
 
-<<<<<<< HEAD
 .form-container { display: flex; justify-content: center; padding: 1rem 0; }
 .form-card { background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px rgba(0,0,0,0.03); width: 100%; overflow: hidden; }
-=======
-.form-container { display: flex; justify-content: center; height: 100%; overflow: hidden; }
-.form-card { background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px rgba(0,0,0,0.03); width: 100%; max-width: none; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 
 .card-header { padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1.5rem; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
 .btn-back { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; flex-shrink: 0; }

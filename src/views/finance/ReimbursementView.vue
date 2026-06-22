@@ -516,7 +516,6 @@ onMounted(() => {
       </div>
 
       <div class="table-footer">
-<<<<<<< HEAD
         <p class="text-muted text-xs">
           menampilkan {{ fromItem }} dari {{ totalItems }} data
         </p>
@@ -597,14 +596,6 @@ onMounted(() => {
         <div class="modal-footer footer-spaced">
           <button class="btn-cancel" @click="resetFilter">Hapus Filter</button>
           <button class="btn-primary-modal" @click="applyFilter">Terapkan Filter</button>
-=======
-        <p class="text-muted text-xs">Menampilkan {{ filteredItems.length }} data</p>
-        <div class="pagination" v-if="Math.ceil(filteredItems.length / 10) > 1">
-          <button class="page-btn"><ChevronLeft :size="12" /></button>
-          <button class="page-btn active">1</button>
-          <button class="page-btn" v-for="p in Math.ceil(filteredItems.length / 10) - 1" :key="p">{{ p + 1 }}</button>
-          <button class="page-btn"><ChevronRight :size="12" /></button>
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
         </div>
       </div>
     </div>
@@ -754,7 +745,6 @@ onMounted(() => {
 </template>
 
 <style scoped>
-<<<<<<< HEAD
 .finance-reimburse {
   display: flex;
   flex-direction: column;
@@ -763,21 +753,13 @@ onMounted(() => {
   height: 100%;
   overflow: hidden;
 }
-=======
-.finance-reimburse { display: flex; flex-direction: column; gap: 1rem; flex: 1; height: 100%; overflow: hidden; }
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 
 .page-header { margin-bottom: 0; }
 .page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; }
 
-<<<<<<< HEAD
 .card { background: white; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); }
 
 .card-header { padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f8fafc; }
-=======
-.card { background: white; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 1px 2px rgba(0,0,0,0.05); display: flex; flex-direction: column; flex: 1; overflow: hidden; min-height: 0; }
-.card-header { padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 .card-header-title { font-size: 0.875rem; font-weight: 700; color: #1e293b; }
 .card-header-sub { font-size: 0.65rem; color: #94a3b8; margin-top: 0.125rem; font-weight: 500; }
 
@@ -801,12 +783,8 @@ onMounted(() => {
 
 .count-badge { background: #fffbeb; color: #f59e0b; font-size: 0.65rem; font-weight: 700; padding: 0.4rem 0.875rem; border-radius: 8px; border: 1px solid #fef3c7; }
 
-<<<<<<< HEAD
 .table-responsive { overflow-x: auto; max-height: calc(100vh - 220px); }
 
-=======
-.table-responsive { overflow-x: auto; overflow-y: auto; flex: 1; }
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 .modern-table { width: 100%; border-collapse: collapse; }
 .modern-table th { text-align: left; padding: 0.75rem 1.25rem; font-size: 0.6rem; font-weight: 600; color: #94a3b8; background: #fcfdfe; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.05em; }
 .modern-table td { padding: 0.75rem 1.25rem; font-size: 0.75rem; color: #64748b; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
@@ -822,14 +800,11 @@ onMounted(() => {
 
 .btn-file { background: #eff6ff; color: #3b82f6; border: 1px solid #dbeafe; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.65rem; font-weight: 700; display: flex; align-items: center; gap: 0.25rem; cursor: pointer; text-decoration: none;}
 
-<<<<<<< HEAD
 .status-pill { font-size: 0.6rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 6px; display: inline-block; }
 .status-pill.menunggu { background: #fffbeb; color: #f59e0b; }
 .status-pill.dibayar { background: #f0fdf4; color: #22c55e; }
 .status-pill.disetujui { background: white; color: #3b82f6; border: 1px solid #3b82f6; }
 .status-pill.ditolak { background: #fef2f2; color: #ef4444; }
-=======
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 
 .action-row { display: flex; justify-content: center; gap: 0.375rem; }
 .btn-action { border-radius: 6px; font-size: 0.7rem; font-weight: 700; padding: 0.375rem 0.75rem; cursor: pointer; border: none; min-width: 64px; transition: all 0.2s; }
@@ -840,18 +815,13 @@ onMounted(() => {
 .btn-action.bayar-green { background: #22c55e; color: white; }
 .btn-action.bukti-ghost { background: #f1f5f9; color: #64748b; font-weight: 600; border: 1px solid #e2e8f0; }
 
-<<<<<<< HEAD
 .table-footer { padding: 0.75rem 1.25rem; display: flex; justify-content: space-between; align-items: center; background: #fcfdfe; }
 
-=======
-.table-footer { padding: 0.75rem 1.25rem; display: flex; justify-content: space-between; align-items: center; background: #fcfdfe; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 .pagination { display: flex; gap: 0.25rem; }
 .page-btn { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: #64748b; cursor: pointer; }
 .page-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
 .text-xs { font-size: 0.65rem; }
 
-<<<<<<< HEAD
 /* MODALS */
 .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(2px); }
 .modal { background: white; border-radius: 12px; width: 90%; max-width: 380px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); }
@@ -861,11 +831,6 @@ onMounted(() => {
 .close-btn { color: #64748b; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
 .close-btn:hover { color: #ef4444; }
 .modal-body { padding: 1.25rem; }
-=======
-/* Modal */
-.modal-title { font-size: 0.875rem; font-weight: 700; color: #1e293b; }
-.close-btn { color: #94a3b8; background: none; border: none; cursor: pointer; margin-left: auto; }
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 .confirm-msg { font-size: 0.75rem; color: #475569; line-height: 1.5; margin-bottom: 1rem; }
 .upload-section { display: flex; flex-direction: column; gap: 0.5rem; }
 .upload-label { font-size: 0.7rem; font-weight: 700; color: #1e293b; }
@@ -875,16 +840,12 @@ onMounted(() => {
 .upload-input-mock { flex: 1; border: none; padding: 0 0.875rem; font-size: 0.75rem; color: #94a3b8; background: #fcfdfe; }
 .upload-btn-inner { background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; width: 36px; cursor: pointer; position: relative; }
 .hidden-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-<<<<<<< HEAD
 .modal-footer { padding: 0.875rem 1.25rem; display: flex; justify-content: flex-end; gap: 0.625rem; border-top: 1px solid #f1f5f9; background: #f8fafc; border-radius: 0 0 12px 12px; }
 .footer-spaced { justify-content: space-between; }
-=======
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 .btn-modal { padding: 0.5rem 1.25rem; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; }
 .btn-modal.batal { background: #ef4444; color: white; }
 .btn-modal.main-btn { background: #3b82f6; color: white; }
 
-<<<<<<< HEAD
 /* Filter Modal Inputs CSS */
 .form-group { margin-bottom: 1.25rem; }
 .form-label { display: block; font-size: 0.8125rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem; }
@@ -913,9 +874,6 @@ onMounted(() => {
 
 /* Other Modals */
 .success-modal { text-align: center; max-width: 300px; }
-=======
-.success-modal { text-align: center; max-width: 300px; border-radius: 16px; }
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 .success-body { padding: 2rem 1.25rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
 .success-title { font-size: 1.25rem; font-weight: 800; color: #22c55e; }
 .btn-back-success { background: #3b82f6; color: white; border: none; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer; }

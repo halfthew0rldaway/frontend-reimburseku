@@ -574,11 +574,6 @@ async function sendNotif() {
 .approval-list {
   display: flex;
   flex-direction: column;
-<<<<<<< HEAD
-=======
-  flex: 1;
-  overflow-y: auto;
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 }
 
 .approval-item {

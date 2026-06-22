@@ -161,15 +161,9 @@ const fetchDashboardData = async (page = 1) => {
       ApiService.getReimbursements(page)
     ])
     
-<<<<<<< HEAD
     const statsData = statsRes.data?.data || {}
     stats.value[0].value = formatRupiah(statsData.saldo_kas || 0)
     stats.value[1].value = formatRupiah(statsData.telah_dibayarkan || 0)
-=======
-    const data = statsRes.data?.data || {}
-    stats.value[0].value = formatRupiah(data.remaining_balance || 0)
-    stats.value[1].value = formatRupiah(data.total_expense || 0)
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 
     const metaData = reimburseRes.data?.meta || {}
     currentPage.value = metaData.current_page || 1
@@ -177,7 +171,6 @@ const fetchDashboardData = async (page = 1) => {
 
     const listData = reimburseRes.data?.data || []
     
-<<<<<<< HEAD
     const catCounts = {}
 
     history.value = listData.map(item => {
@@ -210,16 +203,6 @@ const fetchDashboardData = async (page = 1) => {
       pieSeries.value = [100]
     }
 
-=======
-    history.value = listData.slice(0, 6).map(item => ({
-      id: item.id_request,
-      name: item.employees_name || item.employee_name || item.employees?.name || 'Unknown',
-      category: item.category_name || item.category?.category_name || 'Lain-lain',
-      amount: formatRupiah(item.amount),
-      date: new Date(item.expense_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }),
-      status: mapStatusToFrontend(item.last_status)
-    }))
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
   } catch (error) {
     console.error('Failed to load dashboard table', error)
   } finally {
@@ -503,7 +486,6 @@ const exportByDateRange = async (formatType) => {
 
 <template>
   <div class="finance-dasbor">
-<<<<<<< HEAD
     <div class="page-header">
       <h1 class="page-title">Beranda Finance</h1>
       
@@ -518,9 +500,6 @@ const exportByDateRange = async (formatType) => {
         </button>
       </div>
     </div>
-=======
-    
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 
     <div class="stats-row">
       <div v-for="s in stats" :key="s.label" class="stat-card" :class="{ 'card-blue': s.isBlue }">
@@ -536,7 +515,6 @@ const exportByDateRange = async (formatType) => {
     </div>
 
     <div class="dashboard-grid">
-<<<<<<< HEAD
       <div class="left-column">
         <div class="card chart-card">
           <div class="card-head">
@@ -584,12 +562,6 @@ const exportByDateRange = async (formatType) => {
           <div class="chart-content">
             <VueApexCharts :key="chartMode" type="area" height="100%" :options="chartOptions" :series="series" />
           </div>
-=======
-      <!-- Left: Area Chart -->
-      <div class="card chart-card">
-        <div class="card-head">
-          <h3 class="card-title">Pengeluaran Seminggu terakhir</h3>
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
         </div>
 
         <div class="card donut-card">
@@ -663,7 +635,6 @@ const exportByDateRange = async (formatType) => {
           </template>
         </div>
         
-<<<<<<< HEAD
         <div class="pagination" v-if="lastPage > 1">
           <button class="p-btn" :disabled="currentPage === 1" @click="changePage(currentPage - 1)"><ChevronLeft :size="14" /></button>
           <span v-for="page in lastPage" :key="page" class="p-num" :class="{ active: currentPage === page }" @click="changePage(page)">{{ page }}</span>
@@ -851,13 +822,6 @@ const exportByDateRange = async (formatType) => {
               <span>{{ isExporting ? 'Memproses...' : 'Excel' }}</span>
             </button>
           </div>
-=======
-        <div class="pagination" v-if="Math.ceil(history.length / 10) > 1">
-          <button class="p-btn" aria-label="Halaman Sebelumnya" disabled><ChevronLeft :size="14" /></button>
-          <span class="p-num active">1</span>
-          <span class="p-num" v-for="p in Math.ceil(history.length / 10) - 1" :key="p">{{ p + 1 }}</span>
-          <button class="p-btn" aria-label="Halaman Selanjutnya"><ChevronRight :size="14" /></button>
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
         </div>
       </div>
     </div>
@@ -865,7 +829,6 @@ const exportByDateRange = async (formatType) => {
 </template>
 
 <style scoped>
-<<<<<<< HEAD
 .finance-dasbor { display: flex; flex-direction: column; gap: 1.25rem; background: #f8fafc; height: calc(100vh - 64px - 3rem); overflow: hidden; padding-bottom: 0.5rem; }
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0; flex-wrap: wrap; gap: 1rem; }
 .page-title { font-size: 1.35rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; margin: 0; }
@@ -879,21 +842,6 @@ const exportByDateRange = async (formatType) => {
 /* --- STATS CARD --- */
 .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; max-width: 600px; }
 .stat-card { background: white; border-radius: 16px; padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -2px rgba(0,0,0,0.02); border: 1px solid #f1f5f9; }
-=======
-.finance-dasbor { display: flex; flex-direction: column; gap: 1.5rem; flex: 1; height: 100%; overflow: hidden; }
-
-.page-header { margin-bottom: 0; }
-.page-title { font-size: 1.35rem; font-weight: 700; color: #0f172a; letter-spacing: -0.01em; }
-
-/* Stats */
-.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
-.stat-card {
-  background: white; border-radius: 16px; padding: 1.25rem 1.5rem;
-  display: flex; align-items: center; gap: 1rem; 
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -2px rgba(0,0,0,0.02); 
-  border: 1px solid #f1f5f9;
-}
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 .card-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2); }
 .stat-icon-box { width: 44px; height: 44px; border-radius: 12px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; }
 .card-blue .stat-icon-box { background: rgba(255,255,255,0.2); color: white; }
@@ -904,7 +852,6 @@ const exportByDateRange = async (formatType) => {
 .stat-card:not(.card-blue) .stat-label { color: #64748b; }
 .stat-card:not(.card-blue) .stat-value { color: #0f172a; }
 
-<<<<<<< HEAD
 /* --- GRID LAYOUT --- */
 .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.2fr); gap: 1.5rem; flex: 1; min-height: 0; }
 @media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; overflow-y: auto; } }
@@ -936,45 +883,6 @@ const exportByDateRange = async (formatType) => {
 
 /* History List */
 .filter-row { padding: 1rem 1.5rem; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 0.5rem; scrollbar-width: none; border-bottom: 1px solid #f8fafc; }
-=======
-/* Grid */
-.dashboard-grid { 
-  display: grid; 
-  grid-template-columns: minmax(0, 1.8fr) minmax(0, 1.2fr); 
-  gap: 1rem; 
-  flex: 1; 
-  min-height: 0; 
-  overflow: hidden;
-}
-
-@media (max-width: 1024px) {
-  .dashboard-grid { grid-template-columns: 1fr; overflow-y: auto; }
-  .chart-card { min-height: 400px; }
-  .list-card { min-height: 500px; }
-}
-
-.card { 
-  background: white; 
-  border-radius: 16px; 
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -2px rgba(0,0,0,0.02); 
-  border: 1px solid #f1f5f9; 
-  display: flex; 
-  flex-direction: column; 
-  min-height: 0; 
-  overflow: hidden; 
-}
-.card-head { padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid transparent; }
-.card-title { font-size: 0.95rem; font-weight: 700; color: #0f172a; }
-
-/* Chart */
-.chart-card { flex: 1; }
-.chart-card .card-head { border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; }
-.chart-content { padding: 1rem 1.5rem 0.5rem 0.5rem; flex: 1; min-height: 300px; width: 100%; position: relative; }
-
-/* History */
-.list-card { flex: 1; display: flex; flex-direction: column; }
-.filter-row { padding: 0 1.5rem 1rem; display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 0.5rem; scrollbar-width: none; -ms-overflow-style: none; border-bottom: 1px solid #e2e8f0; }
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 .filter-row::-webkit-scrollbar { display: none; }
 .filter-btn { background: #f8fafc; border: 1px solid #f1f5f9; color: #475569; font-size: 0.7rem; font-weight: 600; padding: 0.4rem 0.875rem; border-radius: 20px; cursor: pointer; white-space: nowrap; flex-shrink: 0; transition: all 0.2s; }
 .filter-btn:hover { background: #f1f5f9; color: #334155; }
@@ -983,11 +891,7 @@ const exportByDateRange = async (formatType) => {
 .history-list::-webkit-scrollbar { width: 6px; }
 .history-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 .empty-state { padding: 2rem; text-align: center; color: #64748b; font-size: 0.8rem; font-weight: 500; }
-<<<<<<< HEAD
 .history-row { padding: 0.75rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f8fafc; transition: background 0.2s; cursor: default; }
-=======
-.history-row { padding: 0.875rem 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; transition: background 0.2s; cursor: default; }
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 .history-row:hover { background: #fcfdfe; }
 .h-left { display: flex; align-items: center; gap: 0.875rem; }
 .avatar-circle { width: 36px; height: 36px; border-radius: 50%; background: #eff6ff; color: #3b82f6; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; border: 1px solid #dbeafe; }
@@ -996,7 +900,6 @@ const exportByDateRange = async (formatType) => {
 .h-meta { font-size: 0.7rem; color: #64748b; font-weight: 500; }
 .h-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 0.25rem; }
 .h-amount { font-size: 0.85rem; font-weight: 700; color: #0f172a; }
-<<<<<<< HEAD
 
 /* ACTION BUTTONS & PILLS */
 .mt-1 { margin-top: 0.25rem; }
@@ -1015,8 +918,6 @@ const exportByDateRange = async (formatType) => {
 .status-pill.selesai { background: #f0fdf4; color: #22c55e; border: 1px solid #dcfce7; }
 .status-pill.dibayar { background: #f0fdf4; color: #22c55e; border: 1px solid #dcfce7; }
 .status-pill.ditolak { background: #fef2f2; color: #ef4444; border: 1px solid #fee2e2; }
-=======
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 
 .pagination { padding: 1rem 1.5rem; display: flex; justify-content: center; align-items: center; gap: 0.5rem; border-top: 1px solid #f1f5f9; background: #fcfdfe; }
 .p-btn, .p-num { width: 28px; height: 28px; border-radius: 8px; border: 1px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: #64748b; cursor: pointer; transition: all 0.2s; }

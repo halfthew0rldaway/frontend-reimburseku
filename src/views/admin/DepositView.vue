@@ -56,11 +56,7 @@ const deleteDeposit = async (id) => {
 
   if (result.isConfirmed) {
     try {
-<<<<<<< HEAD
       await ApiService.deleteDeposit(id) // Memanggil endpoint deleteDeposit dari ApiService
-=======
-      await ApiService.deleteDeposit(id)
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
       fetchDeposits()
       Swal.fire({ icon: 'success', title: 'Dihapus!', text: 'Deposit berhasil dihapus.', showConfirmButton: false, timer: 1500 })
     } catch (err) {
