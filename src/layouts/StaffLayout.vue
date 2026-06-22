@@ -1,6 +1,5 @@
 <script setup>
-<<<<<<< HEAD
-import { RouterView, useRouter } from 'vue-router'
+import { RouterView, useRouter, useRoute } from 'vue-router'
 import { 
   Edit2, 
   LogOut, 
@@ -9,10 +8,6 @@ import {
   Wifi, 
   Bluetooth 
 } from 'lucide-vue-next'
-=======
-import { RouterView, useRouter, useRoute } from 'vue-router'
-import { Edit2, LogOut } from 'lucide-vue-next' // Tambahkan import LogOut di sini
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 import { useAuthStore } from '@/stores/auth'
 import { computed } from 'vue'
 
@@ -326,14 +321,6 @@ const logout = () => {
   border: none;
   cursor: pointer;
   font-family: inherit;
-<<<<<<< HEAD
-  color: rgba(255, 255, 255, 0.75);
-}
-
-.logout-btn:hover {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-=======
   color: rgba(255,255,255,0.7);
   transition: all 0.3s ease;
 }
@@ -341,7 +328,6 @@ const logout = () => {
 .logout-btn:hover {
   background: #dc2626 !important;
   color: #ffffff !important;
->>>>>>> f7da682 (feat: standardisasi layout, UI/UX audit, dan perbaikan modal)
 }
 
 .logout-icon {
