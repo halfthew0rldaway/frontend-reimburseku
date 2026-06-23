@@ -37,10 +37,10 @@ const getDisplayStatus = (status) => {
 
 const getStatusPillClass = (status) => {
   switch(status) {
-    case 'menunggu': return 'pill-warning'
-    case 'disetujui': return 'pill-info'
-    case 'dibayar': return 'pill-success'
-    case 'ditolak': return 'pill-danger'
+    case 'menunggu': return 'menunggu'
+    case 'disetujui': return 'diterima'
+    case 'dibayar': return 'dibayar'
+    case 'ditolak': return 'ditolak'
     default: return ''
   }
 }
@@ -160,20 +160,6 @@ const getBorderColor = (category) => {
   flex-wrap: wrap;
 }
 
-.search-box {
-  position: relative;
-  width: 300px;
-  max-width: 100%;
-}
-
-.search-icon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-text-muted);
-}
-
 .search-box .form-control {
   padding-left: 2.75rem;
   border-radius: 8px;
@@ -249,29 +235,6 @@ const getBorderColor = (category) => {
 }
 
 
-.pill-success {
-  background-color: #ECFDF5;
-  color: #10B981;
-  border-color: #A7F3D0;
-}
-
-.pill-danger {
-  background-color: #FEF2F2;
-  color: #EF4444;
-  border-color: #FECACA;
-}
-
-.pill-warning {
-  background-color: #FFFBEB;
-  color: #F59E0B;
-  border-color: #FDE68A;
-}
-
-.pill-info {
-  background-color: #EFF6FF;
-  color: #3B82F6;
-  border-color: #BFDBFE;
-}
 
 .status-reason {
   font-size: 0.8rem;
@@ -302,32 +265,6 @@ const getBorderColor = (category) => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.page-btn {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: transparent;
-  color: #6B7280;
-  font-size: 0.875rem;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.page-btn:hover:not(.active) {
-  background-color: #F3F4F6;
-  color: #111827;
-}
-
-.page-btn.active {
-  background-color: #3B82F6;
-  color: white;
-  font-weight: 500;
 }
 
 .page-arrow {

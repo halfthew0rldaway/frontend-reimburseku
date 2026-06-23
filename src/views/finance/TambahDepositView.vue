@@ -77,25 +77,18 @@ async function submit() {
 
     <div class="form-container">
       <div class="form-card">
-        <div class="card-header">
-          <button class="btn-back" @click="router.back()">
-            <ChevronLeft :size="20" />
-          </button>
-          <div class="header-info">
-            <div class="icon-wrap">
-              <Plus :size="18" />
-            </div>
-            <div class="text-wrap">
-              <h2 class="form-title">Tambah Deposit</h2>
-              <p class="form-sub">Formulir Top-up Saldo Kas</p>
-            </div>
-          </div>
-        </div>
-
         <form @submit.prevent="submit" class="form-content">
           <!-- Section 1 -->
           <div class="form-section">
-            <h3 class="section-title"><Wallet :size="14" /> INFORMASI TRANSAKSI</h3>
+            <div class="section-title-wrap" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+              <button type="button" class="back-btn-inline" @click="router.back()" title="Kembali">
+                <ChevronLeft :size="18" />
+              </button>
+              <div class="section-icon" style="width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #3b82f6; display: flex; align-items: center; justify-content: center;">
+                <Wallet :size="16" />
+              </div>
+              <h3 class="section-title" style="margin: 0; font-size: 1rem; text-transform: capitalize; letter-spacing: normal;">Informasi Transaksi</h3>
+            </div>
             <div class="form-grid">
               <div class="form-group">
                 <label>Sumber Dana</label>
@@ -121,7 +114,12 @@ async function submit() {
 
           <!-- Section 2 -->
           <div class="form-section mt-6">
-            <h3 class="section-title"><Plus :size="14" /> DETAIL NOMINAL & BUKTI</h3>
+            <div class="section-title-wrap" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+              <div class="section-icon" style="width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #3b82f6; display: flex; align-items: center; justify-content: center;">
+                <Plus :size="16" />
+              </div>
+              <h3 class="section-title" style="margin: 0; font-size: 1rem; text-transform: capitalize; letter-spacing: normal;">Detail Nominal & Bukti</h3>
+            </div>
             <div class="form-grid dual">
               <div class="form-group">
                 <label>Total Nominal <span class="req">*</span></label>
@@ -157,21 +155,34 @@ async function submit() {
 </template>
 
 <style scoped>
-.tambah-deposit-page { display: flex; flex-direction: column; gap: 1.25rem; height: 100%; overflow: hidden; }
+.tambah-deposit-page { display: flex; flex-direction: column; gap: 1.25rem; height: calc(100vh - 64px - 3rem); overflow: hidden; }
 .page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem; }
 
-.form-container { display: flex; justify-content: center; padding: 1rem 0; }
-.form-card { background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -2px rgba(0,0,0,0.02); display: flex; flex-direction: column; height: 100%; overflow: hidden; }
-
-.card-header { padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1.5rem; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
-.btn-back { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; flex-shrink: 0; }
-.header-info { display: flex; align-items: center; gap: 1rem; }
-.icon-wrap { width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #3b82f6; display: flex; align-items: center; justify-content: center; }
-.form-title { font-size: 1rem; font-weight: 700; color: #1e293b; }
-.form-sub { font-size: 0.75rem; color: #94a3b8; font-weight: 500; }
-
+.form-container { display: flex; justify-content: center; height: 100%; overflow: hidden; padding-bottom: 1.5rem; }
+.form-card { background: white; border-radius: 16px; border: 1px solid #f1f5f9; box-shadow: 0 4px 20px rgba(0,0,0,0.03); width: 100%; display: flex; flex-direction: column; overflow: hidden; }
 .form-content { padding: 1rem 1.5rem; overflow-y: auto; flex: 1; }
-.section-title { font-size: 0.75rem; font-weight: 700; color: #3b82f6; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; letter-spacing: 0.05em; }
+
+.back-btn-inline {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+.back-btn-inline:hover {
+  background: #f8fafc;
+  color: #3b82f6;
+  border-color: #cbd5e1;
+}
+
+.section-title { font-size: 1rem; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 0.5rem; }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .form-grid.dual { grid-template-columns: 1fr 1fr; }

@@ -302,12 +302,6 @@ async function handleLogin() {
   display: inline-block;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @media (max-width: 1024px) {
   .login-left {
     display: none;

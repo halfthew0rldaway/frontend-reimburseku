@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Plus, PencilLine, Trash2, Search, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { Plus, PencilLine, Trash2, Search, ChevronDown, ChevronLeft, ChevronRight, X } from 'lucide-vue-next'
 import ApiService from '@/api/ApiService'
 import Swal from 'sweetalert2'
 
@@ -210,7 +210,7 @@ const filteredRoles = computed(() => {
           </div>
         </div>
         <div class="modal-panel-body">
-          <div class="form-row-2">
+          <div class="form-grid" style="margin-bottom: 1.5rem;">
             <div class="form-group">
               <label>Nama Hak Akses <span class="required">*</span></label>
               <input v-model="formData.role_name" type="text" class="form-control" placeholder="Contoh: Admin / Finance / Staff" />
@@ -265,50 +265,7 @@ const filteredRoles = computed(() => {
 
 <style scoped>
 .hak-akses-page { display: flex; flex-direction: column; gap: 1rem; flex: 1; height: 100%; overflow: hidden; }
-
-.page-header { margin-bottom: 0; }
-.page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; }
-
-.main-card { background: white; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 1px 2px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column; flex: 1; min-height: 0; }
-.card-header { padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
-.card-header-title { font-size: 0.875rem; font-weight: 700; color: #1e293b; }
-
-.header-actions { display: flex; gap: 0.625rem; align-items: center; }
-.search-box { position: relative; }
-.search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #94a3b8; }
-.search-input { padding: 0.4rem 0.75rem 0.4rem 2.125rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.75rem; outline: none; width: 200px; }
-.btn-sort { display: flex; align-items: center; gap: 0.375rem; padding: 0.4rem 0.875rem; font-size: 0.75rem; color: #64748b; border: 1px solid #e2e8f0; border-radius: 8px; background: white; cursor: pointer; }
-.btn-add { display: flex; align-items: center; gap: 0.375rem; font-size: 0.75rem; padding: 0.4rem 0.875rem; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; }
-
-.table-responsive { overflow-x: auto; overflow-y: auto; flex: 1; }
-.modern-table { width: 100%; border-collapse: collapse; }
-.modern-table th { text-align: left; padding: 0.75rem 1.25rem; font-size: 0.6rem; font-weight: 600; color: #64748b; background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
-.modern-table td { padding: 0.75rem 1.25rem; font-size: 0.75rem; color: #475569; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
-
-.text-primary-dark { color: #2563eb; font-weight: 700; }
-.font-mono { font-family: monospace; font-size: 0.7rem; color: #64748b; }
-
-.action-btns { display: flex; justify-content: center; gap: 0.375rem; }
-.btn-icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: all 0.2s; }
-.btn-icon.edit { background: #f59e0b; color: white; }
-.btn-icon.delete { background: #ef4444; color: white; }
-
-.table-footer { padding: 0.75rem 1.25rem; display: flex; justify-content: center; background: #f8fafc; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
-.pagination { display: flex; gap: 0.25rem; }
-.page-btn { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: #64748b; cursor: pointer; }
-.page-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
-
-/* Modal */
-.modal-wide { width: 680px; max-width: 95vw; }
-.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.form-group { text-align: left; }
-.form-group label { display: block; margin-bottom: 0.375rem; font-size: 0.8125rem; font-weight: 600; color: #475569; }
-.required { color: #ef4444; }
-.form-control { width: 100%; padding: 0.625rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; font-size: 0.8125rem; font-family: inherit; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box; }
-.form-control:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
 textarea.form-control { resize: vertical; min-height: 80px; }
-
-/* Permissions Section */
 .perm-section { border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
 .perm-section-header { display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem 1rem; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
 .perm-section-icon { width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #3b82f6; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -324,10 +281,4 @@ textarea.form-control { resize: vertical; min-height: 80px; }
 .perm-check input[type="checkbox"] { width: 14px; height: 14px; accent-color: #3b82f6; cursor: pointer; border-radius: 3px; }
 .perm-check-all { font-weight: 600; color: #1e293b; }
 .perm-module-name { font-size: 0.8125rem; }
-
-.btn-outline { background: white; border: 1px solid #e2e8f0; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.8125rem; color: #475569; transition: all 0.15s; }
-.btn-outline:hover { background: #f8fafc; border-color: #cbd5e1; }
-.btn-save { display: inline-flex; align-items: center; gap: 0.375rem; background: #3b82f6; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.8125rem; transition: all 0.15s; }
-.btn-save:hover { background: #2563eb; }
-.btn-save:disabled { background: #93c5fd; cursor: not-allowed; }
 </style>

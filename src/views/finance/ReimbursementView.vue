@@ -538,13 +538,13 @@ onMounted(() => {
     </div>
 
     <div v-if="showFilterModal" class="modal-overlay" @click.self="showFilterModal = false">
-      <div class="modal filter-modal">
-        <div class="modal-header">
+      <div class="modal-panel filter-modal">
+        <div class="modal-panel-header">
           <h3 class="modal-title">Filter Data Reimbursement</h3>
           <button class="close-btn" @click="showFilterModal = false"><X :size="20" /></button>
         </div>
         
-        <div class="modal-body">
+        <div class="modal-panel-body">
           <div class="form-group">
             <label class="form-label">Metode Filter Tanggal</label>
             <div class="radio-group">
@@ -593,9 +593,9 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="modal-footer footer-spaced">
+        <div class="modal-panel-footer footer-spaced">
           <button class="btn-cancel" @click="resetFilter">Hapus Filter</button>
-          <button class="btn-primary-modal" @click="applyFilter">Terapkan Filter</button>
+          <button class="btn-modal main-btn approve" @click="applyFilter">Terapkan Filter</button>
         </div>
       </div>
     </div>
@@ -673,14 +673,14 @@ onMounted(() => {
     </div>
 
     <div v-if="showRejectModal" class="modal-overlay" @click.self="showRejectModal = false">
-      <div class="modal confirm-modal">
-        <div class="modal-header">
+      <div class="modal-panel confirm-modal">
+        <div class="modal-panel-header">
           <h3 class="modal-title text-red">Tolak Pengajuan?</h3>
           <button class="close-btn" @click="showRejectModal = false">
             <X :size="18" />
           </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-panel-body">
           <p class="confirm-msg">
             Anda akan menolak pengajuan sebesar <strong>{{ selectedItem?.amount }}</strong> dari <strong>{{
               selectedItem?.name }}</strong>.
@@ -695,7 +695,7 @@ onMounted(() => {
             <span v-if="rejectError" class="error-text">Alasan penolakan wajib diisi!</span>
           </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-panel-footer">
           <button class="btn-modal batal-outline" @click="showRejectModal = false">Batal</button>
           <button class="btn-modal tolak-btn" @click="confirmTolak">Tolak Pengajuan</button>
         </div>
@@ -703,14 +703,14 @@ onMounted(() => {
     </div>
 
     <div v-if="showReasonModal" class="modal-overlay" @click.self="showReasonModal = false">
-      <div class="modal confirm-modal">
-        <div class="modal-header">
+      <div class="modal-panel confirm-modal">
+        <div class="modal-panel-header">
           <h3 class="modal-title text-red">Alasan Penolakan</h3>
           <button class="close-btn" @click="showReasonModal = false">
             <X :size="18" />
           </button>
         </div>
-        <div class="modal-body">
+        <div class="modal-panel-body">
           <p class="confirm-msg">
             Pengajuan dari <strong>{{ selectedItem?.name }}</strong> sebesar <strong>{{ selectedItem?.amount }}</strong> ditolak dengan alasan:
           </p>
@@ -724,7 +724,7 @@ onMounted(() => {
             ></textarea>
           </div>
         </div>
-        <div class="modal-footer" style="justify-content: center;">
+        <div class="modal-panel-footer" style="justify-content: center;">
           <button class="btn-modal batal-outline" @click="showReasonModal = false" style="width: 100%;">Tutup</button>
         </div>
       </div>
@@ -745,61 +745,34 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.finance-reimburse { display: flex; flex-direction: column; gap: 1.5rem; flex: 1; height: 100%; overflow: hidden; }
+.finance-reimburse {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: #f8fafc;
+  height: 100%;
+  overflow: hidden;
+}
 
-.page-header { margin-bottom: 0; }
-.page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; }
-
-.card { background: white; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); }
-
-.card-header { padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f8fafc; }
-.card-header-title { font-size: 0.875rem; font-weight: 700; color: #1e293b; }
+.card.main-card { background: white; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
 .card-header-sub { font-size: 0.65rem; color: #94a3b8; margin-top: 0.125rem; font-weight: 500; }
 
-.header-actions { display: flex; gap: 0.75rem; align-items: center; }
-
-.search-box { position: relative; }
-.search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #94a3b8; }
-.search-input { padding: 0.4rem 0.75rem 0.4rem 2.125rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.75rem; outline: none; width: 220px; }
-
-/* --- TOMBOL & BADGE FILTER --- */
 .btn-filter-icon {
   display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;
   border-radius: 8px; border: 1px solid #e2e8f0; background: white; color: #64748b; cursor: pointer; transition: all 0.2s;
 }
 .btn-filter-icon:hover { background: #f1f5f9; color: #3b82f6; border-color: #cbd5e1; }
 
-.filter-badge {
-  font-size: 0.65rem; background: #eff6ff; color: #3b82f6; padding: 0.2rem 0.5rem;
-  border-radius: 4px; font-weight: 600; border: 1px solid #dbeafe;
-}
-
+.filter-badge { font-size: 0.65rem; background: #eff6ff; color: #3b82f6; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600; border: 1px solid #dbeafe; }
 .count-badge { background: #fffbeb; color: #f59e0b; font-size: 0.65rem; font-weight: 700; padding: 0.4rem 0.875rem; border-radius: 8px; border: 1px solid #fef3c7; }
 
-.table-responsive { overflow-x: auto; max-height: calc(100vh - 220px); }
-
-.modern-table { width: 100%; border-collapse: collapse; }
-.modern-table th { text-align: left; padding: 0.75rem 1.25rem; font-size: 0.6rem; font-weight: 600; color: #94a3b8; background: #fcfdfe; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.05em; }
-.modern-table td { padding: 0.75rem 1.25rem; font-size: 0.75rem; color: #64748b; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
-
-.user-info { display: flex; align-items: center; gap: 0.625rem; }
-.avatar-sm { width: 28px; height: 28px; border-radius: 50%; background: #f1f5f9; color: #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; border: 1px solid #e2e8f0; }
-.user-name { font-weight: 700; color: #1e293b; font-size: 0.75rem; }
-.user-email { font-size: 0.65rem; color: #94a3b8; font-weight: 500; }
+.table-responsive { overflow-y: auto; overflow-x: auto; flex: 1; }
 
 .text-dark { color: #1e293b; font-weight: 500; }
-.text-muted { color: #94a3b8; }
-.font-bold { font-weight: 700; }
 
-.btn-file { background: #eff6ff; color: #3b82f6; border: 1px solid #dbeafe; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.65rem; font-weight: 700; display: flex; align-items: center; gap: 0.25rem; cursor: pointer; text-decoration: none;}
+.btn-file { background: #eff6ff; color: #3b82f6; border: 1px solid #dbeafe; padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.65rem; font-weight: 700; display: flex; align-items: center; gap: 0.25rem; cursor: pointer; text-decoration: none; }
 
-.status-pill { font-size: 0.6rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 6px; display: inline-block; }
-.status-pill.menunggu { background: #fffbeb; color: #f59e0b; }
-.status-pill.dibayar { background: #f0fdf4; color: #22c55e; }
-.status-pill.disetujui { background: white; color: #3b82f6; border: 1px solid #3b82f6; }
-.status-pill.ditolak { background: #fef2f2; color: #ef4444; }
-
-.action-row { display: flex; justify-content: center; gap: 0.375rem; }
+.action-row { display: flex; justify-content: center; gap: 0.5rem; }
 .btn-action { border-radius: 6px; font-size: 0.7rem; font-weight: 700; padding: 0.375rem 0.75rem; cursor: pointer; border: none; min-width: 64px; transition: all 0.2s; }
 .btn-action.tolak { background: #ef4444; color: white; }
 .btn-action.tolak-ghost { background: #fef2f2; color: #ef4444; font-weight: 600; border: 1px solid #fecaca; }
@@ -808,88 +781,26 @@ onMounted(() => {
 .btn-action.bayar-green { background: #22c55e; color: white; }
 .btn-action.bukti-ghost { background: #f1f5f9; color: #64748b; font-weight: 600; border: 1px solid #e2e8f0; }
 
-.table-footer { padding: 0.75rem 1.25rem; display: flex; justify-content: space-between; align-items: center; background: #fcfdfe; }
-
-.pagination { display: flex; gap: 0.25rem; }
-.page-btn { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: #64748b; cursor: pointer; }
-.page-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
-.text-xs { font-size: 0.65rem; }
-
 /* MODALS */
-.modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(2px); }
-.modal { background: white; border-radius: 12px; width: 90%; max-width: 380px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); }
+.modal { max-width: 380px; }
 .filter-modal { max-width: 440px; }
-.modal-header { padding: 1rem 1.25rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-radius: 12px 12px 0 0; }
-.modal-title { font-size: 0.875rem; font-weight: 700; color: #1e293b; margin: 0; }
-.close-btn { color: #64748b; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
-.close-btn:hover { color: #ef4444; }
-.modal-body { padding: 1.25rem; }
-.confirm-msg { font-size: 0.75rem; color: #475569; line-height: 1.5; margin-bottom: 1rem; }
-.upload-section { display: flex; flex-direction: column; gap: 0.5rem; }
-.upload-label { font-size: 0.7rem; font-weight: 700; color: #1e293b; }
-.upload-field { display: flex; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; height: 36px; transition: all 0.2s; }
-.upload-field.shake { animation: shake 0.5s; border-color: #ef4444 !important; }
-@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } }
-.upload-input-mock { flex: 1; border: none; padding: 0 0.875rem; font-size: 0.75rem; color: #94a3b8; background: #fcfdfe; }
-.upload-btn-inner { background: #f1f5f9; color: #64748b; display: flex; align-items: center; justify-content: center; width: 36px; cursor: pointer; position: relative; }
-.hidden-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-.modal-footer { padding: 0.875rem 1.25rem; display: flex; justify-content: flex-end; gap: 0.625rem; border-top: 1px solid #f1f5f9; background: #f8fafc; border-radius: 0 0 12px 12px; }
+.modal-header { border-radius: 12px 12px 0 0; }
+.confirm-msg { font-size: 0.75rem; margin-bottom: 1rem; }
 .footer-spaced { justify-content: space-between; }
-.btn-modal { padding: 0.5rem 1.25rem; border-radius: 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; border: none; }
-.btn-modal.batal { background: #ef4444; color: white; }
-.btn-modal.main-btn { background: #3b82f6; color: white; }
 
-/* Filter Modal Inputs CSS */
+/* Filter Modal Inputs */
 .form-group { margin-bottom: 1.25rem; }
-.form-label { display: block; font-size: 0.8125rem; font-weight: 600; color: #475569; margin-bottom: 0.5rem; }
+.form-label { font-size: 0.8125rem; font-weight: 600; color: #475569; }
 .radio-group { display: flex; gap: 1.5rem; }
 .radio-label { display: flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; color: #1e293b; cursor: pointer; }
 .radio-label input[type="radio"] { accent-color: #3b82f6; width: 16px; height: 16px; cursor: pointer; }
 .form-input { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.875rem; color: #1e293b; outline: none; transition: border-color 0.2s; font-family: inherit; }
 .form-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
 .form-row { display: flex; gap: 1rem; }
-.flex-1 { flex: 1; }
 .btn-cancel { background: transparent; border: 1px solid transparent; color: #ef4444; font-weight: 600; font-size: 0.875rem; cursor: pointer; padding: 0.5rem 0; }
 .btn-cancel:hover { color: #b91c1c; text-decoration: underline; }
 .btn-primary-modal { background: #3b82f6; color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: background 0.2s; }
 .btn-primary-modal:hover { background: #2563eb; }
 
-/* Custom Month Picker CSS */
-.custom-month-picker { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; }
-.year-selector { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; background: white; border-radius: 6px; padding: 0.25rem; border: 1px solid #e2e8f0; }
-.year-btn { background: transparent; border: none; color: #64748b; cursor: pointer; padding: 0.25rem; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
-.year-btn:hover { color: #3b82f6; }
-.year-display { font-weight: 700; font-size: 0.875rem; color: #1e293b; }
-.month-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
-.month-btn { background: white; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.5rem 0; font-size: 0.75rem; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.2s; }
-.month-btn:hover { border-color: #3b82f6; color: #3b82f6; }
-.month-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
 
-/* Other Modals */
-.success-modal { text-align: center; max-width: 300px; }
-.success-body { padding: 2rem 1.25rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
-.success-title { font-size: 1.25rem; font-weight: 800; color: #22c55e; }
-.btn-back-success { background: #3b82f6; color: white; border: none; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer; }
-.text-red { color: #ef4444; }
-.reject-textarea { width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; padding: 0.75rem; font-size: 0.75rem; color: #475569; outline: none; resize: none; font-family: inherit; transition: all 0.2s; box-sizing: border-box; }
-.reject-textarea:focus { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1); }
-.error-border { border-color: #ef4444 !important; }
-.error-text { font-size: 0.65rem; color: #ef4444; font-weight: 500; }
-.btn-modal.batal-outline { background: white; color: #64748b; border: 1px solid #e2e8f0; }
-.btn-modal.tolak-btn { background: #ef4444; color: white; }
-
-.receipt-modal { max-width: 850px; width: 95%; display: flex; flex-direction: column; }
-.zoom-controls { display: flex; align-items: center; gap: 0.375rem; background: #f8fafc; padding: 0.25rem 0.5rem; border-radius: 8px; border: 1px solid #e2e8f0; }
-.zoom-btn { background: white; border: 1px solid #e2e8f0; border-radius: 6px; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; transition: all 0.2s; }
-.zoom-btn:hover { background: #f1f5f9; color: #1e293b; }
-.zoom-level { font-size: 0.65rem; font-weight: 700; color: #475569; min-width: 32px; text-align: center; }
-.divider-vertical { width: 1px; height: 16px; background: #cbd5e1; margin: 0 0.25rem; }
-.image-viewer-body { padding: 0; background: #cbd5e1; height: 80vh; overflow: hidden; display: flex; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; }
-.image-container { width: 100%; height: 100%; overflow: auto; display: flex; justify-content: center; align-items: center; padding: 1rem; }
-.zoomable-image { max-width: 100%; max-height: 100%; object-fit: contain; transition: transform 0.2s ease-in-out; transform-origin: center center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-radius: 4px; }
-
-.loading-state, .empty-state { padding: 3rem 1rem !important; }
-.loader-spinner { width: 32px; height: 32px; border: 3px solid #f1f5f9; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
-.loading-text { margin-top: 0.75rem; font-size: 0.75rem; color: #64748b; font-weight: 500; }
-@keyframes spin { to { transform: rotate(360deg); } }
 </style>

@@ -62,23 +62,23 @@ function logout() {
     </aside>
 
     <!-- Main Content -->
-    <div class="main-wrapper">
-      <header class="top-bar">
-        <div class="top-left">
+    <main class="main-content">
+      <header class="topbar">
+        <div class="topbar-left">
           <h1 class="page-title">{{ pageTitle }}</h1>
         </div>
-        <div class="top-right">
-          <div class="user-profile">
+        <div class="topbar-right">
+          <div class="user-profile-top">
             <div class="avatar">{{ authStore.user?.name?.[0]?.toUpperCase() || 'F' }}</div>
             <span class="user-name">{{ authStore.user?.name || 'Finance Staff' }}</span>
           </div>
         </div>
       </header>
 
-      <main class="page-content">
+      <div class="page-content">
         <RouterView />
-      </main>
-    </div>
+      </div>
+    </main>
   </div>
 </template>
 
@@ -114,9 +114,9 @@ function logout() {
 .logout-btn:hover { background-color: #dc2626 !important; color: white !important; }
 
 /* Main Content Styles */
-.main-wrapper { flex: 1; margin-left: 250px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+.main-content { flex: 1; margin-left: 250px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-.top-bar {
+.topbar {
   height: 64px; background: white; border-bottom: 1px solid #f1f5f9; padding: 0 1.5rem;
   display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 40;
 }
@@ -124,12 +124,12 @@ function logout() {
   font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0;
 }
 
-.top-right { display: flex; align-items: center; gap: 1.5rem; }
-.user-profile {
+.topbar-right { display: flex; align-items: center; gap: 1.5rem; }
+.user-profile-top {
   display: flex; align-items: center; gap: 0.75rem; padding: 0.375rem 0.75rem;
   background: #f8fafc; border-radius: 999px; border: 1px solid #f1f5f9; cursor: pointer; transition: all 0.2s;
 }
-.user-profile:hover { background: #f1f5f9; }
+.user-profile-top:hover { background: #f1f5f9; }
 .avatar {
   width: 28px; height: 28px; background: #e2e8f0; color: #64748b; border-radius: 50%;
   display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem;
@@ -138,13 +138,10 @@ function logout() {
 
 .page-content { padding: 1.5rem 2rem; flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 
-@media (max-width: 1024px) {
-  .sidebar { width: 80px; }
-  .sidebar .logo-text, .sidebar span { display: none; }
-  .main-wrapper { margin-left: 80px; }
-}
-
 @media (max-width: 768px) {
+  .sidebar { width: 70px; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+  .sidebar .logo-text, .sidebar span { display: none; }
+  .main-content { margin-left: 70px; }
   .page-content { padding: 1rem; }
 }
 </style>

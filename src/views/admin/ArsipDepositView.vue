@@ -139,38 +139,9 @@ const filteredDeposits = computed(() => {
 
 <style scoped>
 .arsip-deposit-page { display: flex; flex-direction: column; gap: 1rem; flex: 1; height: 100%; overflow: hidden; }
-
-.btn-back { background: white; border: 1px solid #e2e8f0; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #64748b; }
-.btn-back:hover { background: #f8fafc; color: #3b82f6; border-color: #cbd5e1; }
-
 .info-alert { background: #eff6ff; border: 1px solid #dbeafe; border-radius: 12px; padding: 0.75rem 1rem; display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.5rem; }
 .info-icon { color: #3b82f6; flex-shrink: 0; }
 .info-text { font-size: 0.75rem; color: #1e40af; line-height: 1.4; font-weight: 500; }
-
-.main-card { background: white; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 1px 2px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column; flex: 1; min-height: 0; }
-.card-header { padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
-.card-header-title { font-size: 0.875rem; font-weight: 700; color: #1e293b; }
-
-.header-actions { display: flex; gap: 0.625rem; align-items: center; }
-.search-box { position: relative; }
-.search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #94a3b8; }
-.search-input { padding: 0.4rem 0.75rem 0.4rem 2.125rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.75rem; outline: none; width: 220px; }
-.btn-sort { display: flex; align-items: center; gap: 0.375rem; padding: 0.4rem 0.875rem; font-size: 0.75rem; color: #64748b; border: 1px solid #e2e8f0; border-radius: 8px; background: white; cursor: pointer; }
-
-.table-responsive { overflow-x: auto; overflow-y: auto; flex: 1; }
-.modern-table { width: 100%; border-collapse: collapse; }
-.modern-table th { text-align: left; padding: 0.75rem 1.25rem; font-size: 0.6rem; font-weight: 600; color: #64748b; background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
-.modern-table td { padding: 0.75rem 1.25rem; font-size: 0.75rem; color: #475569; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
-
-.text-primary-dark { color: #2563eb; }
-.text-success { color: #16a34a; }
-.font-mono { font-family: monospace; font-size: 0.7rem; }
 .note-cell { max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.7rem; }
-
 .btn-restore { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; font-size: 0.7rem; font-weight: 700; padding: 0.3rem 0.625rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 0.375rem; }
-
-.table-footer { padding: 0.75rem 1.25rem; display: flex; justify-content: center; background: #f8fafc; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
-.pagination { display: flex; gap: 0.25rem; }
-.page-btn { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: #64748b; cursor: pointer; }
-.page-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
 </style>

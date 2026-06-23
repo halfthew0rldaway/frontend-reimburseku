@@ -2,11 +2,11 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useAuthStore = defineStore('auth', () => {
-// ============================
+    // ============================
     // 1. STATE (Data Entitas)
     // ============================
     const token = ref(localStorage.getItem('token') || null)
-    
+
     // Parse JSON dari localStorage agar data bertahan saat refresh
     const user = ref(JSON.parse(localStorage.getItem('user')) || null)
     const accountPayout = ref(JSON.parse(localStorage.getItem('account_payout')) || null)
@@ -15,7 +15,7 @@ export const useAuthStore = defineStore('auth', () => {
     // ============================
     // 2. ACTIONS (Fungsi Modifikasi)
     // ============================
-    
+
     // Fungsi tunggal untuk menyimpan semua data saat Login
     function setAuthData(data) {
         // Set State
@@ -31,22 +31,22 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.setItem('role', JSON.stringify(data.role))
     }
 
-    function updateUserData(payload) {
+    function updateUserData(userData) {
         // Update State
         user.value = {
             ...user.value,
-            ...payload.data
+            ...userData
         }
 
         // Update localStorage
         localStorage.setItem('user', JSON.stringify(user.value))
     }
 
-    function updateAccountPayoutData(payload) {
+    function updateAccountPayoutData(payoutData) {
         // Update State
         accountPayout.value = {
             ...accountPayout.value,
-            ...payload.account_payout
+            ...payoutData
         }
 
         // Update localStorage
@@ -71,8 +71,8 @@ export const useAuthStore = defineStore('auth', () => {
         localStorage.setItem('user', JSON.stringify(userData))
     }
 
-    return { 
-        token, user, accountPayout, role, 
+    return {
+        token, user, accountPayout, role,
         setAuthData, clearAuth, updateUserData, updateAccountPayoutData
     }
 })

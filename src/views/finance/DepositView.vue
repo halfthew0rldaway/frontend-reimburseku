@@ -234,64 +234,7 @@ const goToTambah = () => router.push('/finance/deposit/tambah')
   </div>
 </template>
 <style scoped>
-
-.sort-dropdown { position: relative; }
-.dropdown-menu {
-  position: absolute;
-  top: calc(100% + 5px);
-  right: 0;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-  width: 160px;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  padding: 0.25rem;
-}
-.dropdown-item {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #475569;
-  background: white;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  border-radius: 4px;
-}
-.dropdown-item:hover { background: #f8fafc; color: #1e293b; }
-.dropdown-item.active { background: #eff6ff; color: #3b82f6; }
-
-/* Tambahan Style untuk Loading (Skeleton & Spinner) */
-.skeleton {
-  background: #f1f5f9;
-  background: linear-gradient(110deg, #f1f5f9 8%, #e2e8f0 18%, #f1f5f9 33%);
-  border-radius: 8px;
-  background-size: 200% 100%;
-  animation: shimmer 1.5s linear infinite;
-}
-@keyframes shimmer { to { background-position-x: -200%; } }
-.skeleton-title { height: 24px; width: 60%; margin-top: 0.25rem; border-radius: 6px; }
-.skeleton-text { height: 12px; border-radius: 4px; }
-
-.loading-state, .empty-state { padding: 3rem 1rem !important; }
-.loader-spinner {
-  width: 28px;
-  height: 28px;
-  border: 3px solid #f1f5f9;
-  border-top-color: #3b82f6;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto;
-}
-.loading-text { margin-top: 0.75rem; font-size: 0.7rem; color: #64748b; font-weight: 500; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.finance-deposit { display: flex; flex-direction: column; gap: 1rem; flex: 1; height: 100%; overflow: hidden; }
-
-.page-header { margin-bottom: 0; }
-.page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; }
+.finance-deposit { display: flex; flex-direction: column; gap: 1rem; background: #f8fafc; height: 100%; overflow: hidden; }
 
 .card { background: white; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 .table-card { flex: 1; }
@@ -301,13 +244,11 @@ const goToTambah = () => router.push('/finance/deposit/tambah')
 
 /* Tracker */
 .btn-add-setoran { background: #3b82f6; color: white; border: none; font-size: 0.7rem; font-weight: 700; padding: 0.4rem 0.875rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 0.375rem; }
-
 .stats-row { padding: 0 1.25rem 1rem; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
 .tracker-stat { padding: 1rem; border: 1px solid #f1f5f9; border-radius: 12px; display: flex; flex-direction: column; gap: 0.5rem; }
 .stat-meta { display: flex; flex-direction: column; gap: 0.125rem; }
 .stat-label { font-size: 0.55rem; font-weight: 700; color: #94a3b8; }
 .stat-value { font-size: 1.125rem; font-weight: 800; color: #1e293b; }
-
 .progress-wrapper { display: flex; flex-direction: column; gap: 0.25rem; }
 .progress-container { width: 100%; height: 5px; background: #f1f5f9; border-radius: 10px; overflow: hidden; }
 .progress-bar { height: 100%; border-radius: 10px; }
@@ -315,26 +256,17 @@ const goToTambah = () => router.push('/finance/deposit/tambah')
 
 /* Table Section */
 .table-header { padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; }
-.search-box { position: relative; }
-.search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #94a3b8; }
-.search-input { padding: 0.4rem 0.75rem 0.4rem 2.125rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.75rem; outline: none; width: 220px; }
-
-.btn-sort { font-size: 0.7rem; font-weight: 700; color: #64748b; padding: 0.4rem 0.875rem; border-radius: 8px; display: flex; align-items: center; gap: 0.375rem; }
-
-.table-responsive { overflow-x: auto; overflow-y: auto; flex: 1; }
-.modern-table { width: 100%; border-collapse: collapse; }
-.modern-table th { text-align: left; padding: 0.75rem 1.25rem; font-size: 0.6rem; font-weight: 600; color: #64748b; background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.05em; }
-.modern-table td { padding: 0.75rem 1.25rem; font-size: 0.7rem; color: #475569; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
+.sort-dropdown { position: relative; }
+.dropdown-menu { position: absolute; top: calc(100% + 5px); right: 0; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); width: 160px; z-index: 10; display: flex; flex-direction: column; padding: 0.25rem; }
+.dropdown-item { padding: 0.5rem 0.75rem; font-size: 0.7rem; font-weight: 600; color: #475569; background: white; border: none; text-align: left; cursor: pointer; border-radius: 4px; }
+.dropdown-item:hover { background: #f8fafc; color: #1e293b; }
+.dropdown-item.active { background: #eff6ff; color: #3b82f6; }
 
 .type-badge { font-size: 0.55rem; font-weight: 700; padding: 0.125rem 0.375rem; border-radius: 4px; }
 .type-badge.dana-masuk { background: #f0fdf4; color: #16a34a; }
 .type-badge.dana-keluar { background: #fef2f2; color: #ef4444; }
-
 .t-source { font-weight: 700; color: #1e293b; }
 .text-blue { color: #3b82f6; }
-
 .text-green { color: #22c55e; }
 .text-red { color: #ef4444; }
-.text-muted { color: #94a3b8; }
-.font-bold { font-weight: 800; }
 </style>

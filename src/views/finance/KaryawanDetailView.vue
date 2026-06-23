@@ -60,18 +60,7 @@ onMounted(async () => {
 </script>
 <template>
   <div class="detail-page">
-    <div class="page-container">
-      
-      <div class="page-header detail-header">
-        <button class="back-btn" @click="router.back()">
-          <ArrowLeft :size="20" />
-        </button>
-        <div class="header-info">
-          <h1 class="page-title">Detail Karyawan</h1>
-          <p class="text-muted">Informasi profil lengkap dan data pembayaran</p>
-        </div>
-      </div>
-
+    <div class="layout-wrapper">
 <div v-if="isLoading" class="layout-grid">
         
         <div class="left-column">
@@ -103,6 +92,9 @@ onMounted(async () => {
           <div class="card detail-card">
             <div class="form-section">
               <div class="section-title-wrap">
+                <button class="back-btn-inline" @click="router.back()" title="Kembali">
+                  <ArrowLeft :size="18" />
+                </button>
                 <div class="section-icon"><User :size="18" /></div>
                 <h3 class="section-title">Informasi Pribadi</h3>
               </div>
@@ -167,11 +159,11 @@ onMounted(async () => {
               <div class="section-icon"><CreditCard :size="18" /></div>
               <h3 class="section-title">Metode Pembayaran</h3>
             </div>
-            <div class="form-group mb-4">
+            <div class="form-group mb-3">
               <label class="form-label">Provider (Bank / E-Wallet)</label>
               <div class="readonly-field">{{ selectedEmployee.provider }}</div>
             </div>
-            <div class="form-group mb-4">
+            <div class="form-group mb-3">
               <label class="form-label">Nomor Rekening</label>
               <div class="readonly-field font-semibold">{{ selectedEmployee.nomorRekening }}</div>
             </div>
@@ -179,12 +171,11 @@ onMounted(async () => {
               <label class="form-label">Atas Nama</label>
               <div class="readonly-field">{{ selectedEmployee.atasNama }}</div>
             </div>
+            </div>
           </div>
-
         </div>
       </div>
     </div>
-  </div>
 </template>
 
 <style scoped>
@@ -205,6 +196,7 @@ onMounted(async () => {
 }
 
 .detail-header {
+  flex-shrink: 0;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -214,18 +206,33 @@ onMounted(async () => {
   width: 100%;
 }
 
-.header-info { display: flex; flex-direction: column; align-items: flex-start; text-align: left; flex-grow: 1; }
-.page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0; }
-.text-muted { font-size: 0.875rem; color: var(--color-text-muted); margin: 0.25rem 0 0 0; }
-
-.back-btn {
-  width: 40px; height: 40px; border-radius: 10px; background: white; border: 1px solid var(--color-border);
-  display: flex; align-items: center; justify-content: center; color: var(--color-text-muted); cursor: pointer;
-  transition: all 0.2s ease; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+.back-btn-inline {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
-.back-btn:hover { background: var(--color-bg-light); color: var(--color-primary); border-color: #cbd5e1; }
 
-.layout-grid { display: grid; grid-template-columns: 1fr 380px; gap: 1.5rem; align-items: start; }
+.back-btn-inline:hover {
+  background: var(--color-bg-light);
+  color: var(--color-primary);
+  border-color: #cbd5e1;
+}
+
+.header-info { display: flex; flex-direction: column; align-items: flex-start; text-align: left; flex-grow: 1; }
+
+.layout-grid { display: grid; grid-template-columns: 1fr 380px; gap: 1.5rem; align-items: stretch; }
+.left-column { display: flex; flex-direction: column; }
+.left-column .detail-card { flex: 1; display: flex; flex-direction: column; }
+.right-column { display: flex; flex-direction: column; }
 .card { background: white; border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); }
 .detail-card { padding: 1.5rem 2rem; }
 

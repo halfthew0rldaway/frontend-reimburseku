@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, defineAsyncComponent } from 'vue'
+import { ref, onMounted, defineAsyncComponent, computed } from 'vue'
 import { User, FileText, Bell, ChevronLeft, ChevronRight, X, Send } from 'lucide-vue-next'
 import ApiService from '@/api/ApiService'
 import Swal from 'sweetalert2'
@@ -46,6 +46,20 @@ const pagination = ref({
   total: 0
 })
 
+const pendingReimbursements = ref([])
+
+const changePage = (page) => {
+  if (page >= 1 && page <= pagination.value.lastPage) {
+    pagination.value.currentPage = page
+    updateWaitingList()
+  }
+}
+
+const updateWaitingList = () => {
+  const start = (pagination.value.currentPage - 1) * 5
+  waitingList.value = pendingReimbursements.value.slice(start, start + 5)
+}
+
 // Mapping statis untuk category_id (karena JSON tidak memiliki category_name)
 const categoryMap = {
   1: 'Transportasi',
@@ -89,10 +103,9 @@ const populateDonutData = (reimbursements) => {
 
 onMounted(async () => {
   try {
-    const [empRes, reimbRes, logRes] = await Promise.allSettled([
+    const [empRes, reimbRes] = await Promise.allSettled([
       ApiService.getEmployees(),
-      ApiService.getReimbursements(),
-      ApiService.getSystemLogs()
+      ApiService.getReimbursements()
     ])
 
     const employees = empRes.status === 'fulfilled' && empRes.value.data?.data ? (empRes.value.data.data.data || empRes.value.data.data) : []
@@ -125,7 +138,7 @@ onMounted(async () => {
     const empMap = employees.reduce((acc, curr) => { acc[curr.id_employees] = curr; return acc }, {})
 
     // 3. Mapping data waiting list
-    waitingList.value = pending.slice(0, 5).map(item => {
+    pendingReimbursements.value = pending.map(item => {
       const emp = empMap[item.employees_id] || {}
       let parseableDate = item.expense_date;
 
@@ -143,20 +156,30 @@ onMounted(async () => {
       }
     })
 
-    const logsData = logRes.status === 'fulfilled' && logRes.value.data?.data ? logRes.value.data.data : []
-    logs.value = logsData.slice(0, 5).map((l, i) => {
-      let parseableDate = l.created_at || l.time;
-      if (typeof parseableDate === 'string' && parseableDate.includes(' ') && !parseableDate.includes('T')) {
-        parseableDate = parseableDate.replace(' ', 'T') + 'Z';
-      }
-      return {
-        id: l.id_log || l.id || i,
-        time: new Date(parseableDate).toLocaleString('id-ID'),
-        text: l.comments || l.text || l.action,
-        target: l.source || '',
-        color: l.source === 'Deposit' ? '#10b981' : '#3b82f6'
-      }
-    })
+    // Set client-side pagination for the dashboard widget
+    pagination.value = {
+      currentPage: 1,
+      lastPage: Math.ceil(pendingReimbursements.value.length / 5) || 1,
+      total: pendingReimbursements.value.length
+    }
+    
+    updateWaitingList()
+
+    // Log data unavailable (API not implemented), using dummy data
+    logs.value = [
+      { id: 1, time: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }), text: 'Login berhasil', target: 'System', color: '#3b82f6', category: 'System' },
+      { id: 2, time: new Date(Date.now() - 15 * 60000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }), text: 'Menyetujui reimbursement #RM-8123', target: 'Reimbursement', color: '#10b981', category: 'Reimbursement' },
+      { id: 3, time: new Date(Date.now() - 45 * 60000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }), text: 'Menambahkan karyawan baru', target: 'Karyawan', color: '#f59e0b', category: 'Karyawan' },
+      { id: 4, time: new Date(Date.now() - 120 * 60000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }), text: 'Menolak reimbursement #RM-8122', target: 'Reimbursement', color: '#ef4444', category: 'Reimbursement' },
+      { id: 5, time: new Date(Date.now() - 200 * 60000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }), text: 'Update profil sistem', target: 'System', color: '#3b82f6', category: 'System' },
+      { id: 6, time: new Date(Date.now() - 360 * 60000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }), text: 'Top up deposit kas Rp 10.000.000', target: 'Keuangan', color: '#10b981', category: 'Keuangan' },
+      { id: 7, time: new Date(Date.now() - 480 * 60000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }), text: 'Menghapus karyawan (Resign)', target: 'Karyawan', color: '#f59e0b', category: 'Karyawan' },
+      { id: 8, time: new Date(Date.now() - 1440 * 60000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }), text: 'Login dari IP 192.168.1.5', target: 'System', color: '#3b82f6', category: 'System' },
+      { id: 9, time: new Date(Date.now() - 2880 * 60000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }), text: 'Menyetujui reimbursement #RM-8001', target: 'Reimbursement', color: '#10b981', category: 'Reimbursement' },
+      { id: 10, time: new Date(Date.now() - 3000 * 60000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }), text: 'Edit kategori reimbursement', target: 'Master Data', color: '#8b5cf6', category: 'System' },
+      { id: 11, time: new Date(Date.now() - 4320 * 60000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }), text: 'Pencairan dana ke bank BCA', target: 'Keuangan', color: '#10b981', category: 'Keuangan' },
+      { id: 12, time: new Date(Date.now() - 5000 * 60000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }), text: 'Update data karyawan ID 24', target: 'Karyawan', color: '#f59e0b', category: 'Karyawan' }
+    ]
 
   } catch (err) {
     console.error('Failed to load dashboard data', err)
@@ -203,6 +226,13 @@ async function sendNotif() {
     console.error(err)
   }
 }
+
+const logFilter = ref('Semua')
+
+const filteredLogs = computed(() => {
+  if (logFilter.value === 'Semua') return logs.value
+  return logs.value.filter(log => log.category === logFilter.value)
+})
 </script>
 <template>
   <div class="admin-dashboard">
@@ -229,7 +259,7 @@ async function sendNotif() {
           <div class="card-header">Reimburse berdasarkan Kategori</div>
           <div class="chart-container">
             <div class="donut-box">
-              <VueApexCharts type="donut" width="100%" height="200" :options="donutOptions" :series="donutSeries" />
+              <VueApexCharts type="donut" width="100%" height="100%" :options="donutOptions" :series="donutSeries" />
             </div>
             <div class="chart-legend">
               <div v-for="c in categories" :key="c.label" class="legend-item">
@@ -242,12 +272,21 @@ async function sendNotif() {
 
         <!-- Logs Card -->
         <div class="card log-card">
-          <div class="card-header">
+          <div class="card-header" style="justify-content: space-between; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0;">
             <span>Log Aktivitas Sistem</span>
-            <button class="btn-link">Lihat Semua</button>
+            <select v-model="logFilter" class="log-filter-select">
+              <option value="Semua">Semua</option>
+              <option value="System">Sistem</option>
+              <option value="Reimbursement">Reimburse</option>
+              <option value="Karyawan">Karyawan</option>
+              <option value="Keuangan">Keuangan</option>
+            </select>
           </div>
           <div class="log-list">
-            <div v-for="log in logs" :key="log.id" class="log-item">
+            <div v-if="filteredLogs.length === 0" style="text-align: center; color: #94a3b8; font-size: 0.75rem; padding: 1rem;">
+              Tidak ada log untuk kategori ini.
+            </div>
+            <div v-for="log in filteredLogs" :key="log.id" class="log-item">
               <div class="log-dot" :style="{ background: log.color }"></div>
               <div class="log-time">{{ log.time }}</div>
               <div class="log-text">
@@ -260,7 +299,6 @@ async function sendNotif() {
 
       <!-- Right Column -->
       <div class="right-column">
-        <div class="card list-card">
           <div class="card-header">
             <span>Menunggu Persetujuan</span>
             <span class="header-badge">{{ stats[1].value }}</span>
@@ -299,19 +337,19 @@ async function sendNotif() {
               </div>
             </template>
           </div>
-          <div class="pagination" v-if="pagination.lastPage > 1">
-            <button class="p-arrow" :disabled="pagination.currentPage === 1">
-              <ChevronLeft :size="14" />
-            </button>
-            <button class="p-num active">{{ pagination.currentPage }}</button>
-            <span style="font-size: 0.75rem; color: #94a3b8; margin: 0 0.25rem;">
-              dari {{ pagination.lastPage }}
-            </span>
-            <button class="p-arrow" :disabled="pagination.currentPage === pagination.lastPage">
-              <ChevronRight :size="14" />
-            </button>
+          <div class="table-footer" v-if="pagination.lastPage > 1">
+            <div class="pagination">
+              <button class="page-btn" :disabled="pagination.currentPage === 1" @click="changePage(pagination.currentPage - 1)">
+                <ChevronLeft :size="12" />
+              </button>
+              <button v-for="page in pagination.lastPage" :key="page" class="page-btn" :class="{ active: pagination.currentPage === page }" @click="changePage(page)">
+                {{ page }}
+              </button>
+              <button class="page-btn" :disabled="pagination.currentPage === pagination.lastPage" @click="changePage(pagination.currentPage + 1)">
+                <ChevronRight :size="12" />
+              </button>
+            </div>
           </div>
-        </div>
       </div>
     </div>
 
@@ -359,17 +397,7 @@ async function sendNotif() {
   gap: 1rem;
   flex: 1;
   height: 100%;
-  overflow-y: auto;
-}
-
-.page-header {
-  margin-bottom: 0;
-}
-
-.page-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1e293b;
+  overflow: hidden;
 }
 
 .dashboard-grid {
@@ -396,6 +424,7 @@ async function sendNotif() {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+  flex-shrink: 0;
 }
 
 .stat-card {
@@ -434,29 +463,11 @@ async function sendNotif() {
   margin-top: 0.1rem;
 }
 
-/* Cards */
-.card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  border: 1px solid #f1f5f9;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.card-header {
-  padding: 1rem 1.25rem;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: #1e293b;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #e2e8f0;
-}
-
 /* Chart */
+.chart-card {
+  flex-shrink: 0;
+}
+
 .chart-container {
   padding: 1.25rem;
   display: flex;
@@ -466,8 +477,11 @@ async function sendNotif() {
 }
 
 .donut-box {
-  width: 120px;
-  height: 120px;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .donut-svg {
@@ -501,6 +515,14 @@ async function sendNotif() {
 }
 
 /* Logs */
+.log-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .log-list {
   padding: 0.75rem 1.25rem 1.25rem;
   display: flex;
@@ -549,6 +571,20 @@ async function sendNotif() {
   cursor: pointer;
 }
 
+.log-filter-select {
+  font-size: 0.7rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  color: #475569;
+  background-color: white;
+  cursor: pointer;
+  outline: none;
+}
+.log-filter-select:focus {
+  border-color: #3b82f6;
+}
+
 /* Right Column */
 .right-column {
   background: white;
@@ -574,6 +610,8 @@ async function sendNotif() {
 .approval-list {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .approval-item {
@@ -647,6 +685,44 @@ async function sendNotif() {
   color: #ef4444;
 }
 
+.table-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  background-color: #f8fafc;
+}
+
+.pagination {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.page-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+}
+.page-btn.active {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+.page-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .btn-notif {
   background: #3b82f6;
   color: white;
@@ -660,42 +736,6 @@ async function sendNotif() {
   gap: 0.375rem;
   cursor: pointer;
 }
-
-/* Pagination */
-.pagination {
-  padding: 1rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  border-top: 1px solid #f8fafc;
-}
-
-.p-arrow,
-.p-num {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: #64748b;
-  cursor: pointer;
-}
-
-.p-num.active {
-  background: #3b82f6;
-  color: white;
-  border-color: #3b82f6;
-}
-
-/* Modal */
-
-
 
 .notif-icon-box {
   width: 36px;
@@ -731,7 +771,6 @@ async function sendNotif() {
   cursor: pointer;
 }
 
-
 .notif-target {
   font-size: 0.75rem;
   color: #475569;
@@ -757,18 +796,6 @@ async function sendNotif() {
   transition: border-color 0.2s;
   resize: none;
   box-sizing: border-box;
-}
-
-
-.btn-cancel {
-  padding: 0.5rem 1rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: white;
-  cursor: pointer;
 }
 
 .btn-send {

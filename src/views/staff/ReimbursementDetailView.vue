@@ -122,15 +122,6 @@ const zoomOut = () => {
 <template>
   <div class="detail-page">
     <div class="page-container">
-      <div class="page-header">
-        <button class="back-btn" @click="router.push('/staf/dasbor')">
-          <ArrowLeft :size="20" />
-        </button>
-        <div class="header-info">
-          
-          <p class="text-muted">Informasi lengkap reimburse anda</p>
-        </div>
-      </div>
 
   <div v-if="isLoading" class="layout-grid">
         <div class="left-column">
@@ -180,14 +171,13 @@ const zoomOut = () => {
           <div class="card detail-card">
             <div class="form-section">
               <div class="section-title-wrap">
+                <button class="back-btn-inline" @click="router.push('/staf/dasbor')" title="Kembali">
+                  <ArrowLeft :size="18" />
+                </button>
                 <div class="section-icon"><User :size="18" /></div>
                 <h3 class="section-title">Informasi Karyawan</h3>
               </div>
               <div class="grid-2-cols">
-                <div class="form-group col-span-2">
-                  <label class="form-label">Nomor Rekening</label>
-                  <div class="readonly-field">{{ data.rekening }}</div>
-                </div>
                 <div class="form-group">
                   <label class="form-label">Nama</label>
                   <div class="readonly-field">{{ data.nama }}</div>
@@ -195,6 +185,10 @@ const zoomOut = () => {
                 <div class="form-group">
                   <label class="form-label">Posisi</label>
                   <div class="readonly-field">{{ data.posisi }}</div>
+                </div>
+                <div class="form-group col-span-2">
+                  <label class="form-label">Nomor Rekening (Tujuan Transfer)</label>
+                  <div class="readonly-field">{{ data.rekening }}</div>
                 </div>
               </div>
             </div>
@@ -355,7 +349,6 @@ const zoomOut = () => {
   --color-bg-light: #f8fafc;
   --color-bg-disabled: #f1f5f9;
   
-  padding: 1.5rem;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -364,8 +357,6 @@ const zoomOut = () => {
 }
 
 .page-container {
-  max-width: 1200px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -411,6 +402,27 @@ const zoomOut = () => {
 .back-btn:hover {
   background: var(--color-bg-light);
   color: var(--color-primary);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.back-btn-inline {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.back-btn-inline:hover {
+  background: var(--color-bg-light);
+  color: var(--color-primary);
   border-color: #cbd5e1;
 }
 
@@ -432,7 +444,7 @@ const zoomOut = () => {
   display: grid;
   grid-template-columns: 1fr 380px; /* Kolom kiri fleksibel, Kolom kanan fix 380px */
   gap: 1.5rem;
-  align-items: start;
+  align-items: stretch;
   flex: 1;
   overflow: hidden;
 }
@@ -460,7 +472,7 @@ const zoomOut = () => {
 }
 
 .detail-card {
-  padding: 2rem;
+  padding: 1.25rem 1.5rem;
 }
 
 .log-card {
@@ -475,7 +487,7 @@ const zoomOut = () => {
   border: 0;
   height: 1px;
   background-color: var(--color-border);
-  margin: 2rem 0;
+  margin: 1.25rem 0;
 }
 
 .form-section {
@@ -487,7 +499,7 @@ const zoomOut = () => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .log-header {
@@ -529,7 +541,7 @@ const zoomOut = () => {
 .left-fields, .right-fields {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 .col-span-2 {
@@ -576,7 +588,7 @@ const zoomOut = () => {
 
 textarea.form-control {
   resize: vertical;
-  min-height: 120px;
+  min-height: 80px;
   line-height: 1.5;
 }
 

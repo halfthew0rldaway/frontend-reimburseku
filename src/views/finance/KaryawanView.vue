@@ -207,21 +207,20 @@ const processExport = async (formatType) => {
     isExporting.value = false
   }
 }
+
+// Modal Detail State
+const showDetailModal = ref(false)
+const selectedEmp = ref(null)
+
+const closeDetail = () => {
+  showDetailModal.value = false
+  selectedEmp.value = null
+}
 </script>
 
 <template>
   <div class="finance-karyawan">
-    <div class="page-header">
-      <h1 class="page-title">Karyawan</h1>
-      
-      <!-- Tombol Ekspor -->
-      <div class="quick-actions">
-        <button class="qa-btn qa-outline" @click="showExportModal = true">
-          <Download :size="16" />
-          <span>Ekspor Data</span>
-        </button>
-      </div>
-    </div>
+
 
     <div class="card main-card">
       <div class="card-header">
@@ -231,6 +230,10 @@ const processExport = async (formatType) => {
             <Search :size="14" class="search-icon" />
             <input v-model="searchQuery" type="text" placeholder="Cari Nama / Rekening..." class="search-input" />
           </div>
+          <button class="qa-btn qa-outline" @click="showExportModal = true">
+            <Download :size="14" />
+            <span>Ekspor Data</span>
+          </button>
         </div>
       </div>
 
@@ -328,7 +331,7 @@ const processExport = async (formatType) => {
               :disabled="isExporting"
               @click="processExport('pdf')"
             >
-              <FileText :size="18" />
+              <FileText :size="16" />
               <span>{{ isExporting ? 'Memproses...' : 'Ekspor PDF' }}</span>
             </button>
             
@@ -337,7 +340,7 @@ const processExport = async (formatType) => {
               :disabled="isExporting"
               @click="processExport('excel')"
             >
-              <Table :size="18" />
+              <Table :size="16" />
               <span>{{ isExporting ? 'Memproses...' : 'Ekspor Excel' }}</span>
             </button>
           </div>
@@ -349,37 +352,34 @@ const processExport = async (formatType) => {
     <div v-if="showDetailModal" class="modal-overlay" @click.self="closeDetail">
       <div class="modal-panel">
         <div class="modal-panel-header">
-          <h3>Detail Karyawan</h3>
-          <button class="btn-close" @click="closeDetail">&times;</button>
+          <h3 class="modal-title">Detail Karyawan</h3>
+          <button class="close-btn" @click="closeDetail"><X :size="20" /></button>
         </div>
-        <div class="modal-body" v-if="selectedEmp">
-          <div class="detail-row">
-            <span class="detail-label">Nama:</span>
-            <span class="detail-value font-bold">{{ selectedEmp.nama }}</span>
+        <div class="modal-panel-body" v-if="selectedEmp" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="text-muted text-xs font-semibold">Nama Lengkap</label>
+            <div class="font-bold text-dark">{{ selectedEmp.nama }}</div>
           </div>
-          <div class="detail-row">
-            <span class="detail-label">Email:</span>
-            <span class="detail-value">{{ selectedEmp.email }}</span>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="text-muted text-xs font-semibold">Email</label>
+            <div class="text-dark">{{ selectedEmp.email }}</div>
           </div>
-          <div class="detail-row">
-            <span class="detail-label">Jabatan:</span>
-            <span class="detail-value">{{ selectedEmp.jabatan }}</span>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="text-muted text-xs font-semibold">Jabatan</label>
+            <div class="text-dark">{{ selectedEmp.jabatan }}</div>
           </div>
-          <div class="detail-row">
-            <span class="detail-label">Departemen:</span>
-            <span class="detail-value dept-badge">{{ selectedEmp.departemen }}</span>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="text-muted text-xs font-semibold">Departemen</label>
+            <div class="dept-badge">{{ selectedEmp.departemen || '-' }}</div>
           </div>
-          <div class="detail-row">
-            <span class="detail-label">Total Pengajuan:</span>
-            <span class="detail-value font-semibold">{{ selectedEmp.totalPengajuan }}</span>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="text-muted text-xs font-semibold">Total Pengajuan</label>
+            <div class="font-semibold text-dark">{{ selectedEmp.totalPengajuan }} Pengajuan</div>
           </div>
-          <div class="detail-row">
-            <span class="detail-label">Total Nilai Reimburse:</span>
-            <span class="detail-value text-success font-bold">{{ selectedEmp.totalAmount }}</span>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="text-muted text-xs font-semibold">Total Nilai Reimburse</label>
+            <div class="text-success font-bold text-lg">{{ selectedEmp.totalAmount }}</div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-primary" @click="closeDetail">Tutup</button>
         </div>
       </div>
     </div>
@@ -388,68 +388,34 @@ const processExport = async (formatType) => {
 
 <style scoped>
 .finance-karyawan { display: flex; flex-direction: column; gap: 1rem; flex: 1; height: 100%; overflow: hidden; }
+.page-header { margin-bottom: 0.25rem; flex-wrap: wrap; gap: 1rem; }
+.page-title { margin: 0; }
 
-/* HEADER & QUICK ACTIONS */
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem; flex-wrap: wrap; gap: 1rem; }
-.page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; margin: 0; }
 .quick-actions { display: flex; gap: 0.75rem; align-items: center; }
 .qa-btn { display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 1rem; border-radius: 8px; font-size: 0.8125rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-family: inherit; }
 .qa-outline { background: white; border: 1px solid #cbd5e1; color: #475569; }
 .qa-outline:hover { background: #f1f5f9; color: #0f172a; border-color: #94a3b8; }
 
-.card { background: white; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); overflow: hidden; }
-.card-header { padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f8fafc; }
-.card-header-title { font-size: 0.875rem; font-weight: 700; color: #1e293b; }
-.header-actions { display: flex; gap: 0.625rem; align-items: center; }
-.search-box { position: relative; }
-.search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #94a3b8; }
-.search-input { padding: 0.4rem 0.75rem 0.4rem 2.125rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.75rem; outline: none; width: 220px; }
-.table-responsive { overflow-x: auto; max-height: calc(100vh - 220px); }
-.modern-table { width: 100%; border-collapse: collapse; }
-.modern-table th { text-align: left; padding: 0.75rem 1.25rem; font-size: 0.6rem; font-weight: 600; color: #64748b; background: #f8fafc; border-bottom: 1px solid #f1f5f9; text-transform: uppercase; letter-spacing: 0.05em; }
-.modern-table td { padding: 0.75rem 1.25rem; font-size: 0.75rem; color: #475569; border-bottom: 1px solid #f8fafc; vertical-align: middle; }
-.user-info { display: flex; align-items: center; gap: 0.625rem; }
-.avatar-sm { width: 28px; height: 28px; border-radius: 50%; background: #f1f5f9; color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; border: 1px solid #e2e8f0; }
+.card.main-card { background: white; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+.table-responsive { overflow-y: auto; overflow-x: auto; flex: 1; }
+
+.avatar-sm { color: #3b82f6; }
 .user-meta { display: flex; flex-direction: column; }
-.user-name { font-weight: 700; color: #1e293b; font-size: 0.75rem; }
-.user-email { font-size: 0.65rem; color: #94a3b8; }
 .payout-info { display: flex; flex-direction: column; gap: 0.125rem; }
 .payout-name { font-weight: 600; color: #1e293b; font-size: 0.7rem; }
 .payout-detail { font-size: 0.65rem; color: #64748b; }
-.text-center { text-align: center; }
-.text-success { color: #16a34a !important; }
-.font-bold { font-weight: 700; }
-.font-semibold { font-weight: 600; }
-.text-muted { color: #94a3b8; margin: 0; }
-.py-8 { padding-top: 2rem !important; padding-bottom: 2rem !important; }
-.btn-icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: all 0.2s; }
 .btn-icon.detail { background: #f1f5f9; color: #64748b; }
 .btn-icon.detail:hover { background: #e2e8f0; color: #1e293b; }
-.table-footer { padding: 0.75rem 1.25rem; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
-.pagination { display: flex; gap: 0.25rem; }
-.page-btn { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: #64748b; cursor: pointer; }
-.page-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
-.page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.text-xs { font-size: 0.65rem; }
-.loading-state, .empty-state { padding: 3rem 1rem !important; }
-.loader-spinner { width: 32px; height: 32px; border: 3px solid #f1f5f9; border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
-.loading-text { margin-top: 0.75rem; font-size: 0.75rem; color: #64748b; font-weight: 500; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
-/* MODAL EKSPOR */
-.modal-backdrop { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.4); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(2px); }
-.modal-box { background: white; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); overflow: hidden; display: flex; flex-direction: column; }
-.modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
-.modal-title { font-size: 1rem; font-weight: 700; color: #1e293b; margin: 0; }
-.close-btn { background: transparent; border: none; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.2s; }
-.close-btn:hover { color: #ef4444; }
-.modal-body { padding: 1.5rem 1.5rem 2rem 1.5rem; }
-.export-desc { font-size: 0.8125rem; color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
-.export-actions-centered { display: flex; gap: 1rem; justify-content: center; }
-.btn-download { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; border-radius: 12px; font-size: 0.8125rem; font-weight: 600; cursor: pointer; border: none; color: white; transition: all 0.2s; width: 120px;}
+/* Export Modal */
+.modal-box { max-width: 380px; }
+.modal-box .modal-body { padding-bottom: 1rem; }
+.export-desc { font-size: 0.8125rem; color: #64748b; margin-bottom: 1.25rem; line-height: 1.5; }
+.export-actions-centered { display: flex; gap: 0.75rem; justify-content: center; padding-bottom: 0.5rem; }
+.btn-download { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.625rem 1.5rem; border-radius: 10px; font-size: 0.8125rem; font-weight: 600; cursor: pointer; border: none; color: white; transition: all 0.2s; min-width: 140px; }
 .btn-pdf { background: #ef4444; }
-.btn-pdf:hover:not(:disabled) { background: #dc2626; transform: translateY(-2px); box-shadow: 0 4px 6px rgba(239, 68, 68, 0.25); }
+.btn-pdf:hover:not(:disabled) { background: #dc2626; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3); }
 .btn-excel { background: #10b981; }
-.btn-excel:hover:not(:disabled) { background: #059669; transform: translateY(-2px); box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25); }
+.btn-excel:hover:not(:disabled) { background: #059669; transform: translateY(-1px); box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3); }
 .btn-download:disabled { opacity: 0.6; cursor: not-allowed; }
 </style>

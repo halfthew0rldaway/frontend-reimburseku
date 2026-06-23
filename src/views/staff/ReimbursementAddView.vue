@@ -180,28 +180,16 @@ const preventLetters = (event) => {
   <div class="add-page">
     <div class="form-container">
       <div class="card detail-card form-card">
-        <div class="card-header">
-          <button class="back-btn" @click="router.push('/staf/dasbor')">
-            <ArrowLeft :size="20" />
-          </button>
-          <div class="header-info">
-            <div class="icon-wrap">
-              <Plus :size="18" />
-            </div>
-            <div class="text-wrap">
-              <h2 class="form-title">Buat Pengajuan</h2>
-              <p class="form-sub">Formulir Reimbursement</p>
-            </div>
-          </div>
-        </div>
-
         <div class="form-content">
           <div class="form-section">
         <div class="section-title-wrap">
+          <button class="back-btn-inline" @click="router.push('/staf/dasbor')" title="Kembali">
+            <ArrowLeft :size="18" />
+          </button>
           <div class="section-icon">
             <User :size="16" />
           </div>
-          <h3 class="section-title">Informasi Karyawan</h3>
+          <h3 class="section-title">Buat Pengajuan</h3>
         </div>
 
         <div class="grid-2-cols">
@@ -261,7 +249,7 @@ const preventLetters = (event) => {
 
             <div class="form-group mt-2">
               <label class="form-label">Keterangan / Catatan</label>
-              <textarea class="form-control" rows="2" placeholder="Tuliskan keterangan..." v-model="data.catatan"></textarea>
+              <textarea class="form-control" rows="1" style="min-height: 46px;" placeholder="Tuliskan keterangan..." v-model="data.catatan"></textarea>
             </div>
           </div>
 
@@ -303,7 +291,7 @@ const preventLetters = (event) => {
 .add-page {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: calc(100vh - 64px - 3rem);
   overflow: hidden;
 }
 
@@ -315,59 +303,37 @@ const preventLetters = (event) => {
 }
 
 .form-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.03);
   width: 100%;
-  max-width: none;
-  margin: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 0;
 }
 
-.card-header {
-  padding: 0.75rem 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  border-bottom: 1px solid var(--color-border);
-  flex-shrink: 0;
-}
 
-.header-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
 
-.icon-wrap {
-  width: 32px;
-  height: 32px;
+.back-btn-inline {
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
-  background: #eff6ff;
-  color: #3b82f6;
+  background: white;
+  border: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.text-wrap {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--color-text-main);
-  margin: 0;
-}
-
-.form-sub {
-  font-size: 0.75rem;
   color: var(--color-text-muted);
-  font-weight: 500;
-  margin: 0;
-  margin-top: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.back-btn-inline:hover {
+  background: #f8fafc;
+  color: var(--color-primary);
+  border-color: #cbd5e1;
 }
 
 .form-content {
@@ -375,27 +341,13 @@ const preventLetters = (event) => {
   overflow-y: auto;
   flex: 1;
 }
-.back-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: white;
-  border: 1px solid var(--color-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-muted);
-}
 
-.back-btn:hover {
-  background: #f1f5f9;
-  color: var(--color-primary);
-}
+
 
 
 
 .detail-card {
-  /* previously had padding and max-width, now handled by form-card */
+  width: 100%;
 }
 
 .section-title-wrap {

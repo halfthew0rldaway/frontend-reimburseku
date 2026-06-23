@@ -193,7 +193,7 @@ const filteredEmployees = computed(() => {
 
     <!-- Modal Tambah Karyawan -->
     <div v-if="showModal" class="modal-overlay" @click.self="closeAdd">
-      <div class="modal-panel">
+      <div class="modal-panel modal-wide">
         <div class="modal-panel-header">
           <div class="modal-header-icon">
             <component :is="isEdit ? PencilLine : Plus" :size="18" />
@@ -203,9 +203,9 @@ const filteredEmployees = computed(() => {
             <p class="modal-header-sub">{{ isEdit ? 'Perbarui data karyawan' : 'Isi data karyawan yang ingin ditambahkan' }}</p>
           </div>
         </div>
-        <div class="modal-panel-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-          <div class="form-group col-span-2">
-            <label>Nama <span class="required">*</span></label>
+        <div class="modal-panel-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem;">
+          <div class="form-group">
+            <label>Nama Lengkap <span class="required">*</span></label>
             <input v-model="formData.name" type="text" class="form-control" placeholder="Nama lengkap karyawan" />
           </div>
           <div class="form-group">
@@ -224,10 +224,6 @@ const filteredEmployees = computed(() => {
             <label>Jabatan</label>
             <input v-model="formData.position" type="text" class="form-control" placeholder="Contoh: Staff Marketing" />
           </div>
-          <div class="form-group col-span-2">
-            <label>Alamat</label>
-            <textarea v-model="formData.address" class="form-control" rows="2" placeholder="Alamat lengkap karyawan"></textarea>
-          </div>
           <div class="form-group">
             <label>Hak Akses (Role) <span class="required">*</span></label>
             <select v-model="formData.roles_id" class="form-control">
@@ -237,8 +233,12 @@ const filteredEmployees = computed(() => {
             </select>
           </div>
           <div class="form-group">
-            <label>ID Rekening (Account Payout ID)</label>
-            <input v-model="formData.account_payout_id" type="number" class="form-control" placeholder="Masukkan ID dari tabel account_payout" />
+            <label>ID Rekening</label>
+            <input v-model="formData.account_payout_id" type="number" class="form-control" placeholder="ID tabel account_payout" />
+          </div>
+          <div class="form-group col-span-2">
+            <label>Alamat Domisili</label>
+            <textarea v-model="formData.address" class="form-control" rows="2" placeholder="Alamat lengkap karyawan"></textarea>
           </div>
         </div>
         <div class="modal-panel-footer">
@@ -255,56 +255,9 @@ const filteredEmployees = computed(() => {
 
 <style scoped>
 .karyawan-page { display: flex; flex-direction: column; gap: 1rem; flex: 1; height: 100%; overflow: hidden; }
-
-.page-header { margin-bottom: 0; }
-.page-title { font-size: 1.25rem; font-weight: 700; color: #1e293b; }
-
-.main-card { background: white; border-radius: 12px; border: 1px solid #f1f5f9; box-shadow: 0 1px 2px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column; flex: 1; min-height: 0; }
-.card-header { padding: 1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
-.card-header-title { font-size: 0.875rem; font-weight: 700; color: #1e293b; }
-
-.header-actions { display: flex; gap: 0.625rem; align-items: center; }
-.search-box { position: relative; }
-.search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #94a3b8; }
-.search-input { padding: 0.4rem 0.75rem 0.4rem 2.125rem; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.75rem; outline: none; width: 200px; }
-.btn-sort { display: flex; align-items: center; gap: 0.375rem; padding: 0.4rem 0.875rem; font-size: 0.75rem; color: #64748b; border: 1px solid #e2e8f0; border-radius: 8px; background: white; cursor: pointer; }
-.btn-add { display: flex; align-items: center; gap: 0.375rem; font-size: 0.75rem; padding: 0.4rem 0.875rem; background: #3b82f6; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; }
-
-/* Table */
-.table-responsive { overflow-x: auto; overflow-y: auto; flex: 1; }
-.modern-table { width: 100%; border-collapse: collapse; }
-.modern-table th { text-align: left; padding: 0.75rem 1.25rem; font-size: 0.6rem; font-weight: 600; color: #64748b; background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
-.modern-table td { padding: 0.75rem 1.25rem; font-size: 0.75rem; color: #475569; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
-
-.font-mono { font-family: monospace; font-size: 0.7rem; }
 .address-cell { max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.7rem; }
-
 .role-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 6px; font-size: 0.65rem; font-weight: 700; }
 .role-badge.staff { background: #f1f5f9; color: #475569; }
 .role-badge.finance { background: #eff6ff; color: #2563eb; }
 .role-badge.admin { background: #fef3c7; color: #92400e; }
-
-.action-btns { display: flex; justify-content: center; gap: 0.375rem; }
-.btn-icon { width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; transition: all 0.2s; }
-.btn-icon.edit { background: #f59e0b; color: white; }
-.btn-icon.delete { background: #ef4444; color: white; }
-
-/* Footer / Pagination */
-.table-footer { padding: 0.75rem 1.25rem; display: flex; justify-content: center; background: #f8fafc; border-top: 1px solid #f1f5f9; flex-shrink: 0; }
-.pagination { display: flex; gap: 0.25rem; }
-.page-btn { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #e2e8f0; background: white; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: #64748b; cursor: pointer; }
-.page-btn.active { background: #3b82f6; border-color: #3b82f6; color: white; }
-
-/* Modal */
-.form-group { text-align: left; }
-.form-group label { display: block; margin-bottom: 0.375rem; font-size: 0.8125rem; font-weight: 600; color: #475569; }
-.required { color: #ef4444; }
-.col-span-2 { grid-column: span 2; }
-.form-control { width: 100%; padding: 0.625rem 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; font-size: 0.8125rem; font-family: inherit; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box; }
-.form-control:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-textarea.form-control { resize: vertical; min-height: 60px; }
-.btn-outline { background: white; border: 1px solid #e2e8f0; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.8125rem; color: #475569; transition: all 0.15s; }
-.btn-outline:hover { background: #f8fafc; border-color: #cbd5e1; }
-.btn-save { display: inline-flex; align-items: center; gap: 0.375rem; background: #3b82f6; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.8125rem; transition: all 0.15s; }
-.btn-save:hover { background: #2563eb; }
 </style>

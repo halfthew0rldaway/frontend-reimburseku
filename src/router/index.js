@@ -167,6 +167,9 @@ const router = createRouter({
     { path: '/staff/dashboard', redirect: '/staf/dasbor' },
     { path: '/admin/dashboard', redirect: '/admin/dasbor' },
     { path: '/finance/dashboard', redirect: '/finance/dasbor' },
+
+    // ─── Catch-all 404 ──────────────────────────────────────────────
+    { path: '/:pathMatch(.*)*', redirect: '/masuk' },
   ]
 })
 

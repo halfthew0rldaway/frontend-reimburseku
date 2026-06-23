@@ -40,7 +40,7 @@ function logout() {
         <p class="role-label">Administrator</p>
       </div>
 
-      <nav class="nav-menu">
+      <nav class="sidebar-nav">
         <RouterLink
           v-for="item in navItems"
           :key="item.to"
@@ -74,7 +74,7 @@ function logout() {
         </div>
       </div>
 
-      <div class="page-wrapper">
+      <div class="page-content">
         <RouterView />
       </div>
     </main>
@@ -144,7 +144,7 @@ function logout() {
   margin-left: 0.25rem;
 }
 
-.nav-menu {
+.sidebar-nav {
   flex: 1;
   padding: 1rem 0.5rem;
   display: flex;
@@ -251,7 +251,7 @@ function logout() {
   color: #475569;
 }
 
-.page-wrapper {
+.page-content {
   padding: 1.5rem 2rem;
   flex: 1;
   display: flex;
@@ -261,15 +261,15 @@ function logout() {
 
 @media (max-width: 768px) {
   .sidebar {
-    width: 64px;
+    width: 70px;
   }
   .sidebar span, .sidebar .logo-text, .sidebar .role-label {
     display: none;
   }
   .main-content {
-    margin-left: 64px;
+    margin-left: 70px;
   }
-  .page-wrapper {
+  .page-content {
     padding: 1rem;
   }
 }

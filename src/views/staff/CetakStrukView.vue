@@ -173,12 +173,7 @@ const printDocument = () => {
 </script>
 <template>
   <div class="print-page">
-    <header class="page-header">
-      <div>
-        <h1 class="page-title">Cetak Struk Transaksi</h1>
-        <p class="page-subtitle">Unggah dokumen format PDF atau Gambar dan cetak langsung ke printer kasir</p>
-      </div>
-    </header>
+
 
     <div class="content-grid">
       <div class="config-column">
@@ -313,23 +308,23 @@ const printDocument = () => {
 <style scoped>
 /* Typography & Layout Dasar */
 .print-page { display: flex; flex-direction: column; gap: 2rem; color: #1e293b; }
-.page-header { margin-bottom: 0.5rem; }
-.page-title { font-size: 1.75rem; font-weight: 700; color: #0f172a; margin-bottom: 0.25rem; }
 .page-subtitle { color: #64748b; font-size: 0.95rem; }
 .text-blue { color: #3b82f6; }
-.w-full { width: 100%; }
 
 /* Grid System */
-.content-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem; align-items: start; }
+.content-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.5rem; align-items: stretch; }
 
 /* Cards */
-.card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); margin-bottom: 1.5rem; }
-.card-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; }
+.card { padding: 1.5rem; display: flex; flex-direction: column; }
+.config-column { display: flex; flex-direction: column; gap: 1.5rem; height: 100%; }
+.config-column .card:last-child { flex: 1; display: flex; flex-direction: column; }
+.config-column .card:last-child .form-group { flex: 1; display: flex; flex-direction: column; }
+.config-column .card:last-child .radio-group { flex: 1; }
+.card-header { display: flex; align-items: center; justify-content: flex-start; gap: 0.75rem; margin-bottom: 1.5rem; }
 .card-header h2 { font-size: 1.125rem; font-weight: 600; margin: 0; }
-.border-bottom { border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; justify-content: space-between; }
+.border-bottom { border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem; justify-content: space-between !important; }
 
 /* Badges */
-.badge { background: #f1f5f9; color: #64748b; font-size: 0.7rem; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 600; text-transform: uppercase; }
 .status-success { background: #dcfce7; color: #166534; }
 
 /* Tabs Koneksi */
@@ -354,7 +349,8 @@ const printDocument = () => {
 .radio-label input:checked + .radio-custom { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; }
 
 /* Area Container */
-.preview-card { display: flex; flex-direction: column; height: 100%; min-height: 550px; }
+.preview-column { display: flex; flex-direction: column; height: 100%; }
+.preview-card { display: flex; flex-direction: column; flex: 1; min-height: 550px; padding: 1.5rem; }
 .pdf-container { flex: 1; display: flex; flex-direction: column; margin-bottom: 1.5rem; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e1; overflow: hidden; }
 
 /* Upload Zone */
@@ -369,8 +365,8 @@ const printDocument = () => {
 
 /* Preview Area */
 .pdf-preview-wrapper { flex: 1; display: flex; flex-direction: column; height: 100%; width: 100%; margin: 0 auto; background: #e2e8f0; transition: width 0.3s; }
-.pdf-preview-wrapper.58mm { max-width: 380px; } 
-.pdf-preview-wrapper.80mm { max-width: 480px; }
+.pdf-preview-wrapper[class~='58mm'] { max-width: 380px; }
+.pdf-preview-wrapper[class~='80mm'] { max-width: 480px; }
 .pdf-preview-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: white; border-bottom: 1px solid #e2e8f0; }
 .file-info { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500; color: #334155; }
 .filename { max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
