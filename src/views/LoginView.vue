@@ -74,6 +74,14 @@ async function handleLogin() {
             <span>Aman & Terpercaya</span>
           </div>
         </div>
+
+        <div class="lottie-container" style="margin-top: 2.5rem; display: flex; justify-content: center; opacity: 0.9;">
+           <Vue3Lottie 
+             animationLink="https://assets3.lottiefiles.com/packages/lf20_jcikwtux.json" 
+             :height="280" 
+             :width="280" 
+           />
+        </div>
       </div>
       <div class="abstract-shape"></div>
     </div>
