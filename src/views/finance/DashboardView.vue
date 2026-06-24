@@ -196,10 +196,17 @@ const fetchDashboardData = async (page = 1) => {
 
     const categories = Object.keys(catCounts)
     if (categories.length > 0) {
-      pieOptions.value = { ...pieOptions.value, labels: categories }
+      const mappedColors = categories.map(cat => {
+        const lower = cat.toLowerCase()
+        if (lower.includes('transport')) return '#10b981' // Green
+        if (lower.includes('makan') || lower.includes('minum')) return '#ef4444' // Red
+        if (lower.includes('parkir')) return '#8b5cf6' // Purple
+        return '#3b82f6' // Blue (Lain-lain)
+      })
+      pieOptions.value = { ...pieOptions.value, labels: categories, colors: mappedColors }
       pieSeries.value = Object.values(catCounts)
     } else {
-      pieOptions.value = { ...pieOptions.value, labels: ['Belum Ada Data'] }
+      pieOptions.value = { ...pieOptions.value, labels: ['Belum Ada Data'], colors: ['#e2e8f0'] }
       pieSeries.value = [100]
     }
 
@@ -570,7 +577,7 @@ const exportByDateRange = async (formatType) => {
             <span class="filter-badge">Halaman {{ currentPage }}</span>
           </div>
           <div class="donut-content">
-            <VueApexCharts type="donut" height="180" :options="pieOptions" :series="pieSeries" />
+            <VueApexCharts type="donut" height="230" :options="pieOptions" :series="pieSeries" />
           </div>
         </div>
       </div>
@@ -761,7 +768,7 @@ const exportByDateRange = async (formatType) => {
     </div>
 
     <div v-if="showExportModal" class="modal-backdrop" @click.self="showExportModal = false">
-      <div class="modal-box">
+      <div class="modal export-modal">
         <div class="modal-header">
           <h3 class="modal-title">Konfigurasi Ekspor Laporan</h3>
           <button class="close-btn" @click="showExportModal = false"><X :size="20" /></button>
@@ -913,8 +920,16 @@ const exportByDateRange = async (formatType) => {
 .p-num.active { background: #3b82f6; color: white; border-color: #3b82f6; box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2); }
 
 /* --- MODAL VARIANTS --- */
-.modal-box, .modal { max-width: 440px; }
+.modal { max-width: 440px; }
+.export-modal { max-width: 500px; }
+.export-modal .modal-header { justify-content: space-between; }
+.export-modal .close-btn { order: 1; margin-right: 0; }
 .confirm-modal { max-width: 380px; }
+
+/* Radio Buttons for Export Modal */
+.radio-group { display: flex; gap: 1.5rem; margin-top: 0.5rem; margin-bottom: 1rem; }
+.radio-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: #1e293b; cursor: pointer; }
+.radio-label input[type="radio"] { cursor: pointer; accent-color: #3b82f6; }
 
 .export-actions { display: flex; gap: 0.75rem; align-items: center; }
 .btn-cancel { background: transparent; border: 1px solid #e2e8f0; color: #64748b; font-weight: 600; font-size: 0.8125rem; cursor: pointer; padding: 0.5rem 1rem; border-radius: 8px; transition: all 0.2s; }

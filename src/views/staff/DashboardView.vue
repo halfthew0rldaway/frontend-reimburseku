@@ -340,6 +340,7 @@ const getBorderColor = (kategori) => {
               <button class="btn-ekspor" @click="toggleExportMenu">
                 <Download :size="18" class="ikon-ekspor" />
                 <span>Ekspor</span>
+                <ChevronDown :size="14" style="margin-left: 2px; color: #64748b;" />
               </button>
 
               <div v-if="showExportMenu" class="dropdown-menu">
@@ -468,7 +469,7 @@ const getBorderColor = (kategori) => {
     </div>
 
     <div v-if="showModalBulan" class="modal-backdrop" @click.self="showModalBulan = false">
-      <div class="modal-box">
+      <div class="modal month-modal">
         <h3 class="modal-judul">Pilih Bulan</h3>
         <div class="modal-tahun-kontrol">
           <button class="btn-kontrol-tahun" @click="tempTahun--"><ChevronLeft :size="18"/></button>
@@ -577,7 +578,7 @@ const getBorderColor = (kategori) => {
 .ikon-ekspor { color: #64748b; }
 
 /* --- MODAL BULAN --- */
-.modal-box { max-width: 340px; padding: 1.5rem; }
+.month-modal { max-width: 340px; padding: 1.5rem; }
 .modal-judul {
   font-size: 1.125rem; font-weight: 700; margin-bottom: 1rem; text-align: center;
   color: var(--color-text-main, #1e293b);

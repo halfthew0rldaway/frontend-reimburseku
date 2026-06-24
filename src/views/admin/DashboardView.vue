@@ -86,16 +86,25 @@ const populateDonutData = (reimbursements) => {
       .sort((a, b) => b[1] - a[1]) // Sort desc
       .slice(0, 4) // Max 4 categories
 
-    const colorPalette = ['#f59e0b', '#22c55e', '#ef4444', '#3b82f6', '#8b5cf6']
+    categories.value = sortedCats.map((cat, index) => {
+      const labelLower = cat[0].toLowerCase();
+      let color = '#3b82f6'; // Default Blue (Lain-lain)
+      if (labelLower.includes('transport')) color = '#10b981'; // Green
+      else if (labelLower.includes('makan') || labelLower.includes('minum')) color = '#ef4444'; // Red/Pink
+      else if (labelLower.includes('parkir')) color = '#8b5cf6'; // Purple
+      
+      return {
+        label: cat[0],
+        color: color,
+        dash: '0 100', offset: '0'
+      }
+    })
 
-    categories.value = sortedCats.map((cat, index) => ({
-      label: cat[0],
-      color: colorPalette[index % colorPalette.length],
-      dash: '0 100', offset: '0'
-    }))
-
-    donutOptions.value.labels = categories.value.map(c => c.label)
-    donutOptions.value.colors = categories.value.map(c => c.color)
+    donutOptions.value = {
+      ...donutOptions.value,
+      labels: categories.value.map(c => c.label),
+      colors: categories.value.map(c => c.color)
+    }
 
     donutSeries.value = sortedCats.map(cat => Math.round((cat[1] / totalAll) * 100))
   }
@@ -477,8 +486,8 @@ const filteredLogs = computed(() => {
 }
 
 .donut-box {
-  width: 140px;
-  height: 140px;
+  width: 200px;
+  height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;

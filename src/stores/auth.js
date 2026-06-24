@@ -7,10 +7,20 @@ export const useAuthStore = defineStore('auth', () => {
     // ============================
     const token = ref(localStorage.getItem('token') || null)
 
+    // Helper untuk mencegah error "undefined is not valid JSON"
+    const safeJSONParse = (key) => {
+        try {
+            const val = localStorage.getItem(key)
+            return val && val !== 'undefined' ? JSON.parse(val) : null
+        } catch (e) {
+            return null
+        }
+    }
+
     // Parse JSON dari localStorage agar data bertahan saat refresh
-    const user = ref(JSON.parse(localStorage.getItem('user')) || null)
-    const accountPayout = ref(JSON.parse(localStorage.getItem('account_payout')) || null)
-    const role = ref(JSON.parse(localStorage.getItem('role')) || null)
+    const user = ref(safeJSONParse('user'))
+    const accountPayout = ref(safeJSONParse('account_payout'))
+    const role = ref(safeJSONParse('role'))
 
     // ============================
     // 2. ACTIONS (Fungsi Modifikasi)
@@ -24,11 +34,11 @@ export const useAuthStore = defineStore('auth', () => {
         accountPayout.value = data.account_payout
         role.value = data.role
 
-        // Simpan ke localStorage
+        // Simpan ke localStorage (cek undefined/null sebelum stringify)
         localStorage.setItem('token', data.token)
-        localStorage.setItem('user', JSON.stringify(data.user))
-        localStorage.setItem('account_payout', JSON.stringify(data.account_payout))
-        localStorage.setItem('role', JSON.stringify(data.role))
+        localStorage.setItem('user', data.user ? JSON.stringify(data.user) : null)
+        localStorage.setItem('account_payout', data.account_payout ? JSON.stringify(data.account_payout) : null)
+        localStorage.setItem('role', data.role ? JSON.stringify(data.role) : null)
     }
 
     function updateUserData(userData) {

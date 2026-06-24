@@ -454,8 +454,8 @@ onMounted(() => {
 }
 
 .logout-btn:hover {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+  background-color: #dc2626 !important;
+  color: white !important;
 }
 
 .logout-icon {

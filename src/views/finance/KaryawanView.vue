@@ -316,7 +316,7 @@ const closeDetail = () => {
 
     <!-- MODAL EKSPOR (Simple) -->
     <div v-if="showExportModal" class="modal-backdrop" @click.self="showExportModal = false">
-      <div class="modal-box">
+      <div class="modal export-modal">
         <div class="modal-header">
           <h3 class="modal-title">Ekspor Data Karyawan</h3>
           <button class="close-btn" @click="showExportModal = false"><X :size="20" /></button>
@@ -408,8 +408,9 @@ const closeDetail = () => {
 .btn-icon.detail:hover { background: #e2e8f0; color: #1e293b; }
 
 /* Export Modal */
-.modal-box { max-width: 380px; }
-.modal-box .modal-body { padding-bottom: 1rem; }
+.export-modal { max-width: 400px; }
+.export-modal .modal-header { justify-content: space-between; }
+.export-modal .close-btn { order: 1; margin-right: 0; }
 .export-desc { font-size: 0.8125rem; color: #64748b; margin-bottom: 1.25rem; line-height: 1.5; }
 .export-actions-centered { display: flex; gap: 0.75rem; justify-content: center; padding-bottom: 0.5rem; }
 .btn-download { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.625rem 1.5rem; border-radius: 10px; font-size: 0.8125rem; font-weight: 600; cursor: pointer; border: none; color: white; transition: all 0.2s; min-width: 140px; }
