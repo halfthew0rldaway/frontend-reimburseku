@@ -407,6 +407,7 @@ onMounted(() => {
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: 0.25rem;
+  color: white; /* Perubahan: Menambahkan warna putih eksplisit pada nama staf */
 }
 
 .user-role {
@@ -493,7 +494,9 @@ onMounted(() => {
   flex: 1;
   margin-left: 250px;
   height: 100vh;
-  overflow: hidden;
+  /* 1. Ubah overflow menjadi auto agar sisi kanan bisa di-scroll secara keseluruhan */
+  overflow-y: auto; 
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -501,10 +504,11 @@ onMounted(() => {
 .page-content {
   padding: 1.5rem 2rem;
   flex: 1;
-  display: flex;
-  flex-direction: column;
   width: 100%;
-  overflow: hidden;
+  /* 2. Hapus display: flex, flex-direction, dan overflow-y: auto di sini 
+     agar komponen seperti Profile bisa merender tingginya secara alami 
+     dan memicu scroll pada .main-content */
+  display: block; 
 }
 
 .topbar {

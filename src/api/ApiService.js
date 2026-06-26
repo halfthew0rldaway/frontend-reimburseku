@@ -43,6 +43,10 @@ export default {
     },
 
     // FINANCE
+    getSourceFunding(page=1) {
+        return apiClient.get(`/source-funding?page=${page}`)
+    },
+  
     getBalanceStats() {
         return apiClient.get('/deposit/get/balance-stats')
     },
