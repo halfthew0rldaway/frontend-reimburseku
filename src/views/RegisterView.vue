@@ -62,6 +62,13 @@ const accountLabel = computed(() => {
 })
 // ------------------------------------------
 
+const preventLetters = (event) => {
+  const charCode = event.which ? event.which : event.keyCode;
+  if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+    event.preventDefault(); 
+  }
+}
+
 async function handleRegister() {
   // --- LOGIKA VALIDASI REGEX ---
   let errorMessages = []
@@ -186,12 +193,12 @@ async function handleRegister() {
           <div class="form-grid">
             <div class="form-group">
               <label class="form-label">Nama Lengkap <span class="text-red-500">*</span></label>
-              <input v-model="form.name" type="text" class="form-control" placeholder="Masukkan nama" required />
+              <input v-model="form.name" type="text" class="form-control" placeholder="Masukkan nama" required maxlength="255" />
             </div>
             
             <div class="form-group">
               <label class="form-label">Email <span class="text-red-500">*</span></label>
-              <input v-model="form.email" type="email" class="form-control" placeholder="nama@email.com" required />
+              <input v-model="form.email" type="email" class="form-control" placeholder="nama@email.com" required maxlength="255" />
             </div>
 
             <div class="form-group">
@@ -207,7 +214,7 @@ async function handleRegister() {
 
             <div class="form-group">
               <label class="form-label">No. Telepon <span class="text-red-500">*</span></label>
-              <input v-model="form.phone" type="text" class="form-control" placeholder="Contoh: 08123456789" required />
+              <input v-model="form.phone" type="text" class="form-control" placeholder="Contoh: 08123456789" required maxlength="20" @keypress="preventLetters" />
             </div>
 
             <div class="form-group">
@@ -259,12 +266,12 @@ async function handleRegister() {
             <div class="form-group">
               <label class="form-label">{{ accountLabel }} <span class="text-red-500">*</span></label>
               <input v-model="form.account_number" type="text" class="form-control" 
-                :placeholder="accountLabel.includes('Telepon') ? 'Contoh: 0852xxxxxx' : 'Contoh: 8738722xxx'" required />
+                :placeholder="accountLabel.includes('Telepon') ? 'Contoh: 0852xxxxxx' : 'Contoh: 8738722xxx'" required maxlength="50" @keypress="preventLetters" />
             </div>
 
             <div class="form-group">
               <label class="form-label">Atas Nama (A/N) <span class="text-red-500">*</span></label>
-              <input v-model="form.account_holder_name" type="text" class="form-control" placeholder="Sesuai buku tabungan / e-wallet" required />
+              <input v-model="form.account_holder_name" type="text" class="form-control" placeholder="Sesuai buku tabungan / e-wallet" required maxlength="255" />
             </div>
           </div>
 

@@ -351,7 +351,10 @@ const confirmAction = async () => {
 
   try {
     const formData = new FormData()
-    formData.append('status', 'APPROVED')
+    // Jika isMandatory (membayar), kirim status PAID, jika tidak (hanya menyetujui), kirim APPROVED
+    const targetStatus = isMandatory.value ? 'PAID' : 'APPROVED'
+    formData.append('status', targetStatus)
+    
     if (proofFile.value) {
       formData.append('transfer_receipt', proofFile.value)
     }
@@ -469,10 +472,27 @@ onMounted(() => {
             </tr>
           </thead>
           <tbody v-if="isLoading">
-            <tr>
-              <td colspan="8" class="text-center loading-state">
-                <div class="loader-spinner"></div>
-                <p class="loading-text">Memuat data pengajuan...</p>
+            <tr v-for="i in 5" :key="'skel'+i">
+              <td>
+                <div class="user-info">
+                  <div class="skeleton-box skeleton-avatar"></div>
+                  <div class="user-meta">
+                    <div class="skeleton-box skeleton-text" style="width: 100px;"></div>
+                    <div class="skeleton-box skeleton-text" style="width: 60px; margin-top: 4px;"></div>
+                  </div>
+                </div>
+              </td>
+              <td><div class="skeleton-box skeleton-text" style="width: 120px;"></div></td>
+              <td><div class="skeleton-box skeleton-text" style="width: 90px;"></div></td>
+              <td><div class="skeleton-box skeleton-text" style="width: 90px;"></div></td>
+              <td><div class="skeleton-box skeleton-text" style="width: 80px; height: 24px; border-radius: 12px;"></div></td>
+              <td><div class="skeleton-box skeleton-text" style="width: 100px;"></div></td>
+              <td><div class="skeleton-box skeleton-text" style="width: 70px; height: 24px; border-radius: 12px;"></div></td>
+              <td class="text-center">
+                <div class="action-row" style="justify-content: center;">
+                  <div class="skeleton-box" style="width: 60px; height: 28px; border-radius: 6px;"></div>
+                  <div class="skeleton-box" style="width: 60px; height: 28px; border-radius: 6px;"></div>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -821,4 +841,27 @@ onMounted(() => {
 .btn-primary-modal:hover { background: #2563eb; }
 
 
+/* Skeleton Loader */
+.skeleton-box {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: loadingSkeleton 1.5s infinite;
+}
+
+.skeleton-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeleton-text {
+  height: 12px;
+  border-radius: 4px;
+}
+
+@keyframes loadingSkeleton {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 </style>
