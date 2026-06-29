@@ -71,6 +71,7 @@ const rejectReason = ref('')
 const rejectError = ref(false)
 const uploadShake = ref(false)
 const selectedReceiptUrl = ref('')
+const previewTitle = ref('Bukti Transfer')
 const zoomLevel = ref(1)
 
 
@@ -290,6 +291,7 @@ const handleFileUpload = (e) => {
 const openReceipt = (item) => {
   if (item.receiptUrl) {
     selectedReceiptUrl.value = item.receiptUrl
+    previewTitle.value = 'Bukti Transfer'
     zoomLevel.value = 1 
     showReceiptModal.value = true
   } else {
@@ -297,6 +299,22 @@ const openReceipt = (item) => {
       icon: 'info',
       title: 'Tidak Ada Bukti',
       text: 'Bukti transfer belum diunggah atau tidak ditemukan.',
+      confirmButtonColor: '#3b82f6'
+    })
+  }
+}
+
+const openFilePreview = (item) => {
+  if (item.fileUrl) {
+    selectedReceiptUrl.value = item.fileUrl
+    previewTitle.value = 'File Pendukung'
+    zoomLevel.value = 1 
+    showReceiptModal.value = true
+  } else {
+    Swal.fire({
+      icon: 'info',
+      title: 'Tidak Ada File',
+      text: 'File pendukung belum diunggah atau tidak ditemukan.',
       confirmButtonColor: '#3b82f6'
     })
   }
@@ -481,9 +499,9 @@ onMounted(() => {
               <td class="text-muted">{{ item.date }}</td>
               <td class="text-muted" style="font-size: 0.85rem;">{{ item.submitTime }}</td>
               <td>
-                <a v-if="item.fileUrl" :href="item.fileUrl" target="_blank" class="btn-file">
+                <button v-if="item.fileUrl" @click.prevent="openFilePreview(item)" class="btn-file">
                   <FileText :size="12" /> Lihat File
-                </a>
+                </button>
                 <span v-else>-</span>
               </td>
               <td class="font-bold">{{ item.amount }}</td>
@@ -642,7 +660,7 @@ onMounted(() => {
     <div v-if="showReceiptModal" class="modal-overlay" @click.self="closeReceipt">
       <div class="modal receipt-modal">
         <div class="modal-header">
-          <h3 class="modal-title">Bukti Transfer</h3>
+          <h3 class="modal-title">{{ previewTitle }}</h3>
 
           <div class="zoom-controls">
             <button class="zoom-btn" @click="zoomOut" title="Zoom Out">

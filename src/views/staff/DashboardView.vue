@@ -417,8 +417,10 @@ const getBorderColor = (kategori) => {
       </div>
 
       <div class="kolom-kanan">
-        <h2 class="judul-seksi">Statistik dan Laporan</h2>
-     <div class="grid-statistik">
+        <div class="title-with-filters" style="min-height: 44px;">
+          <h2 class="judul-seksi">Statistik dan Laporan</h2>
+        </div>
+        <div class="grid-statistik">
   <div v-for="s in kategoriStats" :key="s.label" class="kartu-stat" :style="{ background: s.bg }">
     <div class="stat-ikon">
       <component :is="s.ikon" :size="28" />
@@ -795,7 +797,6 @@ const getBorderColor = (kategori) => {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.5rem;
-  padding-top: 2rem;
 }
 .kartu-stat {
   border-radius: 10px;
